@@ -22,7 +22,6 @@ import org.geotools.data.Query;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.store.ReTypingFeatureCollection;
 import org.geotools.feature.FeatureCollection;
-import org.geotools.feature.collection.ClipIntersectsFeatureCollection;
 import org.geotools.feature.collection.ClippedFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.util.factory.Hints;

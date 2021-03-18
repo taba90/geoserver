@@ -3,7 +3,7 @@
 GetFeatureInfo Templates
 ========================
 
-This tutorial describes how to use the GeoServer template system to create custom HTML GetFeatureInfo responses.
+This tutorial describes how to use GeoServer to create custom GetFeatureInfo responses.
 
 Introduction
 ````````````
@@ -15,6 +15,7 @@ GetFeatureInfo is a WMS standard call that allows one to retrieve information ab
 
    html
    geojson
+   raster
 
 	
 	

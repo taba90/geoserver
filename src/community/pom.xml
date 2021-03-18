@@ -96,6 +96,9 @@
           <descriptor>release/ext-imagemosaic-jdbc.xml</descriptor>
           <descriptor>release/ext-smart-data-loader.xml</descriptor>
           <descriptor>release/ext-cov-json.xml</descriptor>
+          <descriptor>release/ext-schemaless-features.xml</descriptor>
+
+
           <!-- As per our discussion on list, the module does not work, leaving it for eventual salvage,
                but not providing an assembly. This one has been left for those interested
                <descriptor>release/ext-importer-bdb.xml</descriptor>
@@ -269,6 +272,7 @@
 		<module>cog</module>
 		<module>cov-json</module>
         <module>smart-data-loader</module>
+        <module>schemaless-features</module>
       </modules>
     </profile>
     <profile>
@@ -707,5 +711,11 @@
         <module>smart-data-loader</module>
       </modules>
     </profile>
+      <profile>
+          <id>schemaless-features</id>
+          <modules>
+              <module>schemaless-features</module>
+          </modules>
+      </profile>
   </profiles>  
 </project>

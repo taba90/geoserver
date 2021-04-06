@@ -14,7 +14,9 @@ import static org.junit.Assert.fail;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import javax.imageio.ImageIO;
 import javax.media.jai.PlanarImage;
 import javax.media.jai.iterator.RandomIter;
 import javax.media.jai.iterator.RandomIterFactory;
@@ -43,6 +46,7 @@ import org.geotools.feature.type.AttributeDescriptorImpl;
 import org.geotools.feature.type.AttributeTypeImpl;
 import org.geotools.feature.type.GeometryDescriptorImpl;
 import org.geotools.feature.type.GeometryTypeImpl;
+import org.geotools.image.test.ImageAssert;
 import org.geotools.image.util.ImageUtilities;
 import org.geotools.referencing.CRS;
 import org.geotools.renderer.lite.RendererUtilities;
@@ -1452,6 +1456,50 @@ public class BufferedImageLegendGraphicOutputFormatTest
         this.legendProducer.resizeForDPI(req, sldStype);
         assertEquals(66, this.legendProducer.w);
         assertEquals(66, this.legendProducer.h);
+    }
+
+    @org.junit.Test
+    public void testLegendSelectionInRule() throws Exception {
+        GetLegendGraphicRequest req = new GetLegendGraphicRequest(null);
+        req.setWidth(20);
+        req.setHeight(20);
+
+        FeatureTypeInfo ftInfo =
+                getCatalog()
+                        .getFeatureTypeByName(
+                                MockData.MPOLYGONS.getNamespaceURI(),
+                                MockData.MPOLYGONS.getLocalPart());
+
+        req.setLayer(ftInfo.getFeatureType());
+        req.setStyle(getCatalog().getStyleByName("styleWithLegendSelection").getStyle());
+
+        BufferedImage image = this.legendProducer.buildLegendGraphic(req);
+        URL result = getClass().getResource("./results/renderingSelectionOnRule.png");
+        ImageAssert.assertEquals(new File(result.toURI()), image, 50);
+    }
+
+    @org.junit.Test
+    public void testLegendSelectionInSymbolizer() throws Exception {
+        GetLegendGraphicRequest req = new GetLegendGraphicRequest(null);
+        req.setWidth(20);
+        req.setHeight(20);
+
+        FeatureTypeInfo ftInfo =
+                getCatalog()
+                        .getFeatureTypeByName(
+                                MockData.MPOLYGONS.getNamespaceURI(),
+                                MockData.MPOLYGONS.getLocalPart());
+
+        req.setLayer(ftInfo.getFeatureType());
+        req.setStyle(
+                getCatalog().getStyleByName("styleWithLegendSelectionOnSymbolizer").getStyle());
+
+        BufferedImage image = this.legendProducer.buildLegendGraphic(req);
+        File file = new File("C://marco_workspace/resultLegendSymb.png");
+        file.createNewFile();
+        ImageIO.write(image, "PNG", file);
+        URL result = getClass().getResource("./results/renderingSelectionOnRule.png");
+        ImageAssert.assertEquals(new File(result.toURI()), image, 50);
     }
 
     /** */

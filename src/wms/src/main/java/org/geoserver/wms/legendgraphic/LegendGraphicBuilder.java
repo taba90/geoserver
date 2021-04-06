@@ -4,6 +4,8 @@
  */
 package org.geoserver.wms.legendgraphic;
 
+import static org.geotools.styling.visitor.RenderingSelectorStyleVisitor.RENDERING_LEGEND_OPTION;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +37,7 @@ import org.geotools.styling.Style;
 import org.geotools.styling.Symbolizer;
 import org.geotools.styling.TextSymbolizer;
 import org.geotools.styling.visitor.DpiRescaleStyleVisitor;
+import org.geotools.styling.visitor.RenderingSelectorStyleVisitor;
 import org.geotools.styling.visitor.RescaleStyleVisitor;
 import org.geotools.styling.visitor.UomRescaleStyleVisitor;
 import org.locationtech.jts.geom.Coordinate;
@@ -508,5 +511,12 @@ public abstract class LegendGraphicBuilder {
                 }
             }
         }
+    }
+
+    protected Style appliesRenderingSelection(Style style) {
+        RenderingSelectorStyleVisitor renderingSelectorStyleVisitor =
+                new RenderingSelectorStyleVisitor(RENDERING_LEGEND_OPTION);
+        style.accept(renderingSelectorStyleVisitor);
+        return (Style) renderingSelectorStyleVisitor.getCopy();
     }
 }

@@ -1,0 +1,39 @@
+<html xmlns:wicket="http://wicket.apache.org/">
+<head>
+    <title><wicket:message key="templateEntries">Templates list</wicket:message></title>
+</head>
+<body>
+<wicket:panel>
+<form name="theForm">
+    <ul>
+        <li>
+            <fieldset>
+                <ul>
+                    <li>
+                        <label for="templateName"><wicket:message key="templateName"></wicket:message></label>
+                        <input id="templateName" wicket:id="templateName" type="text" class="text" />
+                    </li>
+                    <li>
+                        <label for="mimeTypes"><wicket:message key="mimeTypes"></wicket:message></label>
+                        <select wicket:id="mimeTypes" id="mimeTypes" />
+                    </li>
+                    <li>
+                        <label for="regexRule"><wicket:message key="regexRule"></wicket:message></label>
+                        <input wicket:id="regexRule" id="regexRule" type="text" class="text"/>
+                    </li>
+                    <li>
+                        <label for="templateEditor"><wicket:message key="templateEditor"></wicket:message></label>
+                        <div class="field" wicket:id="templateEditor" id="templateEditor"> </div>
+                    </li>
+                </ul>
+            </fieldset>
+        </li>
+    </ul>
+    <div class="button-group toolbar-sticky selfclear">
+        <a href="#" class="form-button-save" wicket:id="save"><wicket:message key="save">Save</wicket:message></a>
+        <a href="#" class="form-button-cancel" wicket:id="cancel"><wicket:message key="cancel">Cancel</wicket:message></a>
+    </div>
+</form>
+</wicket:panel>
+</body>
+</html>

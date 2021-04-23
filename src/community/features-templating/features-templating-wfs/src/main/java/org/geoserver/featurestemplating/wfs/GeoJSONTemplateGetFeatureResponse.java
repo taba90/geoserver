@@ -12,7 +12,7 @@ import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
 import org.geoserver.featurestemplating.builders.geojson.GeoJSONRootBuilder;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
-import org.geoserver.featurestemplating.configuration.TemplateConfiguration;
+import org.geoserver.featurestemplating.configuration.TemplateCache;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
 import org.geoserver.featurestemplating.writers.GeoJSONWriter;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
@@ -34,7 +34,7 @@ public class GeoJSONTemplateGetFeatureResponse extends BaseTemplateGetFeatureRes
     protected boolean hasGeometry;
 
     public GeoJSONTemplateGetFeatureResponse(
-            GeoServer gs, TemplateConfiguration configuration, TemplateIdentifier identifier) {
+            GeoServer gs, TemplateCache configuration, TemplateIdentifier identifier) {
         super(gs, configuration, identifier);
     }
 

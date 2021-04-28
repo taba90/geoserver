@@ -44,11 +44,11 @@ public class GeoJSONTemplateGetFeatureResponse extends BaseTemplateGetFeatureRes
             throws ServiceException {
 
         try (GeoJSONWriter writer = getOutputWriter(output)) {
-            writer.startTemplateOutput();
+            writer.startTemplateOutput(null);
             iterateFeatureCollection(writer, featureCollection);
             writer.endArray();
             writeAdditionFields(writer, featureCollection, getFeature);
-            writer.endTemplateOutput();
+            writer.endTemplateOutput(null);
         } catch (Exception e) {
             throw new ServiceException(e);
         }

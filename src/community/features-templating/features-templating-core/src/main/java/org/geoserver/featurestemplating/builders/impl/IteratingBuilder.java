@@ -46,11 +46,10 @@ public class IteratingBuilder extends SourceBuilder {
     protected void evaluateNonFeaturesField(
             TemplateOutputWriter writer, TemplateBuilderContext context) throws IOException {
         if (canWrite(context)) {
-            writeKey(writer);
-            writer.startArray();
+            writer.startArray(keyAsString());
             if (context.getCurrentObj() instanceof List) evaluateCollection(writer, context);
             else evaluateInternal(writer, context);
-            writer.endArray();
+            writer.endArray(keyAsString());
         }
     }
 

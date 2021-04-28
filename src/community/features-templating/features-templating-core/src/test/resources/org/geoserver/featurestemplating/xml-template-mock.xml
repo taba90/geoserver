@@ -1,0 +1,39 @@
+<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs"
+                       xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                       xmlns:gml="http://www.opengis.net/gml"
+                       xmlns:eposl="https://data.geoscience.earth/def/eposl"
+                       xmlns:xlink="http://www.w3.org/1999/xlink"
+                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xsi:schemaLocation="https://data.geoscience.earth/def/eposl
+                       https://data.geoscience.earth/def/eposl.xsd http://www.opengis.net/wfs
+                       http://localhost:8081/geoserver/schemas/wfs/1.1.0/wfs.xsd"
+                       isCollection="true"
+                       xmlns:gft="http://geoserver/gft">
+    <gml:featureMembers isCollection="true">
+        <eposl:BoreholeView gml:id="${@id}">
+            <gml:description
+                    xmlns:gml="http://www.opengis.net/gml/3.2">${name}
+            </gml:description>
+            <gml:identifier xmlns:gml="http://www.opengis.net/gml/3.2"
+                            codeSpace="http://www.ietf.org/rfc/rfc2616">${identifier}
+            </gml:identifier>
+            <gml:name
+                    xmlns:gml="http://www.opengis.net/gml/3.2">${gml:name}
+            </gml:name>
+            <eposl:purpose xlink:href="${borehole}"
+                           xlink:title="${@xlink:title}"/>
+            <eposl:boreholeMaterialCustodian
+                    gft:isCollection="true" gft:source="boreholeMaterialCustodian"
+                    gft:filter="eposl:company = 'the company name'">
+                <eposl:BoreholeMaterialCustodian>
+                    <gml:name>${gml:name}</gml:name>
+                    <eposl:company>${eposl:company}</eposl:company>
+                </eposl:BoreholeMaterialCustodian>
+            </eposl:boreholeMaterialCustodian>
+            <eposl:simpleAttributeFiltered>$filter{xpath('eposl:simpleAttributeFiltered
+                ')='the simple attribute I want to
+                see'},${eposl:simpleAttributeFiltered}
+            </eposl:simpleAttributeFiltered>
+        </eposl:BoreholeView>
+    </gml:featureMembers>
+</wfs:FeatureCollection>

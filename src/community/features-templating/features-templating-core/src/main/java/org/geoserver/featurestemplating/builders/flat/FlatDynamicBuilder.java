@@ -25,7 +25,7 @@ public class FlatDynamicBuilder extends DynamicValueBuilder implements FlatBuild
     protected void writeValue(TemplateOutputWriter writer, Object value) throws IOException {
 
         ((CommonJSONWriter) writer)
-                .writeElementNameAndValue(value, nameHelper.getFinalAttributeName());
+                .writeElementNameAndValue(value, nameHelper.getFinalAttributeName(), getEncodingHints());
     }
 
     @Override

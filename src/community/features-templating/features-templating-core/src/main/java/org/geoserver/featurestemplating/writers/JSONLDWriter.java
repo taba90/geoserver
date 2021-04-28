@@ -8,6 +8,9 @@ package org.geoserver.featurestemplating.writers;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
+import java.util.Map;
+
+import com.sun.corba.se.spi.ior.ObjectKey;
 import org.geotools.filter.function.FilterFunction_toWKT;
 
 /** Implements its superclass methods to write a valid json-ld output */
@@ -32,7 +35,7 @@ public class JSONLDWriter extends CommonJSONWriter {
     }
 
     @Override
-    public void startTemplateOutput() throws IOException {
+    public void startTemplateOutput(Map<String, Object> encodingHints) throws IOException {
         writeStartObject();
         String contextName = "@context";
         if (contextHeader.isArray()) writeArrayNode(contextName, contextHeader);

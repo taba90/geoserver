@@ -47,9 +47,9 @@ public abstract class BaseTemplateGetFeatureResponse extends WFSGetFeatureOutput
             throws ServiceException {
 
         try (TemplateOutputWriter writer = helper.getOutputWriter(output)) {
-            writer.startTemplateOutput();
+            writer.startTemplateOutput(null);
             iterateFeatureCollection(writer, featureCollection);
-            writer.endTemplateOutput();
+            writer.endTemplateOutput(null);
         } catch (Exception e) {
             throw new ServiceException(e);
         }
@@ -111,7 +111,7 @@ public abstract class BaseTemplateGetFeatureResponse extends WFSGetFeatureOutput
             TemplateOutputWriter writer, RootBuilder root, FeatureTypeInfo typeInfo);
 
     /**
-     * Allows subclasses to perform actions before evaluation the feature
+     * Allows subclasses to perform actions before evaluatimg the feature
      *
      * @param writer the current TemplateWriter
      * @param root the current RootBuilder

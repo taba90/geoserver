@@ -7,6 +7,7 @@ package org.geoserver.featurestemplating.writers;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Map;
 
 /** Base interface for all the writers */
 public interface TemplateOutputWriter extends Closeable {
@@ -18,7 +19,7 @@ public interface TemplateOutputWriter extends Closeable {
      * @param elementName an object representing the element name
      * @throws IOException
      */
-    void writeElementName(Object elementName) throws IOException;
+    void writeElementName(Object elementName, Map<String,Object> encodingHints) throws IOException;
 
     /**
      * Write an element value. An element value may be i.e. a field value in a JSON or an element
@@ -27,7 +28,7 @@ public interface TemplateOutputWriter extends Closeable {
      * @param elementValue an object representing the element value
      * @throws IOException
      */
-    void writeElementValue(Object elementValue) throws IOException;
+    void writeElementValue(Object elementValue, Map<String,Object> encodingHints) throws IOException;
 
     /**
      * Write a static content, no matter how nested.
@@ -36,39 +37,39 @@ public interface TemplateOutputWriter extends Closeable {
      * @param staticContent an object representing some static content
      * @throws IOException
      */
-    void writeStaticContent(String name, Object staticContent) throws IOException;
+    void writeStaticContent(String name, Object staticContent, Map<String,Object> encodingHints) throws IOException;
 
     /**
      * Write the start of an object
      *
      * @throws IOException
      */
-    void startObject() throws IOException;
+    void startObject(String name) throws IOException;
 
     /**
      * Write the end of an object
      *
      * @throws IOException
      */
-    void endObject() throws IOException;
+    void endObject(String name) throws IOException;
 
     /**
      * Write the start of an array
      *
      * @throws IOException
      */
-    void startArray() throws IOException;
+    void startArray(String name) throws IOException;
 
     /**
      * Write the end of an array
      *
      * @throws IOException
      */
-    void endArray() throws IOException;
+    void endArray(String name) throws IOException;
 
-    void startTemplateOutput() throws IOException;
+    void startTemplateOutput(Map<String,Object> encodingHints) throws IOException;
 
-    void endTemplateOutput() throws IOException;
+    void endTemplateOutput(Map<String,Object> encodingHints) throws IOException;
 
     @Override
     void close() throws IOException;

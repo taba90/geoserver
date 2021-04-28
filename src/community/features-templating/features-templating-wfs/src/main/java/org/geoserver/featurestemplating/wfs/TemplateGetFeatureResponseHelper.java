@@ -9,6 +9,10 @@ import com.fasterxml.jackson.core.JsonFactory;
 import java.io.IOException;
 import java.io.OutputStream;
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
@@ -52,6 +56,15 @@ public class TemplateGetFeatureResponseHelper {
                         new JSONLDWriter(
                                 new JsonFactory().createGenerator(output, JsonEncoding.UTF8));
                 break;
+            case XML:
+                XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
+                try {
+                    XMLStreamWriter xMLStreamWriter =
+                            xMLOutputFactory.createXMLStreamWriter(output);
+
+                } catch (XMLStreamException e) {
+                    throw new IOException(e);
+                }
             default:
                 outputWriter = null;
         }

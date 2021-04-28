@@ -30,7 +30,7 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
     }
 
     @Override
-    public void writeStaticContent(String key, Object staticContent) throws IOException {
+    public void writeStaticContent(String key, Object staticContent, Map<String,Object> encodingHints) throws IOException {
         if (staticContent instanceof String
                 || staticContent instanceof Number
                 || staticContent instanceof Date) {
@@ -114,7 +114,7 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
     public abstract void writeGeometry(Object value) throws IOException;
 
     @Override
-    public void writeElementName(Object elementName) throws IOException {
+    public void writeElementName(Object elementName, Map<String,Object> encodingHints) throws IOException {
         if (elementName != null) writeFieldName(elementName.toString());
     }
 
@@ -123,55 +123,55 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
      * DynamicValueBuilder}
      */
     @Override
-    public void writeElementValue(Object result) throws IOException {
-        writeElementNameAndValue(result, null);
+    public void writeElementValue(Object result,Map<String,Object> encodingHints) throws IOException {
+        writeElementNameAndValue(result, null, encodingHints);
     }
 
     /**
      * Write the key and the result of an xpath or cql expression evaluation operated by the {@link
      * DynamicValueBuilder}
      */
-    public void writeElementNameAndValue(Object result, String key) throws IOException {
+    public void writeElementNameAndValue(Object result, String key, Map<String, Object> encodingHints) throws IOException {
         if (result instanceof String || result instanceof Number || result instanceof Boolean) {
-            if (flatOutput) writeElementName(key);
+            if (flatOutput) writeElementName(key,null);
             writeValue(result);
         } else if (result instanceof Date) {
             Date timeStamp = (Date) result;
             String formatted = new StdDateFormat().withColonInTimeZone(true).format(timeStamp);
-            writeElementNameAndValue(formatted, key);
+            writeElementNameAndValue(formatted, key,encodingHints);
         } else if (result instanceof Geometry) {
-            if (flatOutput) writeElementName(key);
+            if (flatOutput) writeElementName(key,encodingHints);
             writeGeometry(result);
         } else if (result instanceof ComplexAttribute) {
             ComplexAttribute attr = (ComplexAttribute) result;
-            writeElementNameAndValue(attr.getValue(), key);
+            writeElementNameAndValue(attr.getValue(), key, encodingHints);
         } else if (result instanceof Attribute) {
             Attribute attr = (Attribute) result;
-            writeElementNameAndValue(attr.getValue(), key);
+            writeElementNameAndValue(attr.getValue(), key, encodingHints);
         } else if (result instanceof List) {
             List list = (List) result;
             if (list.size() == 1) {
-                writeElementNameAndValue(list.get(0), key);
+                writeElementNameAndValue(list.get(0), key, encodingHints);
             } else {
                 if (!flatOutput) writeStartArray();
                 for (int i = 0; i < list.size(); i++) {
                     String itKey = null;
                     if (flatOutput) itKey = key + "_" + (i + 1);
-                    writeElementNameAndValue(list.get(i), itKey != null ? itKey : key);
+                    writeElementNameAndValue(list.get(i), itKey != null ? itKey : key,encodingHints);
                 }
                 if (!flatOutput) writeEndArray();
             }
         } else if (result == null) {
-            if (flatOutput) writeElementName(key);
+            if (flatOutput) writeElementName(key,encodingHints);
             writeNull();
         } else {
-            if (flatOutput) writeElementName(key);
+            if (flatOutput) writeElementName(key, encodingHints);
             writeValue(result.toString());
         }
     }
 
     @Override
-    public void startTemplateOutput() throws IOException {
+    public void startTemplateOutput(Map<String,Object> encodingHints) throws IOException {
 
         writeStartObject();
         writeFieldName("type");
@@ -181,7 +181,7 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
     }
 
     @Override
-    public void endTemplateOutput() throws IOException {
+    public void endTemplateOutput(Map<String, Object> encodingHints) throws IOException {
         writeEndArray();
         writeEndObject();
     }
@@ -237,22 +237,24 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
     }
 
     @Override
-    public void startObject() throws IOException {
+    public void startObject(String name) throws IOException {
+        writeElementName(name, null);
         writeStartObject();
     }
 
     @Override
-    public void endObject() throws IOException {
+    public void endObject(String name) throws IOException {
         writeEndObject();
     }
 
     @Override
-    public void startArray() throws IOException {
+    public void startArray(String name) throws IOException {
+        writeElementName(name,null);
         writeStartArray();
     }
 
     @Override
-    public void endArray() throws IOException {
+    public void endArray(String name) throws IOException {
         writeEndArray();
     }
 

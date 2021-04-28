@@ -94,9 +94,9 @@ public class JSONLDGetFeatureResponse extends BaseTemplateGetFeatureResponse {
             JSONLDWriter writer)
             throws IOException {
         writer.setContextHeader(root.getContextHeader());
-        writer.startTemplateOutput();
+        writer.startTemplateOutput(root.getEncodingHints());
         iterateFeatureCollection(writer, featureCollection, root);
-        writer.endTemplateOutput();
+        writer.endTemplateOutput(root.getEncodingHints());
     }
 
     @Override

@@ -47,12 +47,9 @@ public class JSONTemplateReader implements TemplateReader {
      */
     @Override
     public RootBuilder getRootBuilder() {
-        RootBuilder root;
-        boolean isJsonLd;
-        if (template.has(CONTEXTKEY)) isJsonLd = true;
-        else isJsonLd = false;
+        boolean isJsonLd=template.has(CONTEXTKEY);
         BuilderFactory factory = configuration.getBuilderFactory(isJsonLd);
-        root = factory.getRootBuilder();
+        RootBuilder root = factory.getRootBuilder();
         getBuilderFromJson(null, template, root, factory);
         return root;
     }
@@ -220,19 +217,11 @@ public class JSONTemplateReader implements TemplateReader {
 
     private void setFilterToBuilder(TemplateBuilder builder, JsonNode node) {
         String filter = node.get(FILTERKEY).asText();
-        try {
             ((AbstractTemplateBuilder) builder).setFilter(filter);
-        } catch (CQLException e) {
-            throw new RuntimeException("Invalid filter " + filter, e);
-        }
     }
 
     private void setFilterToBuilder(TemplateBuilder builder, String filter) {
-        try {
             ((AbstractTemplateBuilder) builder).setFilter(filter);
-        } catch (CQLException e) {
-            throw new RuntimeException("Invalid filter " + filter, e);
-        }
     }
 
     private void setVendorOptions(JsonNode node, RootBuilder builder, BuilderFactory factory) {

@@ -71,7 +71,7 @@ public class GeoJSONWriter extends CommonJSONWriter {
     }
 
     @Override
-    public void endTemplateOutput() throws IOException {
+    public void endTemplateOutput(Map<String, Object> encodingHints) throws IOException {
         endObject();
     }
 
@@ -190,7 +190,7 @@ public class GeoJSONWriter extends CommonJSONWriter {
     public void writeStaticContent(String key, Object staticContent, String separator)
             throws IOException {
         if (separator == null || staticContent instanceof String)
-            super.writeStaticContent(key, staticContent);
+            super.writeStaticContent(key, staticContent,null);
         else {
             JsonNode jsonNode = (JsonNode) staticContent;
             if (jsonNode.isArray()) {

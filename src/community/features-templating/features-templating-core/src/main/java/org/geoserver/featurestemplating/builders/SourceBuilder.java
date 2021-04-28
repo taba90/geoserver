@@ -19,11 +19,9 @@ public abstract class SourceBuilder extends AbstractTemplateBuilder {
 
     private Expression source;
 
-    protected List<TemplateBuilder> children;
-
     public SourceBuilder(String key, NamespaceSupport namespaces) {
         super(key, namespaces);
-        this.children = new LinkedList<TemplateBuilder>();
+        this.children = new LinkedList<>();
     }
 
     /**
@@ -61,11 +59,6 @@ public abstract class SourceBuilder extends AbstractTemplateBuilder {
     @Override
     public void addChild(TemplateBuilder builder) {
         this.children.add(builder);
-    }
-
-    @Override
-    public List<TemplateBuilder> getChildren() {
-        return children;
     }
 
     /**

@@ -19,7 +19,7 @@ public interface TemplateOutputWriter extends Closeable {
      * @param elementName an object representing the element name
      * @throws IOException
      */
-    void writeElementName(Object elementName, Map<String,Object> encodingHints) throws IOException;
+    void writeElementName(Object elementName, Map<String, Object> encodingHints) throws IOException;
 
     /**
      * Write an element value. An element value may be i.e. a field value in a JSON or an element
@@ -28,7 +28,8 @@ public interface TemplateOutputWriter extends Closeable {
      * @param elementValue an object representing the element value
      * @throws IOException
      */
-    void writeElementValue(Object elementValue, Map<String,Object> encodingHints) throws IOException;
+    void writeElementValue(Object elementValue, Map<String, Object> encodingHints)
+            throws IOException;
 
     /**
      * Write a static content, no matter how nested.
@@ -37,7 +38,8 @@ public interface TemplateOutputWriter extends Closeable {
      * @param staticContent an object representing some static content
      * @throws IOException
      */
-    void writeStaticContent(String name, Object staticContent, Map<String,Object> encodingHints) throws IOException;
+    void writeStaticContent(String name, Object staticContent, Map<String, Object> encodingHints)
+            throws IOException;
 
     /**
      * Write the start of an object
@@ -67,9 +69,9 @@ public interface TemplateOutputWriter extends Closeable {
      */
     void endArray(String name) throws IOException;
 
-    void startTemplateOutput(Map<String,Object> encodingHints) throws IOException;
+    void startTemplateOutput(Map<String, Object> encodingHints) throws IOException;
 
-    void endTemplateOutput(Map<String,Object> encodingHints) throws IOException;
+    void endTemplateOutput(Map<String, Object> encodingHints) throws IOException;
 
     @Override
     void close() throws IOException;

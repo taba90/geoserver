@@ -1,39 +1,51 @@
 package org.geoserver.featurestemplating.writers;
 
-import com.fasterxml.jackson.databind.util.StdDateFormat;
-import org.geoserver.featurestemplating.readers.XMLTemplateReader;
-import org.locationtech.jts.geom.Geometry;
+import static org.geoserver.featurestemplating.builders.EncodingHints.ROOT_ELEMENT_ATTRIBUTES;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import org.geoserver.featurestemplating.readers.XMLTemplateReader;
+import org.locationtech.jts.geom.Geometry;
 
-public class XMLTemplateWriter implements TemplateOutputWriter{
+public class XMLTemplateWriter implements TemplateOutputWriter {
 
     private XMLStreamWriter streamWriter;
 
-    public XMLTemplateWriter(XMLStreamWriter streamWriter){
-        this.streamWriter=streamWriter;
+    public XMLTemplateWriter(XMLStreamWriter streamWriter) {
+        this.streamWriter = streamWriter;
     }
+
     @Override
-    public void writeElementName(Object elementName, Map<String, Object> encodingHints) throws IOException {
+    public void writeElementName(Object elementName, Map<String, Object> encodingHints)
+            throws IOException {
         try {
-            String elemName=elementName.toString();
-            String[] elems=elemName.split(":");
-            streamWriter.writeStartElement(elems[0],elems[1]);
+            String elemName = elementName.toString();
+            String[] elems = elemName.split(":");
+            streamWriter.writeStartElement(elems[0], elems[1]);
         } catch (XMLStreamException e) {
             throw new IOException(e);
         }
     }
 
     @Override
-    public void writeElementValue(Object elementValue, Map<String, Object> encodingHints) throws IOException {
+    public void writeElementValue(Object elementValue, Map<String, Object> encodingHints)
+            throws IOException {
         try {
-            if (elementValue instanceof Geometry){
-                writeGeometry((Geometry)elementValue);
+            if (elementValue instanceof String
+                    || elementValue instanceof Number
+                    || elementValue instanceof Boolean) {
+                streamWriter.writeCharacters(String.valueOf(elementValue));
+            } else if (elementValue instanceof Date) {
+                Date timeStamp = (Date) elementValue;
+                String formatted = new StdDateFormat().withColonInTimeZone(true).format(timeStamp);
+                writeValue(formatted);
+            } else if (elementValue instanceof Geometry) {
+                writeGeometry((Geometry) elementValue);
             } else {
                 streamWriter.writeCharacters(elementValue.toString());
             }
@@ -42,22 +54,21 @@ public class XMLTemplateWriter implements TemplateOutputWriter{
         }
     }
 
-    private void writeValue (Object elementValue){
-        if (elementValue instanceof Geometry){
+    private void writeValue(Object elementValue) {
+        if (elementValue instanceof Geometry) {
             writeGeometry((Geometry) elementValue);
-        } else if (elementValue instanceof Date){
+        } else if (elementValue instanceof Date) {
             Date timeStamp = (Date) elementValue;
             String formatted = new StdDateFormat().withColonInTimeZone(true).format(timeStamp);
         }
-
     }
 
-    private void writeGeometry(Geometry writeGeometry){
-
-    }
+    private void writeGeometry(Geometry writeGeometry) {}
 
     @Override
-    public void writeStaticContent(String name, Object staticContent, Map<String, Object> encodingHints) throws IOException {
+    public void writeStaticContent(
+            String name, Object staticContent, Map<String, Object> encodingHints)
+            throws IOException {
         try {
             streamWriter.writeStartElement(name);
             streamWriter.writeCharacters(staticContent.toString());
@@ -68,7 +79,7 @@ public class XMLTemplateWriter implements TemplateOutputWriter{
 
     @Override
     public void startObject(String name) throws IOException {
-        writeElementName(name,null);
+        writeElementName(name, null);
     }
 
     @Override
@@ -82,7 +93,7 @@ public class XMLTemplateWriter implements TemplateOutputWriter{
 
     @Override
     public void startArray(String name) throws IOException {
-        writeElementName(name,null);
+        writeElementName(name, null);
     }
 
     @Override
@@ -98,22 +109,23 @@ public class XMLTemplateWriter implements TemplateOutputWriter{
     public void startTemplateOutput(Map<String, Object> encodingHints) throws IOException {
         try {
             streamWriter.writeStartDocument();
-            streamWriter.writeStartElement("wfs","FeatureCollection");
-            Object attributes=encodingHints.get(XMLTemplateReader.ROOT_ELEMENT_ATTRIBUTES);
-            if (attributes!=null){
-                XMLTemplateReader.RootElementAttributes rootElementAttributes=(XMLTemplateReader.RootElementAttributes) attributes;
-                Map<String,String> namespaces=rootElementAttributes.getNamespaces();
-                Map<String,String> xsi=rootElementAttributes.getSchemaLocations();
-                Set<String> nsKeys=namespaces.keySet();
-                for (String k:nsKeys){
-                    streamWriter.writeAttribute(k,namespaces.get(k));
+            streamWriter.writeStartElement("wfs", "FeatureCollection");
+            Object attributes = encodingHints.get(ROOT_ELEMENT_ATTRIBUTES);
+            if (attributes != null) {
+                XMLTemplateReader.RootElementAttributes rootElementAttributes =
+                        (XMLTemplateReader.RootElementAttributes) attributes;
+                Map<String, String> namespaces = rootElementAttributes.getNamespaces();
+                Map<String, String> xsi = rootElementAttributes.getSchemaLocations();
+                Set<String> nsKeys = namespaces.keySet();
+                for (String k : nsKeys) {
+                    streamWriter.writeAttribute(k, namespaces.get(k));
                 }
-                Set<String>xsiKeys=xsi.keySet();
-                for (String k:xsiKeys){
-                    streamWriter.writeAttribute(k,xsi.get(k));
+                Set<String> xsiKeys = xsi.keySet();
+                for (String k : xsiKeys) {
+                    streamWriter.writeAttribute(k, xsi.get(k));
                 }
             }
-        }catch(XMLStreamException e){
+        } catch (XMLStreamException e) {
             throw new IOException(e);
         }
     }
@@ -123,7 +135,7 @@ public class XMLTemplateWriter implements TemplateOutputWriter{
 
         try {
             streamWriter.writeEndElement();
-        streamWriter.writeEndDocument();
+            streamWriter.writeEndDocument();
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
         }
@@ -138,6 +150,6 @@ public class XMLTemplateWriter implements TemplateOutputWriter{
         }
     }
 
-    public void writeElementNameAndValue(Object result, String key, Map<String, Object> encodingHints){
-    }
+    public void writeElementNameAndValue(
+            Object result, String key, Map<String, Object> encodingHints) {}
 }

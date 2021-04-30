@@ -16,7 +16,6 @@ import org.geoserver.featurestemplating.builders.SourceBuilder;
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 import org.geoserver.featurestemplating.builders.jsonld.JSONLDRootBuilder;
-import org.geotools.filter.text.cql2.CQLException;
 
 /** Produce the builder tree starting from the evaluation of json-ld template file * */
 public class JSONTemplateReader implements TemplateReader {
@@ -47,7 +46,7 @@ public class JSONTemplateReader implements TemplateReader {
      */
     @Override
     public RootBuilder getRootBuilder() {
-        boolean isJsonLd=template.has(CONTEXTKEY);
+        boolean isJsonLd = template.has(CONTEXTKEY);
         BuilderFactory factory = configuration.getBuilderFactory(isJsonLd);
         RootBuilder root = factory.getRootBuilder();
         getBuilderFromJson(null, template, root, factory);
@@ -217,11 +216,11 @@ public class JSONTemplateReader implements TemplateReader {
 
     private void setFilterToBuilder(TemplateBuilder builder, JsonNode node) {
         String filter = node.get(FILTERKEY).asText();
-            ((AbstractTemplateBuilder) builder).setFilter(filter);
+        ((AbstractTemplateBuilder) builder).setFilter(filter);
     }
 
     private void setFilterToBuilder(TemplateBuilder builder, String filter) {
-            ((AbstractTemplateBuilder) builder).setFilter(filter);
+        ((AbstractTemplateBuilder) builder).setFilter(filter);
     }
 
     private void setVendorOptions(JsonNode node, RootBuilder builder, BuilderFactory factory) {

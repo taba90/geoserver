@@ -8,13 +8,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.geoserver.featurestemplating.builders.impl.TemplateBuilderContext;
 import org.geoserver.featurestemplating.expressions.TemplateCQLManager;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
 import org.geotools.filter.LiteralExpressionImpl;
 import org.geotools.filter.text.cql2.CQLException;
-import org.geotools.util.Converters;
 import org.opengis.filter.Filter;
 import org.opengis.filter.expression.Expression;
 import org.xml.sax.helpers.NamespaceSupport;
@@ -34,8 +32,7 @@ public abstract class AbstractTemplateBuilder implements TemplateBuilder {
 
     protected List<TemplateBuilder> children;
 
-    protected Map<String,Object> encodingHints;
-
+    protected Map<String, Object> encodingHints;
 
     public AbstractTemplateBuilder(String key, NamespaceSupport namespaces) {
         this.key = getKeyAsExpression(key);
@@ -138,19 +135,13 @@ public abstract class AbstractTemplateBuilder implements TemplateBuilder {
 
     @Override
     public Map<String, Object> getEncodingHints() {
-        if (this.encodingHints==null)
-            this.encodingHints=new HashMap<>();
+        if (this.encodingHints == null) this.encodingHints = new HashMap<>();
         return encodingHints;
     }
 
     @Override
     public void addEncodingHint(String key, Object value) {
-        if (this.encodingHints==null)
-            this.encodingHints=new HashMap<>();
+        if (this.encodingHints == null) this.encodingHints = new HashMap<>();
         this.encodingHints.put(key, value);
-    }
-
-    protected String keyAsString(){
-        return Converters.convert(key.evaluate(null),String.class);
     }
 }

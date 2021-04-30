@@ -5,7 +5,6 @@
 package org.geoserver.featurestemplating.builders;
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Optional;
 import org.geoserver.featurestemplating.builders.impl.TemplateBuilderContext;
 import org.geoserver.featurestemplating.expressions.TemplateCQLManager;

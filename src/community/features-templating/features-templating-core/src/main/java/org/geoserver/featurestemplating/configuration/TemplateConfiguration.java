@@ -166,10 +166,10 @@ public class TemplateConfiguration {
             templateName = TemplateIdentifier.GEOJSON.getFilename();
         else if (outputFormat.equals(TemplateIdentifier.JSONLD.getOutputFormat())) {
             templateName = TemplateIdentifier.JSONLD.getFilename();
-        } else if (outputFormat.equals(TemplateIdentifier.XHTML.getOutputFormat())){
-            templateName=TemplateIdentifier.XHTML.getFilename();
+        } else if (outputFormat.equals(TemplateIdentifier.XHTML.getOutputFormat())) {
+            templateName = TemplateIdentifier.XHTML.getFilename();
         } else if (outputFormat.equals(TemplateIdentifier.XML.getOutputFormat()))
-            templateName=TemplateIdentifier.XML.getFilename();
+            templateName = TemplateIdentifier.XML.getFilename();
         return templateName;
     }
 }

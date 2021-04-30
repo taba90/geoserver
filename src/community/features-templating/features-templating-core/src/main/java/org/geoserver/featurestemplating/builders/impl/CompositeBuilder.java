@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import org.geoserver.featurestemplating.builders.SourceBuilder;
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
-import org.geotools.util.Converters;
 import org.xml.sax.helpers.NamespaceSupport;
 
 /**
@@ -46,11 +45,11 @@ public class CompositeBuilder extends SourceBuilder {
      */
     protected void evaluateChildren(TemplateOutputWriter writer, TemplateBuilderContext context)
             throws IOException {
-        writer.startObject(keyAsString());
+        writer.startObject(getKey());
         for (TemplateBuilder jb : children) {
             jb.evaluate(writer, context);
         }
-        writer.endObject(keyAsString());
+        writer.endObject(getKey());
     }
 
     /**
@@ -94,6 +93,6 @@ public class CompositeBuilder extends SourceBuilder {
 
     @Override
     protected void writeKey(TemplateOutputWriter writer) throws IOException {
-        if (key != null && !key.equals("")) writer.writeElementName(key,getEncodingHints());
+        if (key != null && !key.equals("")) writer.writeElementName(key, getEncodingHints());
     }
 }

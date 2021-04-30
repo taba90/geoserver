@@ -17,7 +17,6 @@ public interface TemplateReader {
 
     public static final String VENDOROPTION = "$VendorOptions";
 
-
     /**
      * Get a builder tree as a ${@link RootBuilder} from a template file
      *

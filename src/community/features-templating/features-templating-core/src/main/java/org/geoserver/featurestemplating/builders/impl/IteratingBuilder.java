@@ -4,6 +4,8 @@
  */
 package org.geoserver.featurestemplating.builders.impl;
 
+import static org.geoserver.featurestemplating.builders.EncodingHints.REPEAT;
+
 import java.io.IOException;
 import java.util.List;
 import org.geoserver.featurestemplating.builders.SourceBuilder;
@@ -46,10 +48,14 @@ public class IteratingBuilder extends SourceBuilder {
     protected void evaluateNonFeaturesField(
             TemplateOutputWriter writer, TemplateBuilderContext context) throws IOException {
         if (canWrite(context)) {
-            writer.startArray(keyAsString());
+            boolean repeat = isRepeat();
+            String key = getKey();
+            if (!repeat) writer.startArray(key);
+
             if (context.getCurrentObj() instanceof List) evaluateCollection(writer, context);
-            else evaluateInternal(writer, context);
-            writer.endArray(keyAsString());
+            else evaluateInternal(writer, context, repeat);
+
+            if (!repeat) writer.endArray(key);
         }
     }
 
@@ -80,9 +86,19 @@ public class IteratingBuilder extends SourceBuilder {
      */
     protected void evaluateInternal(TemplateOutputWriter writer, TemplateBuilderContext context)
             throws IOException {
+        evaluateInternal(writer, context, false);
+    }
+
+    protected void evaluateInternal(
+            TemplateOutputWriter writer, TemplateBuilderContext context, boolean repeat)
+            throws IOException {
         if (evaluateFilter(context)) {
             for (TemplateBuilder child : children) {
+                if (repeat) writer.startArray(getKey());
+
                 child.evaluate(writer, context);
+
+                if (repeat) writer.endArray(getKey());
             }
         }
     }
@@ -120,5 +136,10 @@ public class IteratingBuilder extends SourceBuilder {
 
     public void setRootCollection(boolean rootCollection) {
         this.rootCollection = rootCollection;
+    }
+
+    private boolean isRepeat() {
+        Object repeat = getEncodingHints().get(REPEAT);
+        return repeat != null && Boolean.valueOf(repeat.toString()).booleanValue();
     }
 }

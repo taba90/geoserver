@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 import org.geoserver.featurestemplating.builders.impl.TemplateBuilderContext;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
 
@@ -37,7 +36,7 @@ public interface TemplateBuilder {
         return Collections.emptyList();
     }
 
-    Map<String,Object> getEncodingHints();
+    Map<String, Object> getEncodingHints();
 
     void addEncodingHint(String key, Object value);
 }

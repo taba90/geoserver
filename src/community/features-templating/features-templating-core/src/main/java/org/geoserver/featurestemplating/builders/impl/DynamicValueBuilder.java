@@ -70,7 +70,7 @@ public class DynamicValueBuilder extends AbstractTemplateBuilder {
     protected void writeValue(TemplateOutputWriter writer, Object value) throws IOException {
         if (canWriteValue(value)) {
             writeKey(writer);
-            writer.writeElementValue(value,getEncodingHints());
+            writer.writeElementValue(value, getEncodingHints());
         }
     }
 

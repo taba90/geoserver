@@ -17,7 +17,7 @@ public class RootBuilder implements TemplateBuilder {
 
     private Map<String, String> vendorOptions;
 
-    private Map<String,Object> encodingHints;
+    private Map<String, Object> encodingHints;
 
     protected List<String> supportedOptions = new ArrayList<>();
 
@@ -104,15 +104,13 @@ public class RootBuilder implements TemplateBuilder {
 
     @Override
     public void addEncodingHint(String key, Object value) {
-        if (encodingHints==null)
-            this.encodingHints=new HashMap<>();
-        encodingHints.put(key,value);
+        if (encodingHints == null) this.encodingHints = new HashMap<>();
+        encodingHints.put(key, value);
     }
 
     @Override
     public Map<String, Object> getEncodingHints() {
-        if (encodingHints==null)
-            encodingHints=new HashMap<>();
+        if (encodingHints == null) encodingHints = new HashMap<>();
         return encodingHints;
     }
 }

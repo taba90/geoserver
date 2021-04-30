@@ -6,6 +6,7 @@ package org.geoserver.featurestemplating.builders.flat;
 
 import java.io.IOException;
 import java.util.List;
+import org.geoserver.featurestemplating.builders.AbstractTemplateBuilder;
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.impl.IteratingBuilder;
 import org.geoserver.featurestemplating.builders.impl.TemplateBuilderContext;
@@ -37,9 +38,12 @@ public class FlatIteratingBuilder extends IteratingBuilder implements FlatBuilde
         } else {
             if (evaluateFilter(context)) {
                 for (TemplateBuilder child : children) {
-                    if (child instanceof FlatCompositeBuilder) writer.startObject();
+                    AbstractTemplateBuilder abstractChild = (AbstractTemplateBuilder) child;
+                    if (child instanceof FlatCompositeBuilder)
+                        writer.startObject(abstractChild.getKey());
                     child.evaluate(writer, context);
-                    if (child instanceof FlatCompositeBuilder) writer.endObject();
+                    if (child instanceof FlatCompositeBuilder)
+                        writer.endObject(abstractChild.getKey());
                 }
             }
         }

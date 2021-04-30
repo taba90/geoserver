@@ -12,7 +12,6 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;

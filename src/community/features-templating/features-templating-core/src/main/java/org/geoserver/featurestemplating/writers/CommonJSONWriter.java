@@ -30,7 +30,9 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
     }
 
     @Override
-    public void writeStaticContent(String key, Object staticContent, Map<String,Object> encodingHints) throws IOException {
+    public void writeStaticContent(
+            String key, Object staticContent, Map<String, Object> encodingHints)
+            throws IOException {
         if (staticContent instanceof String
                 || staticContent instanceof Number
                 || staticContent instanceof Date) {
@@ -114,7 +116,8 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
     public abstract void writeGeometry(Object value) throws IOException;
 
     @Override
-    public void writeElementName(Object elementName, Map<String,Object> encodingHints) throws IOException {
+    public void writeElementName(Object elementName, Map<String, Object> encodingHints)
+            throws IOException {
         if (elementName != null) writeFieldName(elementName.toString());
     }
 
@@ -123,7 +126,8 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
      * DynamicValueBuilder}
      */
     @Override
-    public void writeElementValue(Object result,Map<String,Object> encodingHints) throws IOException {
+    public void writeElementValue(Object result, Map<String, Object> encodingHints)
+            throws IOException {
         writeElementNameAndValue(result, null, encodingHints);
     }
 
@@ -131,16 +135,17 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
      * Write the key and the result of an xpath or cql expression evaluation operated by the {@link
      * DynamicValueBuilder}
      */
-    public void writeElementNameAndValue(Object result, String key, Map<String, Object> encodingHints) throws IOException {
+    public void writeElementNameAndValue(
+            Object result, String key, Map<String, Object> encodingHints) throws IOException {
         if (result instanceof String || result instanceof Number || result instanceof Boolean) {
-            if (flatOutput) writeElementName(key,null);
+            if (flatOutput) writeElementName(key, null);
             writeValue(result);
         } else if (result instanceof Date) {
             Date timeStamp = (Date) result;
             String formatted = new StdDateFormat().withColonInTimeZone(true).format(timeStamp);
-            writeElementNameAndValue(formatted, key,encodingHints);
+            writeElementNameAndValue(formatted, key, encodingHints);
         } else if (result instanceof Geometry) {
-            if (flatOutput) writeElementName(key,encodingHints);
+            if (flatOutput) writeElementName(key, encodingHints);
             writeGeometry(result);
         } else if (result instanceof ComplexAttribute) {
             ComplexAttribute attr = (ComplexAttribute) result;
@@ -157,12 +162,13 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
                 for (int i = 0; i < list.size(); i++) {
                     String itKey = null;
                     if (flatOutput) itKey = key + "_" + (i + 1);
-                    writeElementNameAndValue(list.get(i), itKey != null ? itKey : key,encodingHints);
+                    writeElementNameAndValue(
+                            list.get(i), itKey != null ? itKey : key, encodingHints);
                 }
                 if (!flatOutput) writeEndArray();
             }
         } else if (result == null) {
-            if (flatOutput) writeElementName(key,encodingHints);
+            if (flatOutput) writeElementName(key, encodingHints);
             writeNull();
         } else {
             if (flatOutput) writeElementName(key, encodingHints);
@@ -171,7 +177,7 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
     }
 
     @Override
-    public void startTemplateOutput(Map<String,Object> encodingHints) throws IOException {
+    public void startTemplateOutput(Map<String, Object> encodingHints) throws IOException {
 
         writeStartObject();
         writeFieldName("type");
@@ -238,7 +244,7 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
 
     @Override
     public void startObject(String name) throws IOException {
-        writeElementName(name, null);
+        if (name != null) writeElementName(name, null);
         writeStartObject();
     }
 
@@ -249,7 +255,7 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
 
     @Override
     public void startArray(String name) throws IOException {
-        writeElementName(name,null);
+        writeElementName(name, null);
         writeStartArray();
     }
 

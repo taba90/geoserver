@@ -46,7 +46,7 @@ public class GeoJSONTemplateGetFeatureResponse extends BaseTemplateGetFeatureRes
         try (GeoJSONWriter writer = getOutputWriter(output)) {
             writer.startTemplateOutput(null);
             iterateFeatureCollection(writer, featureCollection);
-            writer.endArray();
+            writer.endArray(null);
             writeAdditionFields(writer, featureCollection, getFeature);
             writer.endTemplateOutput(null);
         } catch (Exception e) {

@@ -72,7 +72,7 @@ public class GeoJSONWriter extends CommonJSONWriter {
 
     @Override
     public void endTemplateOutput(Map<String, Object> encodingHints) throws IOException {
-        endObject();
+        endObject(null);
     }
 
     /**
@@ -88,7 +88,7 @@ public class GeoJSONWriter extends CommonJSONWriter {
     public void writeLink(String href, String rel, String mimeType, String title, String method)
             throws IOException {
         if (href != null) {
-            startObject();
+            startObject(null);
             if (title != null) {
                 writeFieldName("title");
                 writeValue(title);
@@ -107,17 +107,17 @@ public class GeoJSONWriter extends CommonJSONWriter {
             }
             writeFieldName("href");
             writeValue(href);
-            endObject();
+            endObject(null);
         }
     }
 
     public void writePagingLinks(String mimeType, String previous, String next) throws IOException {
 
         writeFieldName("links");
-        startArray();
+        startArray(null);
         writeLink(previous, "previous", mimeType, "previous page", null);
         writeLink(next, "next", mimeType, "next page", null);
-        endArray();
+        endArray(null);
     }
 
     public void writeCollectionCounts(BigInteger featureCount) throws IOException {
@@ -156,15 +156,15 @@ public class GeoJSONWriter extends CommonJSONWriter {
             } else {
                 identifier = CRS.lookupIdentifier(crs, true);
             }
-            startObject();
+            startObject(null);
             writeFieldName("type");
             writeValue("name");
             writeFieldName("properties");
-            startObject();
+            startObject(null);
             writeFieldName("name");
             writeValue(identifier);
-            endObject(); // end properties
-            endObject(); // end crs
+            endObject(null); // end properties
+            endObject(null); // end crs
         } else {
             writeNull();
         }
@@ -172,7 +172,7 @@ public class GeoJSONWriter extends CommonJSONWriter {
 
     public void writeBoundingBox(Envelope env) throws IOException {
         writeFieldName("bbox");
-        startArray();
+        startArray(null);
         if (axisOrder == CRS.AxisOrder.NORTH_EAST) {
             writeValue(env.getMinY());
             writeValue(env.getMinX());
@@ -184,13 +184,13 @@ public class GeoJSONWriter extends CommonJSONWriter {
             writeValue(env.getMaxX());
             writeValue(env.getMaxY());
         }
-        endArray();
+        endArray(null);
     }
 
     public void writeStaticContent(String key, Object staticContent, String separator)
             throws IOException {
         if (separator == null || staticContent instanceof String)
-            super.writeStaticContent(key, staticContent,null);
+            super.writeStaticContent(key, staticContent, null);
         else {
             JsonNode jsonNode = (JsonNode) staticContent;
             if (jsonNode.isArray()) {

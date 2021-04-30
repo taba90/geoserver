@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
@@ -53,7 +54,7 @@ public class JsonWriterTest {
             writer.writeFieldName(prop.getName().toString());
             writer.writeValue(prop.getValue());
         }
-        writer.endObject();
+        writer.endObject(null);
         writer.close();
         String jsonString = new String(baos.toByteArray());
         JSONObject json = (JSONObject) JSONSerializer.toJSON(jsonString);
@@ -65,10 +66,10 @@ public class JsonWriterTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         GeoJSONWriter writer =
                 new GeoJSONWriter(new JsonFactory().createGenerator(baos, JsonEncoding.UTF8));
-        writer.startArray();
-        writer.writeStaticContent(null, "abc");
-        writer.writeStaticContent(null, 5);
-        writer.endArray();
+        writer.startArray(null);
+        writer.writeStaticContent(null, "abc", Collections.emptyMap());
+        writer.writeStaticContent(null, 5, Collections.emptyMap());
+        writer.endArray(null);
         writer.close();
         String jsonString = new String(baos.toByteArray());
         JSONArray json = (JSONArray) JSONSerializer.toJSON(jsonString);

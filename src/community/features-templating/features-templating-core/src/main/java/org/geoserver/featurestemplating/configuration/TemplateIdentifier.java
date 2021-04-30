@@ -10,8 +10,8 @@ public enum TemplateIdentifier {
     JSON("application/json", "geojson-template.json"),
     GEOJSON("application/geo+json", "geojson-template.json"),
     JSONLD("application/ld+json", "json-ld-template.json"),
-    XML("application/gml+xml","xml-template.xml"),
-    XHTML("text/html","xhtml-template.xhtml");
+    XML("application/gml+xml", "xml-template.xml"),
+    XHTML("text/html", "xhtml-template.xhtml");
 
     private String outputFormat;
     private String filename;

@@ -9,8 +9,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.util.Map;
-
-import com.sun.corba.se.spi.ior.ObjectKey;
 import org.geotools.filter.function.FilterFunction_toWKT;
 
 /** Implements its superclass methods to write a valid json-ld output */

@@ -29,7 +29,7 @@ public class FlatCompositeBuilder extends CompositeBuilder implements FlatBuilde
             throws IOException {
         String key = getKey();
         if (key != null && key.equals(AttributeNameHelper.PROPERTIES_KEY)) {
-            writer.startObject(getKey());
+            writer.startObject(key);
         }
         for (TemplateBuilder jb : children) {
             ((FlatBuilder) jb)
@@ -37,7 +37,7 @@ public class FlatCompositeBuilder extends CompositeBuilder implements FlatBuilde
             jb.evaluate(writer, context);
         }
         if (key != null && key.equals(AttributeNameHelper.PROPERTIES_KEY))
-            writer.endObject(getKey());
+            writer.endObject(key);
     }
 
     @Override

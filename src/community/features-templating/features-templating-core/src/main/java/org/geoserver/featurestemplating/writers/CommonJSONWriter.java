@@ -93,7 +93,7 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
     }
 
     /**
-     * Write contents from a Json attribute's value. Used with {@link StaticBuilder}ù to write
+     * Write contents from a Json attribute's value. Used with {@link StaticBuilder} to write
      * content as it is from the json-ld template to the json-ld output
      */
     public void writeValueNode(String entryName, JsonNode valueNode) throws IOException {
@@ -128,42 +128,43 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
     @Override
     public void writeElementValue(Object result, Map<String, Object> encodingHints)
             throws IOException {
-        writeElementNameAndValue(result, null, encodingHints);
+        writeElementNameAndValue(null, result, encodingHints);
     }
 
     /**
      * Write the key and the result of an xpath or cql expression evaluation operated by the {@link
      * DynamicValueBuilder}
      */
+    @Override
     public void writeElementNameAndValue(
-            Object result, String key, Map<String, Object> encodingHints) throws IOException {
+            String key, Object result, Map<String, Object> encodingHints) throws IOException {
         if (result instanceof String || result instanceof Number || result instanceof Boolean) {
             if (flatOutput) writeElementName(key, null);
             writeValue(result);
         } else if (result instanceof Date) {
             Date timeStamp = (Date) result;
             String formatted = new StdDateFormat().withColonInTimeZone(true).format(timeStamp);
-            writeElementNameAndValue(formatted, key, encodingHints);
+            writeElementNameAndValue(key, formatted, encodingHints);
         } else if (result instanceof Geometry) {
             if (flatOutput) writeElementName(key, encodingHints);
             writeGeometry(result);
         } else if (result instanceof ComplexAttribute) {
             ComplexAttribute attr = (ComplexAttribute) result;
-            writeElementNameAndValue(attr.getValue(), key, encodingHints);
+            writeElementNameAndValue(key, attr.getValue(), encodingHints);
         } else if (result instanceof Attribute) {
             Attribute attr = (Attribute) result;
-            writeElementNameAndValue(attr.getValue(), key, encodingHints);
+            writeElementNameAndValue(key, attr.getValue(), encodingHints);
         } else if (result instanceof List) {
             List list = (List) result;
             if (list.size() == 1) {
-                writeElementNameAndValue(list.get(0), key, encodingHints);
+                writeElementNameAndValue(key, list.get(0), encodingHints);
             } else {
                 if (!flatOutput) writeStartArray();
                 for (int i = 0; i < list.size(); i++) {
                     String itKey = null;
                     if (flatOutput) itKey = key + "_" + (i + 1);
                     writeElementNameAndValue(
-                            list.get(i), itKey != null ? itKey : key, encodingHints);
+                            itKey != null ? itKey : key, list.get(i),  encodingHints);
                 }
                 if (!flatOutput) writeEndArray();
             }

@@ -5,19 +5,29 @@ import static org.geoserver.featurestemplating.builders.EncodingHints.ROOT_ELEME
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.geoserver.featurestemplating.readers.XMLTemplateReader;
+import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Geometry;
+import org.opengis.feature.Attribute;
+import org.opengis.feature.ComplexAttribute;
 
-public class XMLTemplateWriter implements TemplateOutputWriter {
+public abstract class XMLTemplateWriter implements TemplateOutputWriter {
 
-    private XMLStreamWriter streamWriter;
+    protected XMLStreamWriter streamWriter;
 
-    public XMLTemplateWriter(XMLStreamWriter streamWriter) {
+    protected CRS.AxisOrder axisOrder= CRS.AxisOrder.NORTH_EAST;
+
+    Map<String, String> namespaces;
+
+    public XMLTemplateWriter(XMLStreamWriter streamWriter, Map<String,String> namespaces) {
         this.streamWriter = streamWriter;
+        this.namespaces=namespaces;
     }
 
     @Override
@@ -26,7 +36,7 @@ public class XMLTemplateWriter implements TemplateOutputWriter {
         try {
             String elemName = elementName.toString();
             String[] elems = elemName.split(":");
-            streamWriter.writeStartElement(elems[0], elems[1]);
+            streamWriter.writeStartElement(elems[0], elems[1],namespaces.get(elems[0]));
         } catch (XMLStreamException e) {
             throw new IOException(e);
         }
@@ -35,35 +45,12 @@ public class XMLTemplateWriter implements TemplateOutputWriter {
     @Override
     public void writeElementValue(Object elementValue, Map<String, Object> encodingHints)
             throws IOException {
-        try {
-            if (elementValue instanceof String
-                    || elementValue instanceof Number
-                    || elementValue instanceof Boolean) {
-                streamWriter.writeCharacters(String.valueOf(elementValue));
-            } else if (elementValue instanceof Date) {
-                Date timeStamp = (Date) elementValue;
-                String formatted = new StdDateFormat().withColonInTimeZone(true).format(timeStamp);
-                writeValue(formatted);
-            } else if (elementValue instanceof Geometry) {
-                writeGeometry((Geometry) elementValue);
-            } else {
-                streamWriter.writeCharacters(elementValue.toString());
-            }
-        } catch (XMLStreamException e) {
-            throw new IOException(e);
-        }
+
+                writeElementNameAndValue(null,elementValue,encodingHints);
+
     }
 
-    private void writeValue(Object elementValue) {
-        if (elementValue instanceof Geometry) {
-            writeGeometry((Geometry) elementValue);
-        } else if (elementValue instanceof Date) {
-            Date timeStamp = (Date) elementValue;
-            String formatted = new StdDateFormat().withColonInTimeZone(true).format(timeStamp);
-        }
-    }
-
-    private void writeGeometry(Geometry writeGeometry) {}
+    protected abstract void writeGeometry(Geometry writeGeometry) throws XMLStreamException;
 
     @Override
     public void writeStaticContent(
@@ -87,7 +74,7 @@ public class XMLTemplateWriter implements TemplateOutputWriter {
         try {
             streamWriter.writeEndElement();
         } catch (XMLStreamException e) {
-            e.printStackTrace();
+            throw new IOException(e);
         }
     }
 
@@ -137,7 +124,7 @@ public class XMLTemplateWriter implements TemplateOutputWriter {
             streamWriter.writeEndElement();
             streamWriter.writeEndDocument();
         } catch (XMLStreamException e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         }
     }
 
@@ -146,10 +133,50 @@ public class XMLTemplateWriter implements TemplateOutputWriter {
         try {
             streamWriter.close();
         } catch (XMLStreamException e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         }
     }
 
     public void writeElementNameAndValue(
-            Object result, String key, Map<String, Object> encodingHints) {}
+            String key, Object elementValue, Map<String, Object> encodingHints) throws IOException {
+        boolean repeatName=elementValue instanceof List && ((List)elementValue).size()>1;
+        if (key!=null && !repeatName)
+            writeElementName(key,encodingHints);
+        try {
+            if (elementValue instanceof String
+                    || elementValue instanceof Number
+                    || elementValue instanceof Boolean) {
+                streamWriter.writeCharacters(String.valueOf(elementValue));
+            } else if (elementValue instanceof Geometry) {
+                writeGeometry((Geometry) elementValue);
+            } else if (elementValue instanceof Date) {
+                Date timeStamp = (Date) elementValue;
+                String formatted = new StdDateFormat().withColonInTimeZone(true).format(timeStamp);
+                streamWriter.writeCharacters(formatted);
+            } else if (elementValue instanceof ComplexAttribute) {
+                ComplexAttribute attr = (ComplexAttribute) elementValue;
+                writeElementNameAndValue(null, attr.getValue(), encodingHints);
+            } else if (elementValue instanceof Attribute) {
+                Attribute attr = (Attribute) elementValue;
+                writeElementNameAndValue(null, attr.getValue(), encodingHints);
+            } else if (elementValue instanceof List) {
+                List list = (List) elementValue;
+                if (!repeatName) {
+                    writeElementNameAndValue(null,list.get(0),encodingHints);
+                } else {
+                    for (int i = 0; i < list.size(); i++) {
+                        writeElementName(key,encodingHints);
+                        writeElementNameAndValue(null,
+                                list.get(i),encodingHints);
+                        endObject(key);
+                    }
+                }
+            }
+        } catch (XMLStreamException e){
+            throw new IOException(e);
+        }
+        if (key!=null && !repeatName){
+            writeElementName(key,encodingHints);
+        }
+    }
 }

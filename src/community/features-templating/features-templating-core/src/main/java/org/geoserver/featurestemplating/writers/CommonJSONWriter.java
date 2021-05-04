@@ -139,14 +139,14 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
     public void writeElementNameAndValue(
             String key, Object result, Map<String, Object> encodingHints) throws IOException {
         if (result instanceof String || result instanceof Number || result instanceof Boolean) {
-            if (flatOutput) writeElementName(key, null);
+            writeElementName(key, null);
             writeValue(result);
         } else if (result instanceof Date) {
             Date timeStamp = (Date) result;
             String formatted = new StdDateFormat().withColonInTimeZone(true).format(timeStamp);
             writeElementNameAndValue(key, formatted, encodingHints);
         } else if (result instanceof Geometry) {
-            if (flatOutput) writeElementName(key, encodingHints);
+            writeElementName(key, encodingHints);
             writeGeometry(result);
         } else if (result instanceof ComplexAttribute) {
             ComplexAttribute attr = (ComplexAttribute) result;
@@ -159,20 +159,26 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
             if (list.size() == 1) {
                 writeElementNameAndValue(key, list.get(0), encodingHints);
             } else {
-                if (!flatOutput) writeStartArray();
-                for (int i = 0; i < list.size(); i++) {
-                    String itKey = null;
-                    if (flatOutput) itKey = key + "_" + (i + 1);
-                    writeElementNameAndValue(
-                            itKey != null ? itKey : key, list.get(i),  encodingHints);
+                if (!flatOutput) {
+                    writeFieldName(key);
+                    writeStartArray();
+                    for (int i = 0; i < list.size(); i++) {
+                        writeElementValue(list.get(i), encodingHints);
+                    }
+                    writeEndArray();
+                } else {
+                    for (int i = 0; i < list.size(); i++) {
+                        String itKey = null;
+                        itKey = key + "_" + (i + 1);
+                        writeElementNameAndValue(itKey, list.get(i), encodingHints);
+                    }
                 }
-                if (!flatOutput) writeEndArray();
             }
         } else if (result == null) {
-            if (flatOutput) writeElementName(key, encodingHints);
+            writeElementName(key, encodingHints);
             writeNull();
         } else {
-            if (flatOutput) writeElementName(key, encodingHints);
+            writeElementName(key, encodingHints);
             writeValue(result.toString());
         }
     }

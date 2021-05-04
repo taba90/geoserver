@@ -1,16 +1,13 @@
 package org.geoserver.featurestemplating.writers;
 
+import java.util.Map;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import java.io.IOException;
-import java.util.Map;
-
-public class GMLTemplateWriter extends XMLTemplateWriter{
-
+public class GMLTemplateWriter extends XMLTemplateWriter {
 
     public GMLTemplateWriter(XMLStreamWriter streamWriter, Map<String, String> namespaces) {
         super(streamWriter, namespaces);
@@ -18,20 +15,20 @@ public class GMLTemplateWriter extends XMLTemplateWriter{
 
     @Override
     protected void writeGeometry(Geometry writeGeometry) throws XMLStreamException {
-            if (writeGeometry instanceof Point) {
-                writePoint((Point) writeGeometry);
-            }
+        if (writeGeometry instanceof Point) {
+            writePoint((Point) writeGeometry);
+        }
     }
 
     private void writePoint(Point point) throws XMLStreamException {
-        streamWriter.writeStartElement("gml","Point","http://www.opengis.net/gml/3.2");
-        streamWriter.writeStartElement("gml","pos","http://www.opengis.net/gml/3.2");
-        double y=point.getY();
-        double x=point.getX();
+        streamWriter.writeStartElement("gml", "Point", "http://www.opengis.net/gml/3.2");
+        streamWriter.writeStartElement("gml", "pos", "http://www.opengis.net/gml/3.2");
+        double y = point.getY();
+        double x = point.getX();
         if (axisOrder == CRS.AxisOrder.NORTH_EAST) {
-            streamWriter.writeCharacters(y +" "+x);
+            streamWriter.writeCharacters(y + " " + x);
         } else {
-            streamWriter.writeCharacters(x+" "+y);
+            streamWriter.writeCharacters(x + " " + y);
         }
     }
 }

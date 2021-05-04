@@ -90,14 +90,15 @@ public class XMLTemplateReader implements TemplateReader {
                 Attribute attribute = parent.getAttributeByName(new QName("isCollection"));
                 String qName = parent.getName().toString();
                 boolean collection =
-                        attribute != null && Boolean.valueOf(attribute.getValue()).booleanValue();
-                boolean isFeature = qName.equals("gml:featureMembers");
+                        qName.equals("gml:featureMembers")
+                                || (attribute != null
+                                        && Boolean.valueOf(attribute.getValue()).booleanValue());
                 maker.collection(collection)
                         .name(qName)
                         .namespaces(namespaceSupport)
                         .filter(getAttributeValueIfPresent(parent, "$filter"))
                         .source(getAttributeValueIfPresent(parent, "$source"))
-                        .root(isFeature);
+                        .root(false);
                 TemplateBuilder parentBuilder = maker.build();
                 Iterator<Attribute> attributeIterator = parent.getAttributes();
                 addAttributeAsChildrenBuilder(attributeIterator, parentBuilder);

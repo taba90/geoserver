@@ -36,8 +36,7 @@ public class FlatCompositeBuilder extends CompositeBuilder implements FlatBuilde
                     .setParentKey(attributeNameHelper.getCompleteCompositeAttributeName());
             jb.evaluate(writer, context);
         }
-        if (key != null && key.equals(AttributeNameHelper.PROPERTIES_KEY))
-            writer.endObject(key);
+        if (key != null && key.equals(AttributeNameHelper.PROPERTIES_KEY)) writer.endObject(key);
     }
 
     @Override

@@ -31,8 +31,8 @@ public interface TemplateOutputWriter extends Closeable {
     void writeElementValue(Object elementValue, Map<String, Object> encodingHints)
             throws IOException;
 
-    void writeElementNameAndValue(String key, Object elementValue, Map<String, Object> encodingHints)
-            throws IOException;
+    void writeElementNameAndValue(
+            String key, Object elementValue, Map<String, Object> encodingHints) throws IOException;
 
     /**
      * Write a static content, no matter how nested.

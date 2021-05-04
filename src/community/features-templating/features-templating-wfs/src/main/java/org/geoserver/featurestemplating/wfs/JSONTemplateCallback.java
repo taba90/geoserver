@@ -172,28 +172,29 @@ public class JSONTemplateCallback extends AbstractDispatcherCallback {
     @Override
     public Response responseDispatched(
             Request request, Operation operation, Object result, Response response) {
-        if (response instanceof GeoJSONGetFeatureResponse) {
             GetFeatureRequest getFeature = GetFeatureRequest.adapt(operation.getParameters()[0]);
             List<Query> queries = getFeature.getQueries();
             for (Query q : queries) {
                 List<FeatureTypeInfo> typeInfos = getFeatureTypeInfoFromQuery(q);
-                Response wrapped = wrapGeoJSONResponse(typeInfos, request.getOutputFormat());
+                Response wrapped = wrapResponse(typeInfos, request.getOutputFormat());
                 if (wrapped != null) response = wrapped;
             }
-        }
         return super.responseDispatched(request, operation, result, response);
     }
 
-    private Response wrapGeoJSONResponse(List<FeatureTypeInfo> typeInfos, String outputFormat) {
+    private Response wrapResponse(List<FeatureTypeInfo> typeInfos, String outputFormat) {
         Response response = null;
         try {
 
             List<RootBuilder> rootBuilders =
                     getRootBuildersFromFeatureTypeInfo(typeInfos, outputFormat);
             if (rootBuilders.size() > 0) {
+                if (outputFormat.equalsIgnoreCase(TemplateIdentifier.JSON.getOutputFormat()) )
                 response =
                         new GeoJSONTemplateGetFeatureResponse(
                                 gs, configuration, TemplateIdentifier.JSON);
+                else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.XML.getOutputFormat()))
+                    response = new GML32TemplateResponse(gs,configuration,TemplateIdentifier.XML);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

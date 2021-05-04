@@ -157,6 +157,7 @@ public final class DomainModelBuilder {
             case "number":
             case "numeric":
             case "float8":
+            case "float4":
             case "decimal":
                 domainAttribute.setType(DomainAttributeType.NUMBER);
                 break;
@@ -181,6 +182,9 @@ public final class DomainModelBuilder {
                 break;
             case "geometry":
                 domainAttribute.setType(DomainAttributeType.GEOMETRY);
+                break;
+            case "bool":
+                domainAttribute.setType(DomainAttributeType.BOOLEAN);
                 break;
             default:
                 throw new RuntimeException(

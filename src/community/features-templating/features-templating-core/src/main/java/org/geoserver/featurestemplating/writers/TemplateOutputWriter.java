@@ -49,28 +49,28 @@ public interface TemplateOutputWriter extends Closeable {
      *
      * @throws IOException
      */
-    void startObject(String name) throws IOException;
+    void startObject(String name, Map<String,Object> encodingHints) throws IOException;
 
     /**
      * Write the end of an object
      *
      * @throws IOException
      */
-    void endObject(String name) throws IOException;
+    void endObject(String name,Map<String,Object> encodingHints) throws IOException;
 
     /**
      * Write the start of an array
      *
      * @throws IOException
      */
-    void startArray(String name) throws IOException;
+    void startArray(String name, Map<String,Object> encodingHints) throws IOException;
 
     /**
      * Write the end of an array
      *
      * @throws IOException
      */
-    void endArray(String name) throws IOException;
+    void endArray(String name,Map<String,Object> encodingHints) throws IOException;
 
     void startTemplateOutput(Map<String, Object> encodingHints) throws IOException;
 

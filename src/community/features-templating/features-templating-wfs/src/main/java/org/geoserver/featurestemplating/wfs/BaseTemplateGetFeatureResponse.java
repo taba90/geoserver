@@ -29,7 +29,7 @@ import org.opengis.feature.Feature;
  */
 public abstract class BaseTemplateGetFeatureResponse extends WFSGetFeatureOutputFormat {
 
-    private TemplateConfiguration configuration;
+    protected TemplateConfiguration configuration;
     protected TemplateGetFeatureResponseHelper helper;
     protected TemplateIdentifier identifier;
 

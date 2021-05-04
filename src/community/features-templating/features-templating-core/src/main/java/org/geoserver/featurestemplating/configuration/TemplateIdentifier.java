@@ -10,7 +10,7 @@ public enum TemplateIdentifier {
     JSON("application/json", "geojson-template.json"),
     GEOJSON("application/geo+json", "geojson-template.json"),
     JSONLD("application/ld+json", "json-ld-template.json"),
-    XML("application/gml+xml", "xml-template.xml"),
+    XML("application/gml+xml; version=3.2", "xml-template.xml"),
     XHTML("text/html", "xhtml-template.xhtml");
 
     private String outputFormat;

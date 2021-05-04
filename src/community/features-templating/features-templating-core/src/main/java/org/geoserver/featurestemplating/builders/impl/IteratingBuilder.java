@@ -50,12 +50,12 @@ public class IteratingBuilder extends SourceBuilder {
         if (canWrite(context)) {
             boolean repeat = isRepeat();
             String key = getKey();
-            if (!repeat) writer.startArray(key);
+            if (!repeat) writer.startArray(key,encodingHints);
 
             if (context.getCurrentObj() instanceof List) evaluateCollection(writer, context);
             else evaluateInternal(writer, context, repeat);
 
-            if (!repeat) writer.endArray(key);
+            if (!repeat) writer.endArray(key,encodingHints);
         }
     }
 
@@ -94,11 +94,11 @@ public class IteratingBuilder extends SourceBuilder {
             throws IOException {
         if (evaluateFilter(context)) {
             for (TemplateBuilder child : children) {
-                if (repeat) writer.startArray(getKey());
+                if (repeat && !rootCollection) writer.startArray(getKey(),encodingHints);
 
                 child.evaluate(writer, context);
 
-                if (repeat) writer.endArray(getKey());
+                if (repeat && !rootCollection) writer.endArray(getKey(),encodingHints);
             }
         }
     }

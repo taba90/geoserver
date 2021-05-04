@@ -15,6 +15,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
+import org.geoserver.featurestemplating.writers.GMLTemplateWriter;
 import org.geoserver.featurestemplating.writers.GeoJSONWriter;
 import org.geoserver.featurestemplating.writers.JSONLDWriter;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
@@ -60,6 +61,8 @@ public class TemplateGetFeatureResponseHelper {
                 try {
                     XMLStreamWriter xMLStreamWriter =
                             xMLOutputFactory.createXMLStreamWriter(output);
+                    outputWriter=new GMLTemplateWriter(xMLStreamWriter,null);
+                    break;
 
                 } catch (XMLStreamException e) {
                     throw new IOException(e);

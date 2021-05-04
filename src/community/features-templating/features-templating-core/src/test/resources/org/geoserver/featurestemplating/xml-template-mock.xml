@@ -1,39 +1,53 @@
-<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs"
-                       xmlns:xs="http://www.w3.org/2001/XMLSchema"
-                       xmlns:gml="http://www.opengis.net/gml"
-                       xmlns:eposl="https://data.geoscience.earth/def/eposl"
-                       xmlns:xlink="http://www.w3.org/1999/xlink"
-                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                       xsi:schemaLocation="https://data.geoscience.earth/def/eposl
-                       https://data.geoscience.earth/def/eposl.xsd http://www.opengis.net/wfs
-                       http://localhost:8081/geoserver/schemas/wfs/1.1.0/wfs.xsd"
-                       isCollection="true"
-                       xmlns:gft="http://geoserver/gft">
-    <gml:featureMembers isCollection="true">
-        <eposl:BoreholeView gml:id="${@id}">
-            <gml:description
-                    xmlns:gml="http://www.opengis.net/gml/3.2">${name}
-            </gml:description>
-            <gml:identifier xmlns:gml="http://www.opengis.net/gml/3.2"
-                            codeSpace="http://www.ietf.org/rfc/rfc2616">${identifier}
-            </gml:identifier>
-            <gml:name
-                    xmlns:gml="http://www.opengis.net/gml/3.2">${gml:name}
-            </gml:name>
-            <eposl:purpose xlink:href="${borehole}"
-                           xlink:title="${@xlink:title}"/>
-            <eposl:boreholeMaterialCustodian
-                    gft:isCollection="true" gft:source="boreholeMaterialCustodian"
-                    gft:filter="eposl:company = 'the company name'">
-                <eposl:BoreholeMaterialCustodian>
-                    <gml:name>${gml:name}</gml:name>
-                    <eposl:company>${eposl:company}</eposl:company>
-                </eposl:BoreholeMaterialCustodian>
-            </eposl:boreholeMaterialCustodian>
-            <eposl:simpleAttributeFiltered>$filter{xpath('eposl:simpleAttributeFiltered
-                ')='the simple attribute I want to
-                see'},${eposl:simpleAttributeFiltered}
-            </eposl:simpleAttributeFiltered>
+<?xml version="1.0" encoding="UTF-8"?>
+<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs" xmlns:eposl="https://data.geoscience.earth/def/eposl" xmlns:gml="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://data.geoscience.earth/def/eposl file:/C:/marco_workspace/release-vianova/workspaces/eposl/eposl-boreholeview/appschema-mappings/borehole_view-gml.xsd http://www.opengis.net/wfs http://localhost:8083/geoserver/schemas/wfs/2.0.0/wfs.xsd"
+                       xmlns:gft="http://localhost:8080/geoserver/features-templating">
+    <gml:featureMembers>
+        <eposl:BoreholeView gft:source="eposl:BoreholeViewFeature" gft:isCollection="true" gml:id="BoreholeViewFeature.BSS003XRPI">
+            <!--eposl:oldbssindice>${BSS003XRPI</eposl:oldbssindice>
+            <eposl:oldbssdesignation>X</eposl:oldbssdesignation>
+            <eposl:oldbssid>BSS003XRPI/X</eposl:oldbssid>
+            <eposl:boreholeid>BSS003XRPI</eposl:boreholeid>
+            <eposl:gmlidentifier>https://data.geoscience.fr/id/BoreholeView/BSS003XRPI</eposl:gmlidentifier>
+            <gml:name>${eposl:name}</gml:name>
+            <gml:description>${eposl:description}</gml:description>
+            <gml:identifier>${eposl:gmlidentifier}</gml:identifier>
+            <eposl:status xlink:href="${eposl:status_href}" xlink:title="${eposl:status}"/>
+            <eposl:drillingmethod xlink:href="${eposl:drillingmethod_href}" xlink:title="${eposl:drillingmethod}"/>
+            <eposl:operator>${eposl:operator}</eposl:operator>
+            <eposl:driller>${eposl:driller}</eposl:driller>
+            <eposl:drillenddate>${eposl:drillenddate}</eposl:drillenddate>
+            <eposl:startpoint xlink:href="${eposl:startpoint_href}" xlink:title="${eposl:startpoint}"/>
+            <eposl:inclinationtype xlink:href="${eposl:inclinationtype_href}" xlink:title="${eposl:inclinationtype}"/>
+            <eposl:boreholematerialcustodian>${eposl:boreholematerialcustodian}</eposl:boreholematerialcustodian>
+            <eposl:boreholelength_m>${eposl:boreholelength_m}</eposl:boreholelength_m>
+            <eposl:elevation_m>${eposl:boreholelength_m}</eposl:elevation_m>
+            <eposl:elevation_srs>http://www.opengis.net/def/crs/EPSG/0/5720</eposl:elevation_srs>
+            <eposl:positionalaccuracy>100.0</eposl:positionalaccuracy>
+            <eposl:source>http://ficheinfoterre.brgm.fr/InfoterreFiche/ficheBss.action?id=BSS003XRPI</eposl:source>
+            <eposl:parentborehole_uri>http://www.opengis.net/def/nil/OGC/0/inapplicable</eposl:parentborehole_uri>
+            <eposl:metadata_uri>https://data.geocatalogue.fr/id/dataset/BR_BSS_BAA</eposl:metadata_uri>
+            <eposl:genericsymbolizer>Not provided</eposl:genericsymbolizer>
+            <eposl:cored>false</eposl:cored>
+            <eposl:accesstophysicaldrillcore>false</eposl:accesstophysicaldrillcore>
+            <eposl:detaileddescription>template</eposl:detaileddescription>
+            <eposl:detaileddescription_href>http://www.opengis.net/def/nil/OGC/0/template</eposl:detaileddescription_href>
+            <eposl:geophysicallogs>unknown</eposl:geophysicallogs>
+            <eposl:geophysicallogs_href>http://www.opengis.net/def/nil/OGC/0/unknown</eposl:geophysicallogs_href>
+            <eposl:geologicaldescription>template</eposl:geologicaldescription>
+            <eposl:geologicaldescription_href>http://www.opengis.net/def/nil/OGC/0/template</eposl:geologicaldescription_href>
+            <eposl:groundwaterlevel>unknown</eposl:groundwaterlevel>
+            <eposl:groundwaterlevel_href>http://www.opengis.net/def/nil/OGC/0/unknown</eposl:groundwaterlevel_href>
+            <eposl:groundwaterchemistry>unknown</eposl:groundwaterchemistry>
+            <eposl:groundwaterchemistry_href>http://www.opengis.net/def/nil/OGC/0/unknown</eposl:groundwaterchemistry_href>
+            <eposl:rockgeochemistry>unknown</eposl:rockgeochemistry>
+            <eposl:rockgeochemistry_href>http://www.opengis.net/def/nil/OGC/0/unknown</eposl:rockgeochemistry_href>
+            <eposl:poregaschemistry>unknown</eposl:poregaschemistry>
+            <eposl:poregaschemistry_href>http://www.opengis.net/def/nil/OGC/0/unknown</eposl:poregaschemistry_href>
+            <eposl:geotechnicalinfo>unknown</eposl:geotechnicalinfo>
+            <eposl:geotechnicalinfo_href>http://www.opengis.net/def/nil/OGC/0/unknown</eposl:geotechnicalinfo_href>
+            <eposl:location_wgs84>POINT (6.97236927633205 48.0613002731598)</eposl:location_wgs84-->
+            <eposl:purpose gft:isCollection="true" gft:isReference="true" gft:source="eposl:purpose/eposl:PurposeViewFeature" xlink:href="${eposl:purpose_href}" xlink:title="${eposl:libelle}"/>
+            <eposl:useView gft:isCollection="true" gft:isReference="true" gft:source="eposl:useView/eposl:UseViewFeature" xlink:href="${eposl:purpose_href}" xlink:title="${eposl:libelle}"/>
         </eposl:BoreholeView>
     </gml:featureMembers>
 </wfs:FeatureCollection>

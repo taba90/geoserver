@@ -64,12 +64,12 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
     }
 
     @Override
-    public void startObject(String name) throws IOException {
-        writeElementName(name, null);
+    public void startObject(String name, Map<String,Object> encodingHints) throws IOException {
+        writeElementName(name, encodingHints);
     }
 
     @Override
-    public void endObject(String name) throws IOException {
+    public void endObject(String name, Map<String,Object> encodingHints) throws IOException {
         try {
             streamWriter.writeEndElement();
         } catch (XMLStreamException e) {
@@ -78,12 +78,12 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
     }
 
     @Override
-    public void startArray(String name) throws IOException {
-        writeElementName(name, null);
+    public void startArray(String name,Map<String,Object> encodingHints) throws IOException {
+        writeElementName(name, encodingHints);
     }
 
     @Override
-    public void endArray(String name) throws IOException {
+    public void endArray(String name,Map<String,Object> encodingHints) throws IOException {
         try {
             streamWriter.writeEndElement();
         } catch (XMLStreamException e) {
@@ -95,7 +95,7 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
     public void startTemplateOutput(Map<String, Object> encodingHints) throws IOException {
         try {
             streamWriter.writeStartDocument();
-            streamWriter.writeStartElement("wfs", "FeatureCollection");
+            streamWriter.writeStartElement("wfs", "FeatureCollection","http://www.opengis.net/wfs");
             Object attributes = encodingHints.get(ROOT_ELEMENT_ATTRIBUTES);
             if (attributes != null) {
                 XMLTemplateReader.RootElementAttributes rootElementAttributes =
@@ -111,6 +111,7 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
                     streamWriter.writeAttribute(k, xsi.get(k));
                 }
             }
+            streamWriter.writeStartElement("gml", "featureMembers","http://www.opengis.net/gml/3.2");
         } catch (XMLStreamException e) {
             throw new IOException(e);
         }
@@ -120,6 +121,7 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
     public void endTemplateOutput(Map<String, Object> encodingHints) throws IOException {
 
         try {
+            streamWriter.writeEndElement();
             streamWriter.writeEndElement();
             streamWriter.writeEndDocument();
         } catch (XMLStreamException e) {
@@ -169,7 +171,7 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
                     for (int i = 0; i < list.size(); i++) {
                         writeElementName(key, encodingHints);
                         writeElementNameAndValue(null, list.get(i), encodingHints);
-                        endObject(key);
+                        endObject(key,encodingHints);
                     }
                 }
             }

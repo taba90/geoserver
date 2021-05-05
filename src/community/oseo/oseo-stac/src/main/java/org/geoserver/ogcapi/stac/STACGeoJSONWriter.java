@@ -35,7 +35,7 @@ public class STACGeoJSONWriter extends GeoJSONWriter {
             boolean merge)
             throws IOException {
         if (href != null) {
-            startObject();
+            writeStartObject();
             if (title != null) {
                 writeFieldName("title");
                 writeValue(title);
@@ -54,12 +54,12 @@ public class STACGeoJSONWriter extends GeoJSONWriter {
             }
             if (body != null) {
                 writeFieldName("body");
-                startObject();
+                writeStartObject();
                 for (Map.Entry<String, Object> e : body.entrySet()) {
                     writeFieldName(e.getKey());
                     writeObject(e.getValue());
                 }
-                endObject();
+                writeEndObject();
             }
             if (merge) {
                 writeFieldName("merge");
@@ -67,7 +67,7 @@ public class STACGeoJSONWriter extends GeoJSONWriter {
             }
             writeFieldName("href");
             writeValue(href);
-            endObject();
+            writeEndObject();
         }
     }
 }

@@ -55,15 +55,15 @@ public class TemplatedItemsConverter extends AbstractHttpMessageConverter<Abstra
                 new STACGeoJSONWriter(
                         new JsonFactory()
                                 .createGenerator(httpOutputMessage.getBody(), JsonEncoding.UTF8))) {
-            writer.startTemplateOutput();
+            writer.startTemplateOutput(null);
             try (FeatureIterator features = itemsResponse.getItems().features()) {
                 while (features.hasNext()) {
                     builder.evaluate(writer, new TemplateBuilderContext(features.next()));
                 }
             }
-            writer.endArray();
+            writer.writeEndArray();
             writeAdditionFields(writer, itemsResponse);
-            writer.endTemplateOutput();
+            writer.endTemplateOutput(null);
         } catch (Exception e) {
             throw new ServiceException(e);
         }
@@ -84,7 +84,7 @@ public class TemplatedItemsConverter extends AbstractHttpMessageConverter<Abstra
 
         // links
         w.writeFieldName("links");
-        w.startArray();
+        w.writeStartArray();
 
         String type = GEOJSON_VALUE;
         if (ir.isPost()) {
@@ -101,6 +101,6 @@ public class TemplatedItemsConverter extends AbstractHttpMessageConverter<Abstra
             if (ir.getNext() != null) w.writeLink(ir.getNext(), REL_NEXT, type, null, null);
             if (ir.getSelf() != null) w.writeLink(ir.getSelf(), REL_SELF, type, null, null);
         }
-        w.endArray();
+        w.writeEndArray();
     }
 }

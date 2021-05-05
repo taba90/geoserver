@@ -57,15 +57,15 @@ public class GeoJSONSearchResponse extends Response {
 
         try (GeoJSONWriter writer =
                 new GeoJSONWriter(new JsonFactory().createGenerator(output, JsonEncoding.UTF8))) {
-            writer.startTemplateOutput();
+            writer.startTemplateOutput(null);
             try (FeatureIterator features = results.getResults().features()) {
                 while (features.hasNext()) {
                     builder.evaluate(writer, new TemplateBuilderContext(features.next()));
                 }
             }
-            writer.endArray();
+            writer.writeEndArray();
             writeAdditionalFields(writer, results);
-            writer.endTemplateOutput();
+            writer.endTemplateOutput(null);
         } catch (Exception e) {
             throw new ServiceException(e);
         } finally {
@@ -87,15 +87,15 @@ public class GeoJSONSearchResponse extends Response {
         writeSimple(w, "startIndex", Optional.ofNullable(query.getStartIndex()).orElse(0) + 1);
 
         w.writeFieldName("queries");
-        w.startObject();
+        w.writeStartObject();
         w.writeFieldName("request");
         writeQuery(w, results.getRequest());
-        w.endObject();
+        w.writeEndObject();
 
         w.writeFieldName("properties");
-        w.startObject();
+        w.writeStartObject();
         writeCollectionProperties(results, w);
-        w.endObject();
+        w.writeEndObject();
     }
 
     private void writeSimple(GeoJSONWriter w, String fieldName, Object value) throws IOException {
@@ -113,13 +113,13 @@ public class GeoJSONSearchResponse extends Response {
         writeSimple(w, "creator", oseo.getName());
 
         w.writeFieldName("authors");
-        w.startArray();
-        w.startObject();
+        w.writeStartArray();
+        w.writeStartObject();
         writeSimple(w, "name", gs.getSettings().getContact().getContactOrganization());
         writeSimple(w, "email", gs.getSettings().getContact().getContactEmail());
         writeSimple(w, "type", "Agent");
-        w.endObject();
-        w.endArray();
+        w.writeEndObject();
+        w.writeEndArray();
 
         writeSimple(w, "updated", new Date());
         writeSimple(w, "lang", "en");
@@ -127,7 +127,7 @@ public class GeoJSONSearchResponse extends Response {
         PaginationLinkBuilder builder =
                 new PaginationLinkBuilder(results, oseo, GeoJSONSearchResponse.MIME);
         w.writeFieldName("links");
-        w.startObject();
+        w.writeStartObject();
         writeSingleLink(w, "profiles", new Link(OSEO_GEOJSON_PROFILE));
         writeSingleLink(
                 w,
@@ -146,18 +146,18 @@ public class GeoJSONSearchResponse extends Response {
                             builder.getPrevious(), "Previous results", GeoJSONSearchResponse.MIME));
         writeSingleLink(
                 w, "last", new Link(builder.getLast(), "Last results", GeoJSONSearchResponse.MIME));
-        w.endObject();
+        w.writeEndObject();
     }
 
     private void writeSingleLink(GeoJSONWriter w, String category, Link link) throws IOException {
         w.writeFieldName(category);
-        w.startArray();
-        w.startObject();
+        w.writeStartArray();
+        w.writeStartObject();
         writeSimple(w, "href", link.getHref());
         if (link.getType() != null) writeSimple(w, "type", link.getType());
         if (link.getTitle() != null) writeSimple(w, "title", link.getTitle());
-        w.endObject();
-        w.endArray();
+        w.writeEndObject();
+        w.writeEndArray();
     }
 
     private String getRequestedURL() {
@@ -170,7 +170,7 @@ public class GeoJSONSearchResponse extends Response {
     }
 
     private void writeQuery(GeoJSONWriter w, SearchRequest request) throws IOException {
-        w.startObject();
+        w.writeStartObject();
 
         // TODO: there are likely mappings to be done here, maybe do them in the Parameter
         // declaration directly
@@ -184,6 +184,6 @@ public class GeoJSONSearchResponse extends Response {
             writeSimple(w, fieldName, v);
         }
 
-        w.endObject();
+        w.writeEndObject();
     }
 }

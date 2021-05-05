@@ -181,6 +181,7 @@ public final class DomainModelBuilder {
                 domainAttribute.setType(DomainAttributeType.DATE);
                 break;
             case "geometry":
+            case "geography":
                 domainAttribute.setType(DomainAttributeType.GEOMETRY);
                 break;
             case "bool":

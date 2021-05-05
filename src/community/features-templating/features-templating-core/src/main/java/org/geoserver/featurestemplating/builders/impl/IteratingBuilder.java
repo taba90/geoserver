@@ -77,11 +77,15 @@ public class IteratingBuilder extends SourceBuilder {
 
         List elements = (List) context.getCurrentObj();
         for (Object o : elements) {
-            if (repeat && !rootCollection) writer.startArray(getKey(), encodingHints);
             TemplateBuilderContext childContext = new TemplateBuilderContext(o);
             childContext.setParent(context.getParent());
-            evaluateInternal(writer, childContext);
-            if (repeat && !rootCollection) writer.endArray(getKey(), encodingHints);
+            if (evaluateFilter(childContext)) {
+                if (repeat && !rootCollection) writer.startArray(getKey(), encodingHints);
+                for (TemplateBuilder child : children) {
+                    child.evaluate(writer, childContext);
+                }
+                if (repeat && !rootCollection) writer.endArray(getKey(), encodingHints);
+            }
         }
     }
 

@@ -46,8 +46,8 @@
             <eposl:geotechnicalinfo>unknown</eposl:geotechnicalinfo>
             <eposl:geotechnicalinfo_href>http://www.opengis.net/def/nil/OGC/0/unknown</eposl:geotechnicalinfo_href>
             <eposl:location_wgs84>POINT (6.97236927633205 48.0613002731598)</eposl:location_wgs84-->
-            <eposl:purpose gft:isCollection="true" gft:isReference="true" gft:source="eposl:purpose/eposl:PurposeViewFeature" xlink:href="${eposl:purpose_href}" xlink:title="${eposl:libelle}"/>
-            <eposl:useView gft:isCollection="true" gft:isReference="true" gft:source="eposl:useView/eposl:UseViewFeature" xlink:href="${eposl:purpose_href}" xlink:title="${eposl:libelle}"/>
+            <eposl:purpose gft:isCollection="true" gft:source="eposl:purpose/eposl:PurposeViewFeature" xlink:href="${eposl:purpose_href}" xlink:title="${eposl:libelle}"/>
+            <eposl:useView gft:isCollection="true" gft:source="eposl:useView/eposl:UseViewFeature" xlink:href="${eposl:purpose_href}" xlink:title="${eposl:libelle}"/>
         </eposl:BoreholeView>
     </gml:featureMembers>
 </wfs:FeatureCollection>

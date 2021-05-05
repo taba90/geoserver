@@ -57,9 +57,9 @@ public class DynamicValueBuilderTest extends DataTestCase {
                 new GeoJSONWriter(new JsonFactory().createGenerator(baos, JsonEncoding.UTF8));
 
         DynamicValueBuilder builder = new DynamicValueBuilder("key", s, new NamespaceSupport());
-        writer.startObject(null, null);
+        writer.writeStartObject();
         builder.evaluate(writer, new TemplateBuilderContext(roadFeatures[0]));
-        writer.endObject(null, null);
+        writer.writeEndObject();
         writer.close();
 
         // nothing has been encoded

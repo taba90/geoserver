@@ -168,7 +168,8 @@ public class TemplateConfiguration {
             templateName = TemplateIdentifier.JSONLD.getFilename();
         } else if (outputFormat.equals(TemplateIdentifier.XHTML.getOutputFormat())) {
             templateName = TemplateIdentifier.XHTML.getFilename();
-        } else if (outputFormat.equals(TemplateIdentifier.XML.getOutputFormat()))
+        } else if (outputFormat.equals(TemplateIdentifier.XML.getOutputFormat())
+                || outputFormat.equalsIgnoreCase("text/xml"))
             templateName = TemplateIdentifier.XML.getFilename();
         return templateName;
     }

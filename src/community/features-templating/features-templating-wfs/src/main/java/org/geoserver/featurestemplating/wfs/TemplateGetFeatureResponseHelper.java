@@ -61,7 +61,7 @@ public class TemplateGetFeatureResponseHelper {
                 try {
                     XMLStreamWriter xMLStreamWriter =
                             xMLOutputFactory.createXMLStreamWriter(output);
-                    outputWriter=new GMLTemplateWriter(xMLStreamWriter,null);
+                    outputWriter = new GMLTemplateWriter(xMLStreamWriter, null);
                     break;
 
                 } catch (XMLStreamException e) {

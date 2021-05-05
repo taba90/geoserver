@@ -250,24 +250,24 @@ public abstract class CommonJSONWriter extends com.fasterxml.jackson.core.JsonGe
     }
 
     @Override
-    public void startObject(String name, Map<String,Object> encodingHints) throws IOException {
+    public void startObject(String name, Map<String, Object> encodingHints) throws IOException {
         if (name != null) writeElementName(name, encodingHints);
         writeStartObject();
     }
 
     @Override
-    public void endObject(String name, Map<String,Object> encodingHints) throws IOException {
+    public void endObject(String name, Map<String, Object> encodingHints) throws IOException {
         writeEndObject();
     }
 
     @Override
-    public void startArray(String name, Map<String,Object> encodingHints) throws IOException {
+    public void startArray(String name, Map<String, Object> encodingHints) throws IOException {
         writeElementName(name, encodingHints);
         writeStartArray();
     }
 
     @Override
-    public void endArray(String name, Map<String,Object> encodingHints) throws IOException {
+    public void endArray(String name, Map<String, Object> encodingHints) throws IOException {
         writeEndArray();
     }
 

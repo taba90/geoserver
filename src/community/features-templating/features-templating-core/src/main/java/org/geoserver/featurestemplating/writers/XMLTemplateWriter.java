@@ -56,20 +56,26 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
             String name, Object staticContent, Map<String, Object> encodingHints)
             throws IOException {
         try {
-            streamWriter.writeStartElement(name);
-            streamWriter.writeCharacters(staticContent.toString());
+            Object encodeAsAttribute = encodingHints.get(ENCODE_AS_ATTRIBUTE);
+            if (encodeAsAttribute != null
+                    && Boolean.valueOf(encodeAsAttribute.toString()).booleanValue())
+                writeAsAttribute(name, staticContent, encodingHints);
+            else {
+                streamWriter.writeStartElement(name);
+                streamWriter.writeCharacters(staticContent.toString());
+            }
         } catch (XMLStreamException e) {
             throw new IOException(e);
         }
     }
 
     @Override
-    public void startObject(String name, Map<String,Object> encodingHints) throws IOException {
+    public void startObject(String name, Map<String, Object> encodingHints) throws IOException {
         writeElementName(name, encodingHints);
     }
 
     @Override
-    public void endObject(String name, Map<String,Object> encodingHints) throws IOException {
+    public void endObject(String name, Map<String, Object> encodingHints) throws IOException {
         try {
             streamWriter.writeEndElement();
         } catch (XMLStreamException e) {
@@ -78,12 +84,12 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
     }
 
     @Override
-    public void startArray(String name,Map<String,Object> encodingHints) throws IOException {
+    public void startArray(String name, Map<String, Object> encodingHints) throws IOException {
         writeElementName(name, encodingHints);
     }
 
     @Override
-    public void endArray(String name,Map<String,Object> encodingHints) throws IOException {
+    public void endArray(String name, Map<String, Object> encodingHints) throws IOException {
         try {
             streamWriter.writeEndElement();
         } catch (XMLStreamException e) {
@@ -95,7 +101,8 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
     public void startTemplateOutput(Map<String, Object> encodingHints) throws IOException {
         try {
             streamWriter.writeStartDocument();
-            streamWriter.writeStartElement("wfs", "FeatureCollection","http://www.opengis.net/wfs");
+            streamWriter.writeStartElement(
+                    "wfs", "FeatureCollection", "http://www.opengis.net/wfs");
             Object attributes = encodingHints.get(ROOT_ELEMENT_ATTRIBUTES);
             if (attributes != null) {
                 XMLTemplateReader.RootElementAttributes rootElementAttributes =
@@ -104,14 +111,15 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
                 Map<String, String> xsi = rootElementAttributes.getSchemaLocations();
                 Set<String> nsKeys = namespaces.keySet();
                 for (String k : nsKeys) {
-                    streamWriter.writeAttribute(k, namespaces.get(k));
+                    streamWriter.writeNamespace(k, namespaces.get(k));
                 }
                 Set<String> xsiKeys = xsi.keySet();
                 for (String k : xsiKeys) {
                     streamWriter.writeAttribute(k, xsi.get(k));
                 }
             }
-            streamWriter.writeStartElement("gml", "featureMembers","http://www.opengis.net/gml/3.2");
+            streamWriter.writeStartElement(
+                    "gml", "featureMembers", "http://www.opengis.net/gml/3.2");
         } catch (XMLStreamException e) {
             throw new IOException(e);
         }
@@ -140,29 +148,38 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
 
     public void writeElementNameAndValue(
             String key, Object elementValue, Map<String, Object> encodingHints) throws IOException {
-        Object encodeAsAttribute = encodingHints.get(ENCODE_AS_ATTRIBUTE);
-        if (encodeAsAttribute != null
-                && Boolean.valueOf(encodeAsAttribute.toString()).booleanValue())
-            writeAsAttribute(key, elementValue, encodingHints);
+        boolean encodeAsAttribute = isEncodeAsAttribute(encodingHints);
         boolean repeatName = elementValue instanceof List && ((List) elementValue).size() > 1;
-        if (key != null && !repeatName) writeElementName(key, encodingHints);
+        boolean canClose = false;
+        if (key != null && !repeatName && !encodeAsAttribute) writeElementName(key, encodingHints);
         try {
             if (elementValue instanceof String
                     || elementValue instanceof Number
                     || elementValue instanceof Boolean) {
-                streamWriter.writeCharacters(String.valueOf(elementValue));
+                if (encodeAsAttribute) writeAsAttribute(key, elementValue, encodingHints);
+                else {
+                    streamWriter.writeCharacters(String.valueOf(elementValue));
+                    canClose = true;
+                }
             } else if (elementValue instanceof Geometry) {
                 writeGeometry((Geometry) elementValue);
+                canClose = true;
             } else if (elementValue instanceof Date) {
                 Date timeStamp = (Date) elementValue;
                 String formatted = new StdDateFormat().withColonInTimeZone(true).format(timeStamp);
-                streamWriter.writeCharacters(formatted);
+                if (encodeAsAttribute) writeAsAttribute(key, elementValue, encodingHints);
+                else {
+                    streamWriter.writeCharacters(formatted);
+                    canClose = true;
+                }
             } else if (elementValue instanceof ComplexAttribute) {
                 ComplexAttribute attr = (ComplexAttribute) elementValue;
-                writeElementNameAndValue(null, attr.getValue(), encodingHints);
+                writeElementNameAndValue(
+                        encodeAsAttribute ? key : null, attr.getValue(), encodingHints);
             } else if (elementValue instanceof Attribute) {
                 Attribute attr = (Attribute) elementValue;
-                writeElementNameAndValue(null, attr.getValue(), encodingHints);
+                writeElementNameAndValue(
+                        encodeAsAttribute ? key : null, attr.getValue(), encodingHints);
             } else if (elementValue instanceof List) {
                 List list = (List) elementValue;
                 if (!repeatName) {
@@ -171,15 +188,15 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
                     for (int i = 0; i < list.size(); i++) {
                         writeElementName(key, encodingHints);
                         writeElementNameAndValue(null, list.get(i), encodingHints);
-                        endObject(key,encodingHints);
+                        endObject(key, encodingHints);
                     }
                 }
             }
         } catch (XMLStreamException e) {
             throw new IOException(e);
         }
-        if (key != null && !repeatName) {
-            writeElementName(key, encodingHints);
+        if (canClose) {
+            endObject(null, null);
         }
     }
 
@@ -188,10 +205,26 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
         try {
             if (key.indexOf(":") != -1) {
                 String[] splitKey = key.split(":");
-                streamWriter.writeAttribute(splitKey[1], elementValue.toString(), splitKey[0]);
+                streamWriter.writeAttribute(
+                        splitKey[0],
+                        namespaces.get(splitKey[0]),
+                        splitKey[1],
+                        elementValue.toString());
             } else streamWriter.writeAttribute(key, elementValue.toString());
         } catch (XMLStreamException e) {
             throw new IOException(e);
         }
+    }
+
+    public void setNamespaces(Map<String, String> namespaces) {
+        this.namespaces = namespaces;
+    }
+
+    private boolean isEncodeAsAttribute(Map<String, Object> encodingHints) {
+        boolean result = false;
+        Object encodeAsAttribute = encodingHints.get(ENCODE_AS_ATTRIBUTE);
+        if (encodeAsAttribute != null)
+            result = Boolean.valueOf(encodeAsAttribute.toString()).booleanValue();
+        return result;
     }
 }

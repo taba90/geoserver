@@ -22,7 +22,6 @@ import org.geoserver.ows.DispatcherCallback;
 import org.geoserver.ows.Request;
 import org.geoserver.ows.Response;
 import org.geoserver.platform.Operation;
-import org.geoserver.wfs.json.GeoJSONGetFeatureResponse;
 import org.geoserver.wfs.request.GetFeatureRequest;
 import org.geoserver.wfs.request.Query;
 import org.geotools.factory.CommonFactoryFinder;
@@ -172,13 +171,15 @@ public class JSONTemplateCallback extends AbstractDispatcherCallback {
     @Override
     public Response responseDispatched(
             Request request, Operation operation, Object result, Response response) {
-            GetFeatureRequest getFeature = GetFeatureRequest.adapt(operation.getParameters()[0]);
+        GetFeatureRequest getFeature = GetFeatureRequest.adapt(operation.getParameters()[0]);
+        if (getFeature != null) {
             List<Query> queries = getFeature.getQueries();
             for (Query q : queries) {
                 List<FeatureTypeInfo> typeInfos = getFeatureTypeInfoFromQuery(q);
                 Response wrapped = wrapResponse(typeInfos, request.getOutputFormat());
                 if (wrapped != null) response = wrapped;
             }
+        }
         return super.responseDispatched(request, operation, result, response);
     }
 
@@ -189,12 +190,12 @@ public class JSONTemplateCallback extends AbstractDispatcherCallback {
             List<RootBuilder> rootBuilders =
                     getRootBuildersFromFeatureTypeInfo(typeInfos, outputFormat);
             if (rootBuilders.size() > 0) {
-                if (outputFormat.equalsIgnoreCase(TemplateIdentifier.JSON.getOutputFormat()) )
-                response =
-                        new GeoJSONTemplateGetFeatureResponse(
-                                gs, configuration, TemplateIdentifier.JSON);
+                if (outputFormat.equalsIgnoreCase(TemplateIdentifier.JSON.getOutputFormat()))
+                    response =
+                            new GeoJSONTemplateGetFeatureResponse(
+                                    gs, configuration, TemplateIdentifier.JSON);
                 else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.XML.getOutputFormat()))
-                    response = new GML32TemplateResponse(gs,configuration,TemplateIdentifier.XML);
+                    response = new GML32TemplateResponse(gs, configuration, TemplateIdentifier.XML);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

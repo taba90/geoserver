@@ -50,12 +50,17 @@ public class IteratingBuilder extends SourceBuilder {
         if (canWrite(context)) {
             boolean repeat = isRepeat();
             String key = getKey();
-            if (!repeat) writer.startArray(key,encodingHints);
+            if (!repeat) writer.startArray(key, encodingHints);
 
-            if (context.getCurrentObj() instanceof List) evaluateCollection(writer, context);
-            else evaluateInternal(writer, context, repeat);
+            if (context.getCurrentObj() instanceof List) {
+                evaluateCollection(writer, context, repeat);
+            } else {
+                if (repeat) writer.startArray(key, encodingHints);
+                evaluateInternal(writer, context);
+                if (repeat) writer.endArray(key, encodingHints);
+            }
 
-            if (!repeat) writer.endArray(key,encodingHints);
+            if (!repeat) writer.endArray(key, encodingHints);
         }
     }
 
@@ -66,14 +71,17 @@ public class IteratingBuilder extends SourceBuilder {
      * @param context the context against which evaluate
      * @throws IOException
      */
-    protected void evaluateCollection(TemplateOutputWriter writer, TemplateBuilderContext context)
+    protected void evaluateCollection(
+            TemplateOutputWriter writer, TemplateBuilderContext context, boolean repeat)
             throws IOException {
 
         List elements = (List) context.getCurrentObj();
         for (Object o : elements) {
+            if (repeat && !rootCollection) writer.startArray(getKey(), encodingHints);
             TemplateBuilderContext childContext = new TemplateBuilderContext(o);
             childContext.setParent(context.getParent());
             evaluateInternal(writer, childContext);
+            if (repeat && !rootCollection) writer.endArray(getKey(), encodingHints);
         }
     }
 
@@ -86,19 +94,9 @@ public class IteratingBuilder extends SourceBuilder {
      */
     protected void evaluateInternal(TemplateOutputWriter writer, TemplateBuilderContext context)
             throws IOException {
-        evaluateInternal(writer, context, false);
-    }
-
-    protected void evaluateInternal(
-            TemplateOutputWriter writer, TemplateBuilderContext context, boolean repeat)
-            throws IOException {
         if (evaluateFilter(context)) {
             for (TemplateBuilder child : children) {
-                if (repeat && !rootCollection) writer.startArray(getKey(),encodingHints);
-
                 child.evaluate(writer, context);
-
-                if (repeat && !rootCollection) writer.endArray(getKey(),encodingHints);
             }
         }
     }

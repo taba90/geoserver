@@ -68,9 +68,9 @@ public class CompositeBuilderTest extends DataTestCase {
         GeoJSONWriter writer =
                 new GeoJSONWriter(new JsonFactory().createGenerator(baos, JsonEncoding.UTF8));
 
-        writer.startObject(null, null);
+        writer.writeStartObject();
         composite.evaluate(writer, new TemplateBuilderContext(roadFeatures[0]));
-        writer.endObject(null, null);
+        writer.writeEndObject();
         writer.close();
 
         // nothing has been encoded

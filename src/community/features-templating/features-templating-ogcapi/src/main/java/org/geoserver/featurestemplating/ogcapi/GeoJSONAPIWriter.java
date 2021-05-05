@@ -27,7 +27,7 @@ public class GeoJSONAPIWriter extends GeoJSONWriter {
             String previous, String next, String prefixedName, String featureId, String mimeType)
             throws IOException {
         APIRequestInfo requestInfo = APIRequestInfo.get();
-        startArray("links",null);
+        startArray("links", null);
         // paging links
         if (previous != null) {
             writeLink(previous, "prev", mimeType, "Previous page", null);

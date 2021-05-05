@@ -155,7 +155,7 @@ public class TemplateBuilderMaker {
             if (isCollection) result = buildIteratingBuilder();
             else result = buildCompositeBuilder();
         } else {
-            if (textContent.startsWith(TemplateReader.EXPRSTART)) result = buildDynamicBuilder();
+            if (textContent.contains(TemplateReader.EXPRSTART)) result = buildDynamicBuilder();
             else result = buildStaticBuilder();
         }
         reset();

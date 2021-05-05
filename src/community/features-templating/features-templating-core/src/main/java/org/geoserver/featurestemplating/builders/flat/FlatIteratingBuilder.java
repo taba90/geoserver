@@ -32,7 +32,8 @@ public class FlatIteratingBuilder extends IteratingBuilder implements FlatBuilde
         if (!rootCollection) {
             context = evaluateSource(context);
             if (context.getCurrentObj() != null) {
-                if (context.getCurrentObj() instanceof List) evaluateCollection(writer, context);
+                if (context.getCurrentObj() instanceof List)
+                    evaluateCollection(writer, context, false);
                 else evaluateInternal(writer, context, 0, 1);
             }
         } else {
@@ -40,17 +41,18 @@ public class FlatIteratingBuilder extends IteratingBuilder implements FlatBuilde
                 for (TemplateBuilder child : children) {
                     AbstractTemplateBuilder abstractChild = (AbstractTemplateBuilder) child;
                     if (child instanceof FlatCompositeBuilder)
-                        writer.startObject(abstractChild.getKey(),encodingHints);
+                        writer.startObject(abstractChild.getKey(), encodingHints);
                     child.evaluate(writer, context);
                     if (child instanceof FlatCompositeBuilder)
-                        writer.endObject(abstractChild.getKey(),encodingHints);
+                        writer.endObject(abstractChild.getKey(), encodingHints);
                 }
             }
         }
     }
 
     @Override
-    public void evaluateCollection(TemplateOutputWriter writer, TemplateBuilderContext context)
+    public void evaluateCollection(
+            TemplateOutputWriter writer, TemplateBuilderContext context, boolean repeat)
             throws IOException {
 
         List elements = (List) context.getCurrentObj();

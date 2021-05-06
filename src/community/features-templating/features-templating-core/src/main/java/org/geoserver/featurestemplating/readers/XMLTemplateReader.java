@@ -5,10 +5,8 @@ import static org.geoserver.featurestemplating.builders.EncodingHints.REPEAT;
 import static org.geoserver.featurestemplating.builders.EncodingHints.ROOT_ELEMENT_ATTRIBUTES;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Stack;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
@@ -18,6 +16,7 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+import org.geoserver.featurestemplating.builders.EncodingHints;
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.TemplateBuilderMaker;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
@@ -184,7 +183,8 @@ public class XMLTemplateReader implements TemplateReader {
     private void handleFeatureCollectionElement(
             StartElement startElementEvent, RootBuilder rootBuilder) {
         Iterator<Attribute> attributeIterator = startElementEvent.getAttributes();
-        RootElementAttributes rootElementAttributes = new RootElementAttributes();
+        EncodingHints.RootElementAttributes rootElementAttributes =
+                new EncodingHints.RootElementAttributes();
         while (attributeIterator.hasNext()) {
             Attribute attribute = attributeIterator.next();
             String prefix = attribute.getName().getLocalPart();
@@ -205,31 +205,5 @@ public class XMLTemplateReader implements TemplateReader {
 
     private boolean alreadyParsed(EndElement endElement) {
         return parsedElements.stream().anyMatch(se -> se.getName().equals(endElement.getName()));
-    }
-
-    public static class RootElementAttributes {
-        private Map<String, String> namespaces;
-        private Map<String, String> schemaLocations;
-
-        public RootElementAttributes() {
-            this.namespaces = new HashMap<>();
-            this.schemaLocations = new HashMap<>();
-        }
-
-        public Map<String, String> getNamespaces() {
-            return namespaces;
-        }
-
-        public Map<String, String> getSchemaLocations() {
-            return schemaLocations;
-        }
-
-        public void addNamespace(String prefix, String value) {
-            namespaces.put(prefix, value);
-        }
-
-        public void addSchemaLocations(String prefix, String value) {
-            schemaLocations.put(prefix, value);
-        }
     }
 }

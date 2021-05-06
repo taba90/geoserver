@@ -19,6 +19,8 @@ import org.geoserver.featurestemplating.configuration.TemplateConfiguration;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
 import org.geoserver.featurestemplating.expressions.TemplateCQLManager;
 import org.geoserver.featurestemplating.request.JSONPathVisitor;
+import org.geoserver.featurestemplating.wfs.BaseTemplateGetFeatureResponse;
+import org.geoserver.featurestemplating.wfs.GML32TemplateResponse;
 import org.geoserver.ogcapi.APIService;
 import org.geoserver.ogcapi.features.FeatureService;
 import org.geoserver.ogcapi.features.FeaturesResponse;
@@ -70,27 +72,31 @@ public class JSONTemplateCallBackOGC extends AbstractDispatcherCallback {
 
     @Override
     public Operation operationDispatched(Request request, Operation operation) {
-        String outputFormat = getFormatSupportingTemplating(request);
-        if ("FEATURES".equalsIgnoreCase(request.getService()) && outputFormat != null) {
-            try {
-                FeatureTypeInfo typeInfo = getFeatureType((String) operation.getParameters()[0]);
-                RootBuilder root = configuration.getTemplate(typeInfo, outputFormat);
-                if (root instanceof JSONLDRootBuilder) {
-                    setSemanticValidation((JSONLDRootBuilder) root, request);
-                }
-                String filterLang = (String) request.getKvp().get("FILTER-LANG");
-                if (filterLang != null && filterLang.equalsIgnoreCase("CQL-TEXT")) {
-                    String filter = (String) request.getKvp().get("FILTER");
-                    replaceJsonLdPathWithFilter(filter, root, typeInfo, operation);
-                }
-                String envParam =
-                        request.getRawKvp().get("ENV") != null
-                                ? request.getRawKvp().get("ENV").toString()
-                                : null;
+        TemplateIdentifier identifier = getTemplateIdentifier(request);
+        if (identifier != null) {
+            String outputFormat = identifier.getOutputFormat();
+            if ("FEATURES".equalsIgnoreCase(request.getService()) && outputFormat != null) {
+                try {
+                    FeatureTypeInfo typeInfo =
+                            getFeatureType((String) operation.getParameters()[0]);
+                    RootBuilder root = configuration.getTemplate(typeInfo, outputFormat);
+                    if (root instanceof JSONLDRootBuilder) {
+                        setSemanticValidation((JSONLDRootBuilder) root, request);
+                    }
+                    String filterLang = (String) request.getKvp().get("FILTER-LANG");
+                    if (filterLang != null && filterLang.equalsIgnoreCase("CQL-TEXT")) {
+                        String filter = (String) request.getKvp().get("FILTER");
+                        replaceJsonLdPathWithFilter(filter, root, typeInfo, operation);
+                    }
+                    String envParam =
+                            request.getRawKvp().get("ENV") != null
+                                    ? request.getRawKvp().get("ENV").toString()
+                                    : null;
 
-                setEnvParameter(envParam);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+                    setEnvParameter(envParam);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         return super.operationDispatched(request, operation);
@@ -118,20 +124,16 @@ public class JSONTemplateCallBackOGC extends AbstractDispatcherCallback {
         return featureType;
     }
 
-    private String getFormatSupportingTemplating(Request request) {
+    private TemplateIdentifier getTemplateIdentifier(Request request) {
         String accept = request.getHttpRequest().getHeader(HttpHeaders.ACCEPT);
         String format = request.getKvp() != null ? (String) request.getKvp().get("f") : null;
-        if (format != null && isFormatSupported(format)) {
-            return format;
+        TemplateIdentifier identifier = null;
+        if (format != null) {
+            identifier = getTemplateIdentifer(format);
         } else if (accept != null) {
-            if (accept.contains(TemplateIdentifier.JSON.getOutputFormat()))
-                return TemplateIdentifier.JSON.getOutputFormat();
-            else if (accept.contains(TemplateIdentifier.JSONLD.getOutputFormat()))
-                return TemplateIdentifier.JSONLD.getOutputFormat();
-            else if (accept.contains(TemplateIdentifier.GEOJSON.getOutputFormat()))
-                return TemplateIdentifier.GEOJSON.getOutputFormat();
+            identifier = getTemplateIdentifer(accept);
         }
-        return null;
+        return identifier;
     }
 
     private boolean isFormatSupported(String format) {
@@ -194,27 +196,20 @@ public class JSONTemplateCallBackOGC extends AbstractDispatcherCallback {
     @Override
     public Response responseDispatched(
             Request request, Operation operation, Object result, Response response) {
-        String format = getFormatSupportingTemplating(request);
-        boolean isJson = format != null && format.equals(TemplateIdentifier.JSON.getOutputFormat());
-        boolean isGeoJson =
-                format != null && format.equals(TemplateIdentifier.GEOJSON.getOutputFormat());
+        TemplateIdentifier identifier = getTemplateIdentifier(request);
         // we want to override Features API method that are returning a list of features, and
         // when the output format is JSON os GeoJSON
-        if ((isJson || isGeoJson)
+        if ((identifier != null && !identifier.equals(TemplateIdentifier.JSONLD))
                 && request.getService().equals(FEATURES_SERVICE)
                 && result instanceof FeaturesResponse) {
             FeatureTypeInfo typeInfo = getFeatureType((String) operation.getParameters()[0]);
             if (typeInfo != null) {
                 try {
-                    RootBuilder root = configuration.getTemplate(typeInfo, format);
+                    RootBuilder root =
+                            configuration.getTemplate(typeInfo, identifier.getOutputFormat());
                     if (root != null) {
-                        response =
-                                wrapResponse(
-                                        operation,
-                                        result,
-                                        isGeoJson
-                                                ? TemplateIdentifier.GEOJSON
-                                                : TemplateIdentifier.JSON);
+                        Response templateResp = wrapResponse(operation, result, identifier);
+                        if (templateResp != null) response = templateResp;
                     }
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -226,19 +221,56 @@ public class JSONTemplateCallBackOGC extends AbstractDispatcherCallback {
 
     private Response wrapResponse(
             Operation operation, Object result, TemplateIdentifier identifier) {
+        BaseTemplateGetFeatureResponse templatingResp = null;
+        switch (identifier) {
+            case JSON:
+            case GEOJSON:
+                templatingResp =
+                        new GeoJSONTemplateGetFeatureResponse(gs, configuration, identifier) {
+                            @Override
+                            protected void write(
+                                    FeatureCollectionResponse featureCollection,
+                                    OutputStream output,
+                                    Operation getFeature)
+                                    throws ServiceException {
+                                FeaturesResponse fr = (FeaturesResponse) result;
+                                super.write(fr.getResponse(), output, operation);
+                            }
+                        };
+                break;
+            case GML32:
+                templatingResp =
+                        new GML32TemplateResponse(gs, configuration, identifier) {
+                            @Override
+                            protected void write(
+                                    FeatureCollectionResponse featureCollection,
+                                    OutputStream output,
+                                    Operation getFeature)
+                                    throws ServiceException {
+                                FeaturesResponse fr = (FeaturesResponse) result;
+                                super.write(fr.getResponse(), output, operation);
+                            }
+                        };
+                break;
+        }
 
-        GeoJSONTemplateGetFeatureResponse templatingResp =
-                new GeoJSONTemplateGetFeatureResponse(gs, configuration, identifier) {
-                    @Override
-                    protected void write(
-                            FeatureCollectionResponse featureCollection,
-                            OutputStream output,
-                            Operation getFeature)
-                            throws ServiceException {
-                        FeaturesResponse fr = (FeaturesResponse) result;
-                        super.write(fr.getResponse(), output, operation);
-                    }
-                };
         return templatingResp;
+    }
+
+    private TemplateIdentifier getTemplateIdentifer(String outputFormat) {
+        TemplateIdentifier identifier = null;
+        if (outputFormat.equalsIgnoreCase(TemplateIdentifier.JSON.getOutputFormat()))
+            identifier = TemplateIdentifier.JSON;
+        else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.JSONLD.getOutputFormat())) {
+            identifier = TemplateIdentifier.JSONLD;
+        } else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.GEOJSON.getOutputFormat())) {
+            identifier = TemplateIdentifier.GEOJSON;
+        } else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.GML32.getOutputFormat()))
+            identifier = TemplateIdentifier.GML32;
+        else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.GML31.getOutputFormat()))
+            identifier = TemplateIdentifier.GML31;
+        else if (TemplateIdentifier.GML2.getOutputFormat().contains(outputFormat))
+            identifier = TemplateIdentifier.GML2;
+        return identifier;
     }
 }

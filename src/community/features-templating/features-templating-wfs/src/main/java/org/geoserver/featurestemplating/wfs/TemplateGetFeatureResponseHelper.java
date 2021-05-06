@@ -43,6 +43,10 @@ public class TemplateGetFeatureResponseHelper {
     }
 
     TemplateOutputWriter getOutputWriter(OutputStream output) throws IOException {
+        return getOutputWriter(output, null);
+    }
+
+    TemplateOutputWriter getOutputWriter(OutputStream output, String version) throws IOException {
         TemplateOutputWriter outputWriter;
         switch (format) {
             case JSON:
@@ -56,12 +60,14 @@ public class TemplateGetFeatureResponseHelper {
                         new JSONLDWriter(
                                 new JsonFactory().createGenerator(output, JsonEncoding.UTF8));
                 break;
-            case XML:
+            case GML2:
+            case GML31:
+            case GML32:
                 XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
                 try {
                     XMLStreamWriter xMLStreamWriter =
                             xMLOutputFactory.createXMLStreamWriter(output);
-                    outputWriter = new GMLTemplateWriter(xMLStreamWriter, null);
+                    outputWriter = new GMLTemplateWriter(xMLStreamWriter, version);
                     break;
 
                 } catch (XMLStreamException e) {

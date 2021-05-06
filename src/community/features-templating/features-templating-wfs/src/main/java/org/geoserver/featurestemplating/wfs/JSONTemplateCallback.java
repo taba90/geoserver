@@ -171,13 +171,16 @@ public class JSONTemplateCallback extends AbstractDispatcherCallback {
     @Override
     public Response responseDispatched(
             Request request, Operation operation, Object result, Response response) {
-        GetFeatureRequest getFeature = GetFeatureRequest.adapt(operation.getParameters()[0]);
-        if (getFeature != null) {
-            List<Query> queries = getFeature.getQueries();
-            for (Query q : queries) {
-                List<FeatureTypeInfo> typeInfos = getFeatureTypeInfoFromQuery(q);
-                Response wrapped = wrapResponse(typeInfos, request.getOutputFormat());
-                if (wrapped != null) response = wrapped;
+        Object[] params = operation.getParameters();
+        if (params.length > 0) {
+            GetFeatureRequest getFeature = GetFeatureRequest.adapt(params[0]);
+            if (getFeature != null) {
+                List<Query> queries = getFeature.getQueries();
+                for (Query q : queries) {
+                    List<FeatureTypeInfo> typeInfos = getFeatureTypeInfoFromQuery(q);
+                    Response wrapped = wrapResponse(typeInfos, request.getOutputFormat());
+                    if (wrapped != null) response = wrapped;
+                }
             }
         }
         return super.responseDispatched(request, operation, result, response);
@@ -194,8 +197,11 @@ public class JSONTemplateCallback extends AbstractDispatcherCallback {
                     response =
                             new GeoJSONTemplateGetFeatureResponse(
                                     gs, configuration, TemplateIdentifier.JSON);
-                else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.XML.getOutputFormat()))
-                    response = new GML32TemplateResponse(gs, configuration, TemplateIdentifier.XML);
+                else {
+                    TemplateIdentifier identifier = getGMLTemplateIdentifier(outputFormat);
+                    if (identifier != null)
+                        response = new GML32TemplateResponse(gs, configuration, identifier);
+                }
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -207,7 +213,6 @@ public class JSONTemplateCallback extends AbstractDispatcherCallback {
     // null and json-ld output is requested
     private RootBuilder ensureTemplatesExist(FeatureTypeInfo typeInfo, String outputFormat)
             throws ExecutionException {
-
         RootBuilder root = configuration.getTemplate(typeInfo, outputFormat);
         if (outputFormat.equals(TemplateIdentifier.JSONLD.getOutputFormat()) && root == null) {
             throw new RuntimeException(
@@ -217,5 +222,16 @@ public class JSONTemplateCallback extends AbstractDispatcherCallback {
                             + outputFormat);
         }
         return root;
+    }
+
+    private TemplateIdentifier getGMLTemplateIdentifier(String outputFormat) {
+        TemplateIdentifier identifier = null;
+        if (outputFormat.trim().equalsIgnoreCase(TemplateIdentifier.GML32.getOutputFormat()))
+            identifier = TemplateIdentifier.GML32;
+        else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.GML31.getOutputFormat()))
+            identifier = TemplateIdentifier.GML31;
+        else if (TemplateIdentifier.GML2.getOutputFormat().contains(outputFormat))
+            identifier = TemplateIdentifier.GML2;
+        return identifier;
     }
 }

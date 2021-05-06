@@ -1,18 +1,15 @@
 package org.geoserver.featurestemplating.writers;
 
 import static org.geoserver.featurestemplating.builders.EncodingHints.ENCODE_AS_ATTRIBUTE;
-import static org.geoserver.featurestemplating.builders.EncodingHints.ROOT_ELEMENT_ATTRIBUTES;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import org.geoserver.featurestemplating.readers.XMLTemplateReader;
-import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.Attribute;
 import org.opengis.feature.ComplexAttribute;
@@ -21,13 +18,10 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
 
     protected XMLStreamWriter streamWriter;
 
-    protected CRS.AxisOrder axisOrder = CRS.AxisOrder.NORTH_EAST;
+    protected Map<String, String> namespaces = new HashMap<>();
 
-    Map<String, String> namespaces;
-
-    public XMLTemplateWriter(XMLStreamWriter streamWriter, Map<String, String> namespaces) {
+    public XMLTemplateWriter(XMLStreamWriter streamWriter) {
         this.streamWriter = streamWriter;
-        this.namespaces = namespaces;
     }
 
     @Override
@@ -92,46 +86,6 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
     public void endArray(String name, Map<String, Object> encodingHints) throws IOException {
         try {
             streamWriter.writeEndElement();
-        } catch (XMLStreamException e) {
-            throw new IOException(e);
-        }
-    }
-
-    @Override
-    public void startTemplateOutput(Map<String, Object> encodingHints) throws IOException {
-        try {
-            streamWriter.writeStartDocument();
-            streamWriter.writeStartElement(
-                    "wfs", "FeatureCollection", "http://www.opengis.net/wfs");
-            Object attributes = encodingHints.get(ROOT_ELEMENT_ATTRIBUTES);
-            if (attributes != null) {
-                XMLTemplateReader.RootElementAttributes rootElementAttributes =
-                        (XMLTemplateReader.RootElementAttributes) attributes;
-                Map<String, String> namespaces = rootElementAttributes.getNamespaces();
-                Map<String, String> xsi = rootElementAttributes.getSchemaLocations();
-                Set<String> nsKeys = namespaces.keySet();
-                for (String k : nsKeys) {
-                    streamWriter.writeNamespace(k, namespaces.get(k));
-                }
-                Set<String> xsiKeys = xsi.keySet();
-                for (String k : xsiKeys) {
-                    streamWriter.writeAttribute(k, xsi.get(k));
-                }
-            }
-            streamWriter.writeStartElement(
-                    "gml", "featureMembers", "http://www.opengis.net/gml/3.2");
-        } catch (XMLStreamException e) {
-            throw new IOException(e);
-        }
-    }
-
-    @Override
-    public void endTemplateOutput(Map<String, Object> encodingHints) throws IOException {
-
-        try {
-            streamWriter.writeEndElement();
-            streamWriter.writeEndElement();
-            streamWriter.writeEndDocument();
         } catch (XMLStreamException e) {
             throw new IOException(e);
         }

@@ -168,9 +168,21 @@ public class TemplateConfiguration {
             templateName = TemplateIdentifier.JSONLD.getFilename();
         } else if (outputFormat.equals(TemplateIdentifier.XHTML.getOutputFormat())) {
             templateName = TemplateIdentifier.XHTML.getFilename();
-        } else if (outputFormat.equals(TemplateIdentifier.XML.getOutputFormat())
-                || outputFormat.equalsIgnoreCase("text/xml"))
-            templateName = TemplateIdentifier.XML.getFilename();
+        } else {
+            TemplateIdentifier identifier = getGMLTemplateIdentifier(outputFormat);
+            if (identifier != null) templateName = identifier.getFilename();
+        }
         return templateName;
+    }
+
+    private TemplateIdentifier getGMLTemplateIdentifier(String outputFormat) {
+        TemplateIdentifier identifier = null;
+        if (outputFormat.trim().equalsIgnoreCase(TemplateIdentifier.GML32.getOutputFormat()))
+            identifier = TemplateIdentifier.GML32;
+        else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.GML31.getOutputFormat()))
+            identifier = TemplateIdentifier.GML31;
+        else if (TemplateIdentifier.GML2.getOutputFormat().contains(outputFormat))
+            identifier = TemplateIdentifier.GML2;
+        return identifier;
     }
 }

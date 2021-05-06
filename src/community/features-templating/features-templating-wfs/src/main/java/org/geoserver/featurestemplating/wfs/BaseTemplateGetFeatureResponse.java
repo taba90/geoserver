@@ -48,7 +48,7 @@ public abstract class BaseTemplateGetFeatureResponse extends WFSGetFeatureOutput
 
         try (TemplateOutputWriter writer = helper.getOutputWriter(output)) {
             writer.startTemplateOutput(null);
-            iterateFeatureCollection(writer, featureCollection);
+            iterateFeatureCollection(writer, featureCollection, getFeature);
             writer.endTemplateOutput(null);
         } catch (Exception e) {
             throw new ServiceException(e);
@@ -65,16 +65,24 @@ public abstract class BaseTemplateGetFeatureResponse extends WFSGetFeatureOutput
      * @throws ExecutionException
      */
     protected void iterateFeatureCollection(
-            TemplateOutputWriter writer, FeatureCollectionResponse featureCollection)
+            TemplateOutputWriter writer,
+            FeatureCollectionResponse featureCollection,
+            Operation operation)
             throws IOException, ExecutionException {
         List<FeatureCollection> collectionList = featureCollection.getFeature();
 
         for (FeatureCollection collection : collectionList) {
             FeatureTypeInfo fti = helper.getFeatureTypeInfo(collection);
-            RootBuilder root = configuration.getTemplate(fti, getMimeType(null, null));
+            RootBuilder root = configuration.getTemplate(fti, getMimeType(null, operation));
             beforeFeatureIteration(writer, root, fti);
             iterateFeatures(root, writer, collection);
         }
+    }
+
+    protected void iterateFeatureCollection(
+            TemplateOutputWriter writer, FeatureCollectionResponse featureCollection)
+            throws IOException, ExecutionException {
+        iterateFeatureCollection(writer, featureCollection, null);
     }
 
     /**

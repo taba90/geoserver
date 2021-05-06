@@ -8,12 +8,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import net.opengis.wfs.GetFeatureType;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
+import org.geoserver.featurestemplating.builders.EncodingHints;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 import org.geoserver.featurestemplating.configuration.TemplateConfiguration;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
-import org.geoserver.featurestemplating.readers.XMLTemplateReader;
 import org.geoserver.featurestemplating.writers.GMLTemplateWriter;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
 import org.geoserver.platform.Operation;
@@ -37,16 +38,18 @@ public class GML32TemplateResponse extends BaseTemplateGetFeatureResponse {
     protected void write(
             FeatureCollectionResponse featureCollection, OutputStream output, Operation getFeature)
             throws ServiceException {
-        try (GMLTemplateWriter writer = getOutputWriter(output)) {
-            Map<String, Object> encodingHints = getRootsEncodingHints(featureCollection);
+        String outputFormat = getMimeType(null, getFeature);
+        try (GMLTemplateWriter writer = getOutputWriter(output, outputFormat)) {
+            Map<String, Object> encodingHints =
+                    getRootsEncodingHints(featureCollection, outputFormat);
             Object rootAttributes = encodingHints.get(ROOT_ELEMENT_ATTRIBUTES);
             if (rootAttributes != null) {
-                XMLTemplateReader.RootElementAttributes attributes =
-                        (XMLTemplateReader.RootElementAttributes) rootAttributes;
+                EncodingHints.RootElementAttributes attributes =
+                        (EncodingHints.RootElementAttributes) rootAttributes;
                 writer.setNamespaces(attributes.getNamespaces());
             }
             writer.startTemplateOutput(encodingHints);
-            iterateFeatureCollection(writer, featureCollection);
+            iterateFeatureCollection(writer, featureCollection, getFeature);
             writer.endTemplateOutput(encodingHints);
             ;
         } catch (Exception e) {
@@ -58,19 +61,36 @@ public class GML32TemplateResponse extends BaseTemplateGetFeatureResponse {
     protected void beforeEvaluation(
             TemplateOutputWriter writer, RootBuilder root, Feature feature) {}
 
-    protected GMLTemplateWriter getOutputWriter(OutputStream output) throws IOException {
-        return (GMLTemplateWriter) helper.getOutputWriter(output);
+    protected GMLTemplateWriter getOutputWriter(OutputStream output, String outputFormat)
+            throws IOException {
+        return (GMLTemplateWriter) helper.getOutputWriter(output, outputFormat);
     }
 
-    private Map<String, Object> getRootsEncodingHints(FeatureCollectionResponse response)
-            throws ExecutionException {
-        Map<String, Object> encodingHints = new HashMap<>();
+    private Map<String, Object> getRootsEncodingHints(
+            FeatureCollectionResponse response, String outputFormat) throws ExecutionException {
+        EncodingHints.RootElementAttributes attributes=null;
         List<FeatureCollection> collectionList = response.getFeature();
         for (FeatureCollection collection : collectionList) {
             FeatureTypeInfo fti = helper.getFeatureTypeInfo(collection);
-            RootBuilder root = configuration.getTemplate(fti, getMimeType(null, null));
-            encodingHints.putAll(root.getEncodingHints());
+            RootBuilder root = configuration.getTemplate(fti, outputFormat);
+            EncodingHints.RootElementAttributes rattrs=(EncodingHints.RootElementAttributes)root.getEncodingHints().get(ROOT_ELEMENT_ATTRIBUTES);
+            if (attributes==null)
+                attributes= rattrs;
         }
         return encodingHints;
+    }
+
+    @Override
+    public String getMimeType(Object value, Operation operation) throws ServiceException {
+        if (operation != null) {
+            Object[] parameters = operation.getParameters();
+            if (parameters.length > 0) {
+                Object param = parameters[0];
+                if (param instanceof GetFeatureType) {
+                    return ((GetFeatureType) param).getOutputFormat();
+                }
+            }
+        }
+        return super.getMimeType(value, operation);
     }
 }

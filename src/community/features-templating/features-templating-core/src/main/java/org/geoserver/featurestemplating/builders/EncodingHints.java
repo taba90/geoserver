@@ -5,11 +5,13 @@ import java.util.Map;
 
 public class EncodingHints {
 
-    public static final String ROOT_ELEMENT_ATTRIBUTES = "ROOT_ELEMENT_ATTRIBUTES";
+    public static final String NAMESPACES = "NAMESPACES";
+
+    public static final String SCHEMA_LOCATION="SCHEMA_LOCATION";
 
     public static final String ENCODE_AS_ATTRIBUTE = "ENCODE_AS_ATTRIBUTE";
 
-    public static final String REPEAT = "REPEAT";
+    public static final String ITERATE_KEY = "INTERATE_KEY";
 
     public static class RootElementAttributes {
         private Map<String, String> namespaces;

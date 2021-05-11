@@ -35,7 +35,7 @@ import org.opengis.filter.FilterFactory2;
  * path has been provided to cql_filter and evaluate it against the {@link TemplateBuilder} tree to
  * get the corresponding {@link Filter}
  */
-public class JSONTemplateCallback extends AbstractDispatcherCallback {
+public class TemplateCallback extends AbstractDispatcherCallback {
 
     private Catalog catalog;
 
@@ -45,7 +45,7 @@ public class JSONTemplateCallback extends AbstractDispatcherCallback {
 
     static FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
 
-    public JSONTemplateCallback(GeoServer gs, TemplateConfiguration configuration) {
+    public TemplateCallback(GeoServer gs, TemplateConfiguration configuration) {
         this.gs = gs;
         this.catalog = gs.getCatalog();
         this.configuration = configuration;
@@ -53,18 +53,16 @@ public class JSONTemplateCallback extends AbstractDispatcherCallback {
 
     @Override
     public Operation operationDispatched(Request request, Operation operation) {
-        if ("WFS".equalsIgnoreCase(request.getService())
-                && request.getOutputFormat() != null
-                && (request.getOutputFormat().equals(TemplateIdentifier.JSONLD.getOutputFormat())
-                        || request.getOutputFormat()
-                                .equals(TemplateIdentifier.JSON.getOutputFormat()))) {
+        if (request.getService().contains("WFS")) {
             try {
                 GetFeatureRequest getFeature =
                         GetFeatureRequest.adapt(operation.getParameters()[0]);
-                List<Query> queries = getFeature.getQueries();
-                if (getFeature != null && queries != null && queries.size() > 0) {
-                    handleTemplateFiltersAndValidation(
-                            queries, request.getOutputFormat(), isValidation(request));
+                if (getFeature != null) {
+                    List<Query> queries = getFeature.getQueries();
+                    if (queries != null && queries.size() > 0) {
+                        handleTemplateFiltersAndValidation(
+                                queries, request.getOutputFormat(), isValidation(request));
+                    }
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -145,7 +143,6 @@ public class JSONTemplateCallback extends AbstractDispatcherCallback {
             if (q.getFilter() != null) {
                 Filter old = q.getFilter();
                 String cql = ECQL.toCQL(old);
-                if (cql.contains("features/") || cql.contains("features.")) {
                     Filter newFilter = (Filter) old.accept(visitor, root);
                     List<Filter> templateFilters = new ArrayList<>();
                     templateFilters.addAll(visitor.getFilters());
@@ -162,7 +159,6 @@ public class JSONTemplateCallback extends AbstractDispatcherCallback {
                                         + "Check the path specified in the filter.");
                     }
                 }
-            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

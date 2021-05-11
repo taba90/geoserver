@@ -4,6 +4,8 @@ import static org.geoserver.featurestemplating.builders.EncodingHints.ENCODE_AS_
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +21,8 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
     protected XMLStreamWriter streamWriter;
 
     protected Map<String, String> namespaces = new HashMap<>();
+
+    protected Map<String, String> schemaLocations=new HashMap<>();
 
     public XMLTemplateWriter(XMLStreamWriter streamWriter) {
         this.streamWriter = streamWriter;
@@ -109,7 +113,7 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
         try {
             if (elementValue instanceof String
                     || elementValue instanceof Number
-                    || elementValue instanceof Boolean) {
+                    || elementValue instanceof Boolean || elementValue instanceof URI|| elementValue instanceof URL) {
                 if (encodeAsAttribute) writeAsAttribute(key, elementValue, encodingHints);
                 else {
                     streamWriter.writeCharacters(String.valueOf(elementValue));
@@ -137,12 +141,10 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
             } else if (elementValue instanceof List) {
                 List list = (List) elementValue;
                 if (!repeatName) {
-                    writeElementNameAndValue(null, list.get(0), encodingHints);
+                    writeElementNameAndValue(key, list.get(0), encodingHints);
                 } else {
                     for (int i = 0; i < list.size(); i++) {
-                        writeElementName(key, encodingHints);
-                        writeElementNameAndValue(null, list.get(i), encodingHints);
-                        endObject(key, encodingHints);
+                        writeElementNameAndValue(key+i, list.get(i), encodingHints);
                     }
                 }
             }
@@ -170,10 +172,13 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
         }
     }
 
-    public void setNamespaces(Map<String, String> namespaces) {
-        this.namespaces = namespaces;
+    public void addNamespaces(Map<String, String> namespaces) {
+        this.namespaces.putAll(namespaces);
     }
 
+    public void addSchemaLocations(Map<String, String> schemaLocations){
+        this.schemaLocations.putAll(schemaLocations);
+    }
     private boolean isEncodeAsAttribute(Map<String, Object> encodingHints) {
         boolean result = false;
         Object encodeAsAttribute = encodingHints.get(ENCODE_AS_ATTRIBUTE);

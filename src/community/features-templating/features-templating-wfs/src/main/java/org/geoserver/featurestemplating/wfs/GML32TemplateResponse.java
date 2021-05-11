@@ -1,6 +1,7 @@
 package org.geoserver.featurestemplating.wfs;
 
-import static org.geoserver.featurestemplating.builders.EncodingHints.ROOT_ELEMENT_ATTRIBUTES;
+import static org.geoserver.featurestemplating.builders.EncodingHints.NAMESPACES;
+import static org.geoserver.featurestemplating.builders.EncodingHints.SCHEMA_LOCATION;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -17,6 +18,7 @@ import org.geoserver.featurestemplating.configuration.TemplateConfiguration;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
 import org.geoserver.featurestemplating.writers.GMLTemplateWriter;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
+import org.geoserver.featurestemplating.writers.XMLTemplateWriter;
 import org.geoserver.platform.Operation;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wfs.request.FeatureCollectionResponse;
@@ -40,18 +42,10 @@ public class GML32TemplateResponse extends BaseTemplateGetFeatureResponse {
             throws ServiceException {
         String outputFormat = getMimeType(null, getFeature);
         try (GMLTemplateWriter writer = getOutputWriter(output, outputFormat)) {
-            Map<String, Object> encodingHints =
-                    getRootsEncodingHints(featureCollection, outputFormat);
-            Object rootAttributes = encodingHints.get(ROOT_ELEMENT_ATTRIBUTES);
-            if (rootAttributes != null) {
-                EncodingHints.RootElementAttributes attributes =
-                        (EncodingHints.RootElementAttributes) rootAttributes;
-                writer.setNamespaces(attributes.getNamespaces());
-            }
-            writer.startTemplateOutput(encodingHints);
+            setNamespacesAndSchemaLocations(featureCollection, writer, outputFormat);
+            writer.startTemplateOutput(null);
             iterateFeatureCollection(writer, featureCollection, getFeature);
-            writer.endTemplateOutput(encodingHints);
-            ;
+            writer.endTemplateOutput(null);
         } catch (Exception e) {
             throw new ServiceException(e);
         }
@@ -66,18 +60,19 @@ public class GML32TemplateResponse extends BaseTemplateGetFeatureResponse {
         return (GMLTemplateWriter) helper.getOutputWriter(output, outputFormat);
     }
 
-    private Map<String, Object> getRootsEncodingHints(
-            FeatureCollectionResponse response, String outputFormat) throws ExecutionException {
-        EncodingHints.RootElementAttributes attributes=null;
+    private void setNamespacesAndSchemaLocations(
+            FeatureCollectionResponse response, XMLTemplateWriter writer, String outputFormat) throws ExecutionException {
         List<FeatureCollection> collectionList = response.getFeature();
         for (FeatureCollection collection : collectionList) {
             FeatureTypeInfo fti = helper.getFeatureTypeInfo(collection);
             RootBuilder root = configuration.getTemplate(fti, outputFormat);
-            EncodingHints.RootElementAttributes rattrs=(EncodingHints.RootElementAttributes)root.getEncodingHints().get(ROOT_ELEMENT_ATTRIBUTES);
-            if (attributes==null)
-                attributes= rattrs;
+            Map<String, String> namespaces =(Map<String,String>) root.getEncodingHints().get(NAMESPACES);
+            Map<String, String> schemaLocation= (Map<String,String>) root.getEncodingHints().get(SCHEMA_LOCATION);
+            if (namespaces!=null)
+                writer.addNamespaces(namespaces);
+            if (schemaLocation!=null)
+                writer.addSchemaLocations(schemaLocation);
         }
-        return encodingHints;
     }
 
     @Override
@@ -91,6 +86,6 @@ public class GML32TemplateResponse extends BaseTemplateGetFeatureResponse {
                 }
             }
         }
-        return super.getMimeType(value, operation);
+        return TemplateIdentifier.GML32.getOutputFormat();
     }
 }

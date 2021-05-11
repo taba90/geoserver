@@ -1,7 +1,5 @@
 package org.geoserver.featurestemplating.writers;
 
-import static org.geoserver.featurestemplating.builders.EncodingHints.ROOT_ELEMENT_ATTRIBUTES;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -32,21 +30,15 @@ public class GMLTemplateWriter extends XMLTemplateWriter {
             streamWriter.writeStartDocument();
             streamWriter.writeStartElement(
                     "wfs", "FeatureCollection", "http://www.opengis.net/wfs");
-            Object attributes = encodingHints.get(ROOT_ELEMENT_ATTRIBUTES);
-            if (attributes != null) {
-                EncodingHints.RootElementAttributes rootElementAttributes =
-                        (EncodingHints.RootElementAttributes) attributes;
-                Map<String, String> namespaces = rootElementAttributes.getNamespaces();
-                Map<String, String> xsi = rootElementAttributes.getSchemaLocations();
+
                 Set<String> nsKeys = namespaces.keySet();
                 for (String k : nsKeys) {
                     streamWriter.writeNamespace(k, namespaces.get(k));
                 }
-                Set<String> xsiKeys = xsi.keySet();
+                Set<String> xsiKeys = schemaLocations.keySet();
                 for (String k : xsiKeys) {
-                    streamWriter.writeAttribute(k, xsi.get(k));
+                    streamWriter.writeAttribute(k, schemaLocations.get(k));
                 }
-            }
             versionManager.startTemplateOutput();
         } catch (XMLStreamException e) {
             throw new IOException(e);

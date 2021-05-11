@@ -1,12 +1,15 @@
 package org.geoserver.featurestemplating.readers;
 
 import static org.geoserver.featurestemplating.builders.EncodingHints.ENCODE_AS_ATTRIBUTE;
-import static org.geoserver.featurestemplating.builders.EncodingHints.REPEAT;
-import static org.geoserver.featurestemplating.builders.EncodingHints.ROOT_ELEMENT_ATTRIBUTES;
+import static org.geoserver.featurestemplating.builders.EncodingHints.ITERATE_KEY;
+import static org.geoserver.featurestemplating.builders.EncodingHints.NAMESPACES;
+import static org.geoserver.featurestemplating.builders.EncodingHints.SCHEMA_LOCATION;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
@@ -16,7 +19,8 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
-import org.geoserver.featurestemplating.builders.EncodingHints;
+
+
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.TemplateBuilderMaker;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
@@ -120,25 +124,24 @@ public class XMLTemplateReader implements TemplateReader {
         if (startElement != null && !parsedElements.contains(startElement)) {
             Attribute attribute = startElement.getAttributeByName(new QName("gft:isCollection"));
             String qName = startElement.getName().toString();
-            boolean isRootCollection = qName.equals("gml:featureMembers");
-            boolean collection =
-                    isRootCollection
-                            || (attribute != null
-                                    && Boolean.valueOf(attribute.getValue()).booleanValue());
-            maker.collection(collection)
-                    .name(qName)
-                    .namespaces(namespaceSupport)
-                    .filter(getAttributeValueIfPresent(startElement, "gft:filter"))
-                    .source(getAttributeValueIfPresent(startElement, "gft:source"))
-                    .root(isRootCollection);
-            if (collection) {
-                maker.encodingOption(REPEAT, "true");
+            boolean skipElement = qName.equals("gml:featureMembers");
+            if (!skipElement) {
+                boolean collection = attribute != null
+                        && Boolean.valueOf(attribute.getValue()).booleanValue();
+                maker.collection(collection)
+                        .name(qName)
+                        .namespaces(namespaceSupport)
+                        .filter(getAttributeValueIfPresent(startElement, "gft:filter"))
+                        .source(getAttributeValueIfPresent(startElement, "gft:source"));
+                if (collection) {
+                    maker.encodingOption(ITERATE_KEY, "true");
+                }
+                TemplateBuilder parentBuilder = maker.build();
+                Iterator<Attribute> attributeIterator = startElement.getAttributes();
+                addAttributeAsChildrenBuilder(attributeIterator, parentBuilder);
+                currentParent.addChild(parentBuilder);
+                currentParent = parentBuilder;
             }
-            TemplateBuilder parentBuilder = maker.build();
-            Iterator<Attribute> attributeIterator = startElement.getAttributes();
-            addAttributeAsChildrenBuilder(attributeIterator, parentBuilder);
-            currentParent.addChild(parentBuilder);
-            currentParent = parentBuilder;
         }
         return currentParent;
     }
@@ -183,20 +186,21 @@ public class XMLTemplateReader implements TemplateReader {
     private void handleFeatureCollectionElement(
             StartElement startElementEvent, RootBuilder rootBuilder) {
         Iterator<Attribute> attributeIterator = startElementEvent.getAttributes();
-        EncodingHints.RootElementAttributes rootElementAttributes =
-                new EncodingHints.RootElementAttributes();
+        Map<String, String> namespaces=new HashMap<>();
+        Map<String, String> schemaLocation=new HashMap<>();
         while (attributeIterator.hasNext()) {
             Attribute attribute = attributeIterator.next();
             String prefix = attribute.getName().getLocalPart();
             if (prefix.startsWith("xmlns")) {
                 String localPart = prefix.split(":")[1];
-                rootElementAttributes.addNamespace(localPart, attribute.getValue());
+                namespaces.put(localPart, attribute.getValue());
             } else if (prefix.startsWith("xsi")) {
-                rootElementAttributes.addSchemaLocations(
+                schemaLocation.put(
                         strName(attribute.getName()), attribute.getValue());
             }
         }
-        rootBuilder.addEncodingHint(ROOT_ELEMENT_ATTRIBUTES, rootElementAttributes);
+        rootBuilder.addEncodingHint(NAMESPACES, namespaces);
+        rootBuilder.addEncodingHint(SCHEMA_LOCATION, schemaLocation);
     }
 
     String strName(QName qName) {
@@ -204,6 +208,12 @@ public class XMLTemplateReader implements TemplateReader {
     }
 
     private boolean alreadyParsed(EndElement endElement) {
-        return parsedElements.stream().anyMatch(se -> se.getName().equals(endElement.getName()));
+        long count= parsedElements.stream().filter(se -> se.getName().equals(endElement.getName())).count();
+        boolean alreadyParsed=count==1;
+        if (count > 1){
+            alreadyParsed=elementsStack.empty() || !elementsStack.peek().getName().equals(endElement.getName());
+        }
+        return alreadyParsed;
     }
+
 }

@@ -46,7 +46,7 @@ import org.springframework.http.HttpHeaders;
  * dispatched event if a json-ld path has been provided to cql_filter and evaluate it against the
  * {@link TemplateBuilder} tree to get the corresponding {@link Filter}
  */
-public class JSONTemplateCallBackOGC extends AbstractDispatcherCallback {
+public class TemplateCallBackOGC extends AbstractDispatcherCallback {
 
     static final FormatOptionsKvpParser PARSER = new FormatOptionsKvpParser("env");
 
@@ -60,7 +60,7 @@ public class JSONTemplateCallBackOGC extends AbstractDispatcherCallback {
 
     private static final FilterFactory2 FF = CommonFactoryFinder.getFilterFactory2();
 
-    public JSONTemplateCallBackOGC(GeoServer gs, TemplateConfiguration configuration) {
+    public TemplateCallBackOGC(GeoServer gs, TemplateConfiguration configuration) {
         this.catalog = gs.getCatalog();
         this.configuration = configuration;
         this.gs = gs;

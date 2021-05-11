@@ -52,7 +52,7 @@ public class FlatIteratingBuilder extends IteratingBuilder implements FlatBuilde
 
     @Override
     public void evaluateCollection(
-            TemplateOutputWriter writer, TemplateBuilderContext context, boolean repeat)
+            TemplateOutputWriter writer, TemplateBuilderContext context, boolean iterateKey)
             throws IOException {
 
         List elements = (List) context.getCurrentObj();

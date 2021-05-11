@@ -13,10 +13,9 @@ import org.geoserver.catalog.*;
 import org.geoserver.config.GeoServer;
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
-import org.geoserver.featurestemplating.builders.jsonld.JSONLDRootBuilder;
 import org.geoserver.featurestemplating.configuration.TemplateConfiguration;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
-import org.geoserver.featurestemplating.request.JSONPathVisitor;
+import org.geoserver.featurestemplating.request.TemplatePathVisitor;
 import org.geoserver.ows.AbstractDispatcherCallback;
 import org.geoserver.ows.DispatcherCallback;
 import org.geoserver.ows.Request;
@@ -53,7 +52,7 @@ public class TemplateCallback extends AbstractDispatcherCallback {
 
     @Override
     public Operation operationDispatched(Request request, Operation operation) {
-        if (request.getService().contains("WFS")) {
+        if (request.getService().toUpperCase().contains("WFS")) {
             try {
                 GetFeatureRequest getFeature =
                         GetFeatureRequest.adapt(operation.getParameters()[0]);
@@ -92,8 +91,9 @@ public class TemplateCallback extends AbstractDispatcherCallback {
                 for (int i = 0; i < featureTypeInfos.size(); i++) {
                     FeatureTypeInfo fti = featureTypeInfos.get(i);
                     RootBuilder root = rootBuilders.get(i);
-                    if (validation && root instanceof JSONLDRootBuilder) {
-                        ((JSONLDRootBuilder) root).setSemanticValidation(validation);
+                    if (validation
+                            && outputFormat.equals(TemplateIdentifier.JSONLD.getOutputFormat())) {
+                        root.setSemanticValidation(validation);
                     }
                     replaceTemplatePath(q, fti, root);
                 }
@@ -139,26 +139,26 @@ public class TemplateCallback extends AbstractDispatcherCallback {
     private void replaceTemplatePath(Query q, FeatureTypeInfo fti, RootBuilder root) {
         try {
 
-            JSONPathVisitor visitor = new JSONPathVisitor(fti.getFeatureType());
+            TemplatePathVisitor visitor = new TemplatePathVisitor(fti.getFeatureType());
             if (q.getFilter() != null) {
                 Filter old = q.getFilter();
                 String cql = ECQL.toCQL(old);
-                    Filter newFilter = (Filter) old.accept(visitor, root);
-                    List<Filter> templateFilters = new ArrayList<>();
-                    templateFilters.addAll(visitor.getFilters());
-                    if (templateFilters != null && templateFilters.size() > 0) {
-                        templateFilters.add(newFilter);
-                        newFilter = ff.and(templateFilters);
-                    }
-                    q.setFilter(newFilter);
-                    if (newFilter.equals(old)) {
-                        throw new RuntimeException(
-                                "Failed to resolve filter "
-                                        + cql
-                                        + " against the template. "
-                                        + "Check the path specified in the filter.");
-                    }
+                Filter newFilter = (Filter) old.accept(visitor, root);
+                List<Filter> templateFilters = new ArrayList<>();
+                templateFilters.addAll(visitor.getFilters());
+                if (templateFilters != null && templateFilters.size() > 0) {
+                    templateFilters.add(newFilter);
+                    newFilter = ff.and(templateFilters);
                 }
+                q.setFilter(newFilter);
+                if (newFilter.equals(old)) {
+                    throw new RuntimeException(
+                            "Failed to resolve filter "
+                                    + cql
+                                    + " against the template. "
+                                    + "Check the path specified in the filter.");
+                }
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

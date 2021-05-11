@@ -1,5 +1,6 @@
 package org.geoserver.featurestemplating.builders;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.HashMap;
 import java.util.Map;
 import org.geoserver.featurestemplating.builders.flat.FlatCompositeBuilder;
@@ -9,11 +10,20 @@ import org.geoserver.featurestemplating.builders.flat.FlatStaticBuilder;
 import org.geoserver.featurestemplating.builders.impl.CompositeBuilder;
 import org.geoserver.featurestemplating.builders.impl.DynamicValueBuilder;
 import org.geoserver.featurestemplating.builders.impl.IteratingBuilder;
+import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 import org.geoserver.featurestemplating.builders.impl.StaticBuilder;
 import org.geoserver.featurestemplating.readers.TemplateReader;
 import org.xml.sax.helpers.NamespaceSupport;
 
 public class TemplateBuilderMaker {
+
+    private boolean rootBuilder;
+
+    private boolean semanticValidation;
+
+    private String rootCollectionName;
+
+    private JsonNode jsonNode;
 
     private String textContent;
 
@@ -27,20 +37,42 @@ public class TemplateBuilderMaker {
 
     private boolean flatOutput;
 
-    private boolean isRoot;
+    private boolean rootCollection;
 
-    private Map<String, Object> encodingOptions;
+    private Map<String, Object> encondingHints;
+
+    private Map<String, String> vendorOptions;
 
     private NamespaceSupport namespaces;
 
     private String separator = "_";
 
     public TemplateBuilderMaker() {
-        this.encodingOptions = new HashMap<>();
+        this.encondingHints = new HashMap<>();
+        this.vendorOptions = new HashMap<>();
+    }
+
+    public TemplateBuilderMaker(String rootCollectionName) {
+        this();
+        this.rootCollectionName = rootCollectionName;
     }
 
     public TemplateBuilderMaker textContent(String textContent) {
         this.textContent = textContent;
+        return this;
+    }
+
+    public TemplateBuilderMaker jsonNode(JsonNode jsonNode) {
+        this.jsonNode = jsonNode;
+        return this;
+    }
+
+    public TemplateBuilderMaker content(Object content) {
+        if (content instanceof String) textContent(content.toString());
+        else if (content instanceof JsonNode) jsonNode((JsonNode) content);
+        else
+            throw new UnsupportedOperationException(
+                    "Unsupported content for builders. Content is of type " + content.getClass());
         return this;
     }
 
@@ -69,13 +101,13 @@ public class TemplateBuilderMaker {
         return this;
     }
 
-    public TemplateBuilderMaker root(boolean root) {
-        isRoot = root;
+    public TemplateBuilderMaker rootCollection(boolean root) {
+        rootCollection = root;
         return this;
     }
 
     public TemplateBuilderMaker encodingOption(String name, Object value) {
-        this.encodingOptions.put(name, value);
+        this.encondingHints.put(name, value);
         return this;
     }
 
@@ -89,17 +121,46 @@ public class TemplateBuilderMaker {
         return this;
     }
 
-    public void reset() {
-        this.encodingOptions = new HashMap<>();
-        this.filter = null;
+    public TemplateBuilderMaker rootBuilder(boolean rootBuilder) {
+        this.rootBuilder = rootBuilder;
+        return this;
+    }
+
+    public TemplateBuilderMaker semanticValidation(boolean semanticValidation) {
+        this.semanticValidation = semanticValidation;
+        return this;
+    }
+
+    public void globalReset() {
+        localReset();
+        this.namespaces = null;
+        this.separator = null;
         this.flatOutput = false;
+    }
+
+    public void localReset() {
+        this.encondingHints = new HashMap<>();
+        this.vendorOptions = new HashMap<>();
+        this.semanticValidation = false;
+        this.filter = null;
         this.isCollection = false;
-        this.isRoot = false;
+        this.rootCollection = false;
         this.name = null;
         this.source = null;
         this.textContent = null;
-        this.namespaces = null;
-        this.separator = "_";
+        this.jsonNode = null;
+        this.rootBuilder = false;
+    }
+
+    public RootBuilder buildRootBuilder() {
+        RootBuilder rootBuilder = new RootBuilder();
+        if (!encondingHints.isEmpty()) rootBuilder.getEncodingHints().putAll(encondingHints);
+        if (!vendorOptions.isEmpty()) {
+            rootBuilder.addVendorOptions(vendorOptions);
+        }
+        rootBuilder.setSemanticValidation(semanticValidation);
+        localReset();
+        return rootBuilder;
     }
 
     private IteratingBuilder buildIteratingBuilder() {
@@ -108,9 +169,10 @@ public class TemplateBuilderMaker {
         else iteratingBuilder = new IteratingBuilder(name, namespaces);
         if (source != null) iteratingBuilder.setSource(source);
         if (filter != null) iteratingBuilder.setFilter(filter);
-        if (!encodingOptions.isEmpty()) iteratingBuilder.getEncodingHints().putAll(encodingOptions);
-
-        iteratingBuilder.setRootCollection(isRoot);
+        if (!encondingHints.isEmpty()) iteratingBuilder.getEncodingHints().putAll(encondingHints);
+        if (name != null && rootCollectionName != null && rootCollectionName.equals(name))
+            rootCollection = true;
+        iteratingBuilder.setRootCollection(rootCollection);
         return iteratingBuilder;
     }
 
@@ -121,7 +183,7 @@ public class TemplateBuilderMaker {
 
         if (source != null) compositeBuilder.setSource(source);
         if (filter != null) compositeBuilder.setFilter(filter);
-        if (!encodingOptions.isEmpty()) compositeBuilder.getEncodingHints().putAll(encodingOptions);
+        if (!encondingHints.isEmpty()) compositeBuilder.getEncodingHints().putAll(encondingHints);
 
         return compositeBuilder;
     }
@@ -132,33 +194,44 @@ public class TemplateBuilderMaker {
             dynamicValueBuilder = new FlatDynamicBuilder(name, textContent, namespaces, separator);
         else dynamicValueBuilder = new DynamicValueBuilder(name, textContent, namespaces);
         if (filter != null) dynamicValueBuilder.setFilter(filter);
-        if (!encodingOptions.isEmpty())
-            dynamicValueBuilder.getEncodingHints().putAll(encodingOptions);
+        if (!encondingHints.isEmpty())
+            dynamicValueBuilder.getEncodingHints().putAll(encondingHints);
         return dynamicValueBuilder;
     }
 
     private StaticBuilder buildStaticBuilder() {
         StaticBuilder staticBuilder;
-        if (flatOutput)
-            staticBuilder = new FlatStaticBuilder(name, textContent, namespaces, separator);
-        else staticBuilder = new StaticBuilder(name, textContent, namespaces);
+        boolean hasJsonNode = jsonNode != null;
+        boolean hasFilter = filter != null;
+        if (flatOutput) {
+            if (hasJsonNode && !hasFilter)
+                staticBuilder = new FlatStaticBuilder(name, jsonNode, namespaces, separator);
+            else staticBuilder = new FlatStaticBuilder(name, textContent, namespaces, separator);
+        } else {
+
+            if (hasJsonNode && !hasFilter)
+                staticBuilder = new StaticBuilder(name, jsonNode, namespaces);
+            else staticBuilder = new StaticBuilder(name, textContent, namespaces);
+        }
 
         if (filter != null) staticBuilder.setFilter(filter);
-        if (!encodingOptions.isEmpty()) staticBuilder.getEncodingHints().putAll(encodingOptions);
+        if (!encondingHints.isEmpty()) staticBuilder.getEncodingHints().putAll(encondingHints);
 
         return staticBuilder;
     }
 
     public TemplateBuilder build() {
         TemplateBuilder result;
-        if (textContent == null) {
+        if (rootBuilder) result = buildRootBuilder();
+        else if (textContent == null && jsonNode == null) {
             if (isCollection) result = buildIteratingBuilder();
             else result = buildCompositeBuilder();
         } else {
-            if (textContent.contains(TemplateReader.EXPRSTART)) result = buildDynamicBuilder();
+            if (textContent != null && textContent.contains(TemplateReader.EXPRSTART))
+                result = buildDynamicBuilder();
             else result = buildStaticBuilder();
         }
-        reset();
+        localReset();
         return result;
     }
 }

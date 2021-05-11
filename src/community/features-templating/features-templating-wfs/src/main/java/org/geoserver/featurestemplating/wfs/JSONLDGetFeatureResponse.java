@@ -10,7 +10,6 @@ import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
-import org.geoserver.featurestemplating.builders.jsonld.JSONLDRootBuilder;
 import org.geoserver.featurestemplating.configuration.TemplateConfiguration;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
 import org.geoserver.featurestemplating.validation.JSONLDContextValidation;
@@ -52,10 +51,8 @@ public class JSONLDGetFeatureResponse extends BaseTemplateGetFeatureResponse {
             FeatureTypeInfo info =
                     helper.getFirstFeatureTypeInfo(
                             GetFeatureRequest.adapt(getFeature.getParameters()[0]));
-            JSONLDRootBuilder root =
-                    (JSONLDRootBuilder)
-                            configuration.getTemplate(
-                                    info, TemplateIdentifier.JSONLD.getOutputFormat());
+            RootBuilder root =
+                    configuration.getTemplate(info, TemplateIdentifier.JSONLD.getOutputFormat());
             boolean validate = root.isSemanticValidation();
             // setting it back to false
             root.setSemanticValidation(false);
@@ -76,7 +73,7 @@ public class JSONLDGetFeatureResponse extends BaseTemplateGetFeatureResponse {
         }
     }
 
-    private void validate(FeatureCollectionResponse featureCollection, JSONLDRootBuilder root)
+    private void validate(FeatureCollectionResponse featureCollection, RootBuilder root)
             throws IOException {
         JSONLDContextValidation validator = new JSONLDContextValidation();
         try (JSONLDWriter writer =
@@ -89,11 +86,8 @@ public class JSONLDGetFeatureResponse extends BaseTemplateGetFeatureResponse {
     }
 
     private void write(
-            FeatureCollectionResponse featureCollection,
-            JSONLDRootBuilder root,
-            JSONLDWriter writer)
+            FeatureCollectionResponse featureCollection, RootBuilder root, JSONLDWriter writer)
             throws IOException {
-        writer.setContextHeader(root.getContextHeader());
         writer.startTemplateOutput(root.getEncodingHints());
         iterateFeatureCollection(writer, featureCollection, root);
         writer.endTemplateOutput(root.getEncodingHints());

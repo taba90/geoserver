@@ -5,14 +5,12 @@ import static org.geoserver.featurestemplating.builders.EncodingHints.SCHEMA_LOC
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import net.opengis.wfs.GetFeatureType;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
-import org.geoserver.featurestemplating.builders.EncodingHints;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 import org.geoserver.featurestemplating.configuration.TemplateConfiguration;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
@@ -61,17 +59,18 @@ public class GML32TemplateResponse extends BaseTemplateGetFeatureResponse {
     }
 
     private void setNamespacesAndSchemaLocations(
-            FeatureCollectionResponse response, XMLTemplateWriter writer, String outputFormat) throws ExecutionException {
+            FeatureCollectionResponse response, XMLTemplateWriter writer, String outputFormat)
+            throws ExecutionException {
         List<FeatureCollection> collectionList = response.getFeature();
         for (FeatureCollection collection : collectionList) {
             FeatureTypeInfo fti = helper.getFeatureTypeInfo(collection);
             RootBuilder root = configuration.getTemplate(fti, outputFormat);
-            Map<String, String> namespaces =(Map<String,String>) root.getEncodingHints().get(NAMESPACES);
-            Map<String, String> schemaLocation= (Map<String,String>) root.getEncodingHints().get(SCHEMA_LOCATION);
-            if (namespaces!=null)
-                writer.addNamespaces(namespaces);
-            if (schemaLocation!=null)
-                writer.addSchemaLocations(schemaLocation);
+            Map<String, String> namespaces =
+                    (Map<String, String>) root.getEncodingHints().get(NAMESPACES);
+            Map<String, String> schemaLocation =
+                    (Map<String, String>) root.getEncodingHints().get(SCHEMA_LOCATION);
+            if (namespaces != null) writer.addNamespaces(namespaces);
+            if (schemaLocation != null) writer.addSchemaLocations(schemaLocation);
         }
     }
 

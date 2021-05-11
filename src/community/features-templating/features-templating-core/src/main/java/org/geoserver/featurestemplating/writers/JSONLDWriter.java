@@ -5,6 +5,8 @@
 
 package org.geoserver.featurestemplating.writers;
 
+import static org.geoserver.featurestemplating.builders.EncodingHints.CONTEXT;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
@@ -17,8 +19,6 @@ public class JSONLDWriter extends CommonJSONWriter {
     public JSONLDWriter(JsonGenerator generator) {
         super(generator);
     }
-
-    private JsonNode contextHeader;
 
     @Override
     public void writeValue(Object value) throws IOException {
@@ -36,16 +36,13 @@ public class JSONLDWriter extends CommonJSONWriter {
     public void startTemplateOutput(Map<String, Object> encodingHints) throws IOException {
         writeStartObject();
         String contextName = "@context";
-        if (contextHeader.isArray()) writeArrayNode(contextName, contextHeader);
-        else if (contextHeader.isObject()) writeObjectNode(contextName, contextHeader);
-        else writeValueNode(contextName, contextHeader);
+        JsonNode context = (JsonNode) encodingHints.get(CONTEXT);
+        if (context.isArray()) writeArrayNode(contextName, context);
+        else if (context.isObject()) writeObjectNode(contextName, context);
+        else writeValueNode(contextName, context);
         writeFieldName("type");
         writeString("FeatureCollection");
         writeFieldName("features");
         writeStartArray();
-    }
-
-    public void setContextHeader(JsonNode contextHeader) {
-        this.contextHeader = contextHeader;
     }
 }

@@ -22,7 +22,7 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
 
     protected Map<String, String> namespaces = new HashMap<>();
 
-    protected Map<String, String> schemaLocations=new HashMap<>();
+    protected Map<String, String> schemaLocations = new HashMap<>();
 
     public XMLTemplateWriter(XMLStreamWriter streamWriter) {
         this.streamWriter = streamWriter;
@@ -113,7 +113,9 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
         try {
             if (elementValue instanceof String
                     || elementValue instanceof Number
-                    || elementValue instanceof Boolean || elementValue instanceof URI|| elementValue instanceof URL) {
+                    || elementValue instanceof Boolean
+                    || elementValue instanceof URI
+                    || elementValue instanceof URL) {
                 if (encodeAsAttribute) writeAsAttribute(key, elementValue, encodingHints);
                 else {
                     streamWriter.writeCharacters(String.valueOf(elementValue));
@@ -144,7 +146,7 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
                     writeElementNameAndValue(key, list.get(0), encodingHints);
                 } else {
                     for (int i = 0; i < list.size(); i++) {
-                        writeElementNameAndValue(key+i, list.get(i), encodingHints);
+                        writeElementNameAndValue(key + i, list.get(i), encodingHints);
                     }
                 }
             }
@@ -176,9 +178,10 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
         this.namespaces.putAll(namespaces);
     }
 
-    public void addSchemaLocations(Map<String, String> schemaLocations){
+    public void addSchemaLocations(Map<String, String> schemaLocations) {
         this.schemaLocations.putAll(schemaLocations);
     }
+
     private boolean isEncodeAsAttribute(Map<String, Object> encodingHints) {
         boolean result = false;
         Object encodeAsAttribute = encodingHints.get(ENCODE_AS_ATTRIBUTE);

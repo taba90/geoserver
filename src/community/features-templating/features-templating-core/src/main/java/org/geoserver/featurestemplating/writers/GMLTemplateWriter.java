@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import org.geoserver.featurestemplating.builders.EncodingHints;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
 import org.locationtech.jts.geom.Geometry;
 
@@ -31,14 +30,14 @@ public class GMLTemplateWriter extends XMLTemplateWriter {
             streamWriter.writeStartElement(
                     "wfs", "FeatureCollection", "http://www.opengis.net/wfs");
 
-                Set<String> nsKeys = namespaces.keySet();
-                for (String k : nsKeys) {
-                    streamWriter.writeNamespace(k, namespaces.get(k));
-                }
-                Set<String> xsiKeys = schemaLocations.keySet();
-                for (String k : xsiKeys) {
-                    streamWriter.writeAttribute(k, schemaLocations.get(k));
-                }
+            Set<String> nsKeys = namespaces.keySet();
+            for (String k : nsKeys) {
+                streamWriter.writeNamespace(k, namespaces.get(k));
+            }
+            Set<String> xsiKeys = schemaLocations.keySet();
+            for (String k : xsiKeys) {
+                streamWriter.writeAttribute(k, schemaLocations.get(k));
+            }
             versionManager.startTemplateOutput();
         } catch (XMLStreamException e) {
             throw new IOException(e);

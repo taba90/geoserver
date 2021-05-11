@@ -10,7 +10,6 @@ import java.math.BigInteger;
 import java.util.List;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
-import org.geoserver.featurestemplating.builders.geojson.GeoJSONRootBuilder;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 import org.geoserver.featurestemplating.configuration.TemplateConfiguration;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
@@ -61,7 +60,7 @@ public class GeoJSONTemplateGetFeatureResponse extends BaseTemplateGetFeatureRes
     @Override
     protected void beforeFeatureIteration(
             TemplateOutputWriter writer, RootBuilder root, FeatureTypeInfo typeInfo) {
-        GeoJSONRootBuilder rb = (GeoJSONRootBuilder) root;
+        RootBuilder rb = root;
         GeoJSONWriter jsonWriter = (GeoJSONWriter) writer;
         String strFlatOutput =
                 rb.getVendorOption(RootBuilder.VendorOption.FLAT_OUTPUT.getVendorOptionName());

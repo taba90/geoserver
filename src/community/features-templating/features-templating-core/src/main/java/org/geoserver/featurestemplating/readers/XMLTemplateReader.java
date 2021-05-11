@@ -19,8 +19,6 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
-
-
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.TemplateBuilderMaker;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
@@ -126,8 +124,8 @@ public class XMLTemplateReader implements TemplateReader {
             String qName = startElement.getName().toString();
             boolean skipElement = qName.equals("gml:featureMembers");
             if (!skipElement) {
-                boolean collection = attribute != null
-                        && Boolean.valueOf(attribute.getValue()).booleanValue();
+                boolean collection =
+                        attribute != null && Boolean.valueOf(attribute.getValue()).booleanValue();
                 maker.collection(collection)
                         .name(qName)
                         .namespaces(namespaceSupport)
@@ -186,8 +184,8 @@ public class XMLTemplateReader implements TemplateReader {
     private void handleFeatureCollectionElement(
             StartElement startElementEvent, RootBuilder rootBuilder) {
         Iterator<Attribute> attributeIterator = startElementEvent.getAttributes();
-        Map<String, String> namespaces=new HashMap<>();
-        Map<String, String> schemaLocation=new HashMap<>();
+        Map<String, String> namespaces = new HashMap<>();
+        Map<String, String> schemaLocation = new HashMap<>();
         while (attributeIterator.hasNext()) {
             Attribute attribute = attributeIterator.next();
             String prefix = attribute.getName().getLocalPart();
@@ -195,8 +193,7 @@ public class XMLTemplateReader implements TemplateReader {
                 String localPart = prefix.split(":")[1];
                 namespaces.put(localPart, attribute.getValue());
             } else if (prefix.startsWith("xsi")) {
-                schemaLocation.put(
-                        strName(attribute.getName()), attribute.getValue());
+                schemaLocation.put(strName(attribute.getName()), attribute.getValue());
             }
         }
         rootBuilder.addEncodingHint(NAMESPACES, namespaces);
@@ -208,12 +205,17 @@ public class XMLTemplateReader implements TemplateReader {
     }
 
     private boolean alreadyParsed(EndElement endElement) {
-        long count= parsedElements.stream().filter(se -> se.getName().equals(endElement.getName())).count();
-        boolean alreadyParsed=count==1;
-        if (count > 1){
-            alreadyParsed=elementsStack.empty() || !elementsStack.peek().getName().equals(endElement.getName());
+        long count =
+                parsedElements
+                        .stream()
+                        .filter(se -> se.getName().equals(endElement.getName()))
+                        .count();
+        boolean alreadyParsed = count == 1;
+        if (count > 1) {
+            alreadyParsed =
+                    elementsStack.empty()
+                            || !elementsStack.peek().getName().equals(endElement.getName());
         }
         return alreadyParsed;
     }
-
 }

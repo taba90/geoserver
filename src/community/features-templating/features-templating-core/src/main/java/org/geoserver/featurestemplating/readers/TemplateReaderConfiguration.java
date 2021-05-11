@@ -4,7 +4,7 @@
  */
 package org.geoserver.featurestemplating.readers;
 
-import org.geoserver.featurestemplating.builders.BuilderFactory;
+import org.geoserver.featurestemplating.builders.TemplateBuilderMaker;
 import org.xml.sax.helpers.NamespaceSupport;
 
 /** Provides a configuration to setup a {@link JSONTemplateReader} */
@@ -20,7 +20,11 @@ public class TemplateReaderConfiguration {
         return namespaces;
     }
 
-    public BuilderFactory getBuilderFactory(boolean isJSONLD) {
-        return new BuilderFactory(isJSONLD);
+    public TemplateBuilderMaker getBuilderMaker(String rootCollectionName) {
+        return new TemplateBuilderMaker(rootCollectionName);
+    }
+
+    public TemplateBuilderMaker getBuilderMaker() {
+        return new TemplateBuilderMaker("features");
     }
 }

@@ -4,9 +4,12 @@
  */
 package org.geoserver.featurestemplating.builders.impl;
 
+import static org.geoserver.featurestemplating.builders.impl.RootBuilder.VendorOption.FLAT_OUTPUT;
+
 import java.io.IOException;
 import java.util.*;
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
+import org.geoserver.featurestemplating.builders.flat.FlatBuilder;
 import org.geoserver.featurestemplating.expressions.TemplateCQLManager;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
 
@@ -20,6 +23,8 @@ public class RootBuilder implements TemplateBuilder {
     private Map<String, Object> encodingHints;
 
     protected List<String> supportedOptions = new ArrayList<>();
+
+    private boolean semanticValidation;
 
     /** Enum listing available vendor options */
     public enum VendorOption {
@@ -82,24 +87,25 @@ public class RootBuilder implements TemplateBuilder {
      * @param vendorOption a string array containing vendor option name and value
      */
     public void setVendorOptions(String[] vendorOption) {
-        if (supportVendorOption(vendorOption[0])) {
-            vendorOptions.put(vendorOption[0], vendorOption[1]);
-        }
+        vendorOptions.put(vendorOption[0], vendorOption[1]);
     }
 
-    /**
-     * Checks if vendor option is supported
-     *
-     * @param vendorOptionName the name of the vendor option
-     * @return
-     */
-    protected boolean supportVendorOption(String vendorOptionName) {
-        if (supportedOptions.contains(vendorOptionName)) return true;
-        else return false;
+    public void addVendorOption(String name, String value) {
+        vendorOptions.put(name, value);
+    }
+
+    public void addVendorOptions(Map<String, String> vendorOptions) {
+        vendorOptions.putAll(vendorOptions);
     }
 
     public boolean needsReload() {
-        return false;
+        TemplateBuilder aChild = getChildren().get(0);
+        boolean isCachedFlattened = aChild instanceof FlatBuilder;
+        String strFlat = getVendorOption(FLAT_OUTPUT.getVendorOptionName());
+        boolean isFlatOutput = strFlat != null ? Boolean.valueOf(strFlat) : false;
+        if (isCachedFlattened && !isFlatOutput) return true;
+        else if (!isCachedFlattened && isFlatOutput) return true;
+        else return false;
     }
 
     @Override
@@ -112,5 +118,13 @@ public class RootBuilder implements TemplateBuilder {
     public Map<String, Object> getEncodingHints() {
         if (encodingHints == null) encodingHints = new HashMap<>();
         return encodingHints;
+    }
+
+    public boolean isSemanticValidation() {
+        return semanticValidation;
+    }
+
+    public void setSemanticValidation(boolean semanticValidation) {
+        this.semanticValidation = semanticValidation;
     }
 }

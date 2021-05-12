@@ -1,13 +1,32 @@
+/* (c) 2021 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
+ */
 package org.geoserver.featurestemplating.wfs;
 
 import static org.geoserver.featurestemplating.builders.EncodingHints.NAMESPACES;
 import static org.geoserver.featurestemplating.builders.EncodingHints.SCHEMA_LOCATION;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import net.opengis.wfs.GetFeatureType;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
@@ -20,12 +39,16 @@ import org.geoserver.featurestemplating.writers.XMLTemplateWriter;
 import org.geoserver.platform.Operation;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wfs.request.FeatureCollectionResponse;
+import org.geoserver.wfs.xml.GML3OutputFormat;
 import org.geotools.feature.FeatureCollection;
-import org.opengis.feature.Feature;
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.w3c.dom.Document;
 
-public class GML32TemplateResponse extends BaseTemplateGetFeatureResponse {
+/** A template response able to write a GML output format according to gml version. */
+public class GMLTemplateResponse extends BaseTemplateGetFeatureResponse {
 
-    public GML32TemplateResponse(
+
+    public GMLTemplateResponse(
             GeoServer gs, TemplateConfiguration configuration, TemplateIdentifier identifier) {
         super(gs, configuration, identifier);
     }
@@ -42,6 +65,7 @@ public class GML32TemplateResponse extends BaseTemplateGetFeatureResponse {
         try (GMLTemplateWriter writer = getOutputWriter(output, outputFormat)) {
             setNamespacesAndSchemaLocations(featureCollection, writer, outputFormat);
             writer.startTemplateOutput(null);
+            writeAdditionalFields(writer, featureCollection, getFeature);
             iterateFeatureCollection(writer, featureCollection, getFeature);
             writer.endTemplateOutput(null);
         } catch (Exception e) {
@@ -50,8 +74,22 @@ public class GML32TemplateResponse extends BaseTemplateGetFeatureResponse {
     }
 
     @Override
-    protected void beforeEvaluation(
-            TemplateOutputWriter writer, RootBuilder root, Feature feature) {}
+    protected void writeAdditionalFieldsInternal(
+            TemplateOutputWriter writer,
+            FeatureCollectionResponse featureCollection,
+            Operation getFeature,
+            BigInteger featureCount,
+            ReferencedEnvelope bounds)
+            throws IOException {
+        try {
+            writer.writeCollectionCounts(featureCount);
+            writer.writeNumberReturned();
+            writer.writeTimeStamp();
+            if (bounds != null) writer.writeCollectionBounds(bounds);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     protected GMLTemplateWriter getOutputWriter(OutputStream output, String outputFormat)
             throws IOException {

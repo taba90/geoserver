@@ -5,6 +5,7 @@
 package org.geoserver.featurestemplating.wfs;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.util.List;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
@@ -20,6 +21,7 @@ import org.geoserver.platform.ServiceException;
 import org.geoserver.wfs.request.FeatureCollectionResponse;
 import org.geoserver.wfs.request.GetFeatureRequest;
 import org.geotools.feature.FeatureCollection;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.Feature;
 
 /**
@@ -112,6 +114,17 @@ public class JSONLDGetFeatureResponse extends BaseTemplateGetFeatureResponse {
     @Override
     protected void beforeEvaluation(
             TemplateOutputWriter writer, RootBuilder root, Feature feature) {}
+
+    @Override
+    protected void writeAdditionalFieldsInternal(
+            TemplateOutputWriter writer,
+            FeatureCollectionResponse featureCollection,
+            Operation getFeature,
+            BigInteger featureCount,
+            ReferencedEnvelope bounds)
+            throws IOException {
+        // do nothing
+    }
 
     @Override
     public String getMimeType(Object value, Operation operation) throws ServiceException {

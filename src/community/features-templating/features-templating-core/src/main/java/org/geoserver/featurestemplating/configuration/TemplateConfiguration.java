@@ -72,7 +72,9 @@ public class TemplateConfiguration {
      */
     public RootBuilder getTemplate(FeatureTypeInfo typeInfo, String outputFormat)
             throws ExecutionException {
-        String fileName = getTemplateName(outputFormat);
+        String fileName =
+                TemplateIdentifier.getTemplateIdentifierFromOutputFormat(outputFormat)
+                        .getFilename();
         CacheKey key = new CacheKey(typeInfo, fileName);
         Template template = templateCache.get(key);
         if (template.checkTemplate()) templateCache.put(key, template);
@@ -156,33 +158,5 @@ public class TemplateConfiguration {
         public int hashCode() {
             return Objects.hash(resource, path);
         }
-    }
-
-    private String getTemplateName(String outputFormat) {
-        String templateName = "";
-        if (outputFormat.equals(TemplateIdentifier.JSON.getOutputFormat()))
-            templateName = TemplateIdentifier.JSON.getFilename();
-        else if (outputFormat.equals(TemplateIdentifier.GEOJSON.getOutputFormat()))
-            templateName = TemplateIdentifier.GEOJSON.getFilename();
-        else if (outputFormat.equals(TemplateIdentifier.JSONLD.getOutputFormat())) {
-            templateName = TemplateIdentifier.JSONLD.getFilename();
-        } else if (outputFormat.equals(TemplateIdentifier.XHTML.getOutputFormat())) {
-            templateName = TemplateIdentifier.XHTML.getFilename();
-        } else {
-            TemplateIdentifier identifier = getGMLTemplateIdentifier(outputFormat);
-            if (identifier != null) templateName = identifier.getFilename();
-        }
-        return templateName;
-    }
-
-    private TemplateIdentifier getGMLTemplateIdentifier(String outputFormat) {
-        TemplateIdentifier identifier = null;
-        if (outputFormat.trim().equalsIgnoreCase(TemplateIdentifier.GML32.getOutputFormat()))
-            identifier = TemplateIdentifier.GML32;
-        else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.GML31.getOutputFormat()))
-            identifier = TemplateIdentifier.GML31;
-        else if (TemplateIdentifier.GML2.getOutputFormat().contains(outputFormat))
-            identifier = TemplateIdentifier.GML2;
-        return identifier;
     }
 }

@@ -72,18 +72,18 @@ public class TemplatedItemsConverter extends AbstractHttpMessageConverter<Abstra
     private void writeAdditionFields(STACGeoJSONWriter w, AbstractItemsResponse ir)
             throws IOException {
         // number matched
-        w.writeFieldName("numberMatched");
-        w.writeNumber(ir.getNumberMatched());
+        w.writeElementName("numberMatched", null);
+        w.writeElementValue(ir.getNumberMatched(), null);
         // number returned
-        w.writeFieldName("numberReturned");
+        w.writeElementName("numberReturned", null);
         int numberReturned = ir.getItems().size();
-        w.writeNumber(numberReturned);
+        w.writeElementValue(numberReturned, null);
         // stac infos
-        w.writeFieldName("stac_version");
-        w.writeString(STACService.STAC_VERSION);
+        w.writeElementName("stac_version", null);
+        w.writeElementValue(STACService.STAC_VERSION, null);
 
         // links
-        w.writeFieldName("links");
+        w.writeElementName("links", null);
         w.writeStartArray();
 
         String type = GEOJSON_VALUE;

@@ -1,6 +1,14 @@
+/* (c) 2021 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
+ */
 package org.geoserver.featurestemplating.writers;
 
-import java.util.Date;
+import static org.geoserver.featurestemplating.writers.TemplateOutputWriter.getCRSIdentifier;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -15,12 +23,17 @@ import org.locationtech.jts.geom.MultiPoint;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-public abstract class GMLVersionManager {
+/**
+ * Helper class that allow the GMLTemplateWriter to write the output according to the gml version
+ * requested.
+ */
+abstract class GMLVersionManager {
 
     protected XMLStreamWriter streamWriter;
 
-    private CRS.AxisOrder axisOrder = CRS.AxisOrder.NORTH_EAST;
+    private CRS.AxisOrder axisOrder = CRS.AxisOrder.EAST_NORTH;
 
     private String coordElementName;
 
@@ -28,7 +41,12 @@ public abstract class GMLVersionManager {
 
     private String interiorElementName;
 
-    public GMLVersionManager(
+    protected Map<String, String> namespaces = new HashMap<>();
+
+    static final String GML_PREFIX = "gml";
+    static final String WFS_PREFIX = "wfs";
+
+    GMLVersionManager(
             XMLStreamWriter streamWriter,
             String coorElementName,
             String exteriorElementName,
@@ -39,7 +57,7 @@ public abstract class GMLVersionManager {
         this.interiorElementName = interiorElementName;
     }
 
-    public void writeGeometry(Geometry geometry) throws XMLStreamException {
+    void writeGeometry(Geometry geometry) throws XMLStreamException {
         if (geometry instanceof Point) {
             writePoint((Point) geometry);
         } else if (geometry instanceof MultiPoint) {
@@ -162,15 +180,50 @@ public abstract class GMLVersionManager {
         }
     }
 
-    public void writeTimeStamp(Date date) {}
+    abstract void writeNumberReturned(String numberReturned) throws XMLStreamException;
 
-    public abstract void writeNumberReturned(String numberReturned) throws XMLStreamException;
+    abstract void writeNumberMatched(String numberMatched) throws XMLStreamException;
 
-    public abstract void writeNumberMatched(String numberMatched) throws XMLStreamException;
+    void writeBoundingBox(
+            ReferencedEnvelope envelope, CoordinateReferenceSystem crs, boolean useWFSPrefix)
+            throws IOException {
+        try {
+            streamWriter.writeStartElement(
+                    useWFSPrefix ? WFS_PREFIX : GML_PREFIX,
+                    "boundedBy",
+                    namespaces.get(GML_PREFIX));
+            streamWriter.writeStartElement(GML_PREFIX, "Envelope", namespaces.get(GML_PREFIX));
+            writeCrs(crs);
+            streamWriter.writeStartElement(GML_PREFIX, "lowerCorner", namespaces.get(GML_PREFIX));
+            streamWriter.writeCharacters(envelope.getMinY() + " " + envelope.getMinX());
+            streamWriter.writeEndElement();
+            streamWriter.writeStartElement(GML_PREFIX, "upperCorner", namespaces.get(GML_PREFIX));
+            streamWriter.writeCharacters(envelope.getMaxX() + " " + envelope.getMaxX());
+            streamWriter.writeEndElement();
+            streamWriter.writeEndElement();
+            streamWriter.writeEndElement();
+        } catch (XMLStreamException e) {
+            throw new IOException(e);
+        }
+    }
 
-    public abstract void writeBoundingBox(ReferencedEnvelope envelope) throws XMLStreamException;
+    abstract void writeBoundingBox(ReferencedEnvelope envelope, CoordinateReferenceSystem crs)
+            throws IOException;
 
-    public void startTemplateOutput() throws XMLStreamException {}
+    void writeCrs(CoordinateReferenceSystem crs) throws XMLStreamException, IOException {
+        if (crs != null) {
+            streamWriter.writeAttribute(
+                    "srsDimension", String.valueOf(crs.getCoordinateSystem().getDimension()));
+            String crsIdentifier = getCRSIdentifier(crs);
+            streamWriter.writeAttribute("srsName", crsIdentifier);
+        }
+    }
 
-    public void endTemplateOutput() throws XMLStreamException {}
+    void addNamespaces(Map<String, String> namespaces) {
+        this.namespaces.putAll(namespaces);
+    }
+
+    void setAxisOrder(CRS.AxisOrder axisOrder) {
+        this.axisOrder = axisOrder;
+    }
 }

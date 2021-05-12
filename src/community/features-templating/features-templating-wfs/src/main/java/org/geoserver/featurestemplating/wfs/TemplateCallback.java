@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 import org.geoserver.catalog.*;
 import org.geoserver.config.GeoServer;
@@ -26,6 +27,7 @@ import org.geoserver.wfs.request.Query;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.NameImpl;
 import org.geotools.filter.text.ecql.ECQL;
+import org.geotools.util.logging.Logging;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 
@@ -35,6 +37,8 @@ import org.opengis.filter.FilterFactory2;
  * get the corresponding {@link Filter}
  */
 public class TemplateCallback extends AbstractDispatcherCallback {
+
+    private static final Logger LOGGER = Logging.getLogger(TemplateCallback.class);
 
     private Catalog catalog;
 
@@ -152,11 +156,12 @@ public class TemplateCallback extends AbstractDispatcherCallback {
                 }
                 q.setFilter(newFilter);
                 if (newFilter.equals(old)) {
-                    throw new RuntimeException(
+                    LOGGER.warning(
                             "Failed to resolve filter "
                                     + cql
                                     + " against the template. "
-                                    + "Check the path specified in the filter.");
+                                    + "If the property name was intended to be a template path, "
+                                    + "check that the path specified in the cql filter is correct.");
                 }
             }
         } catch (Exception e) {
@@ -174,29 +179,36 @@ public class TemplateCallback extends AbstractDispatcherCallback {
                 List<Query> queries = getFeature.getQueries();
                 for (Query q : queries) {
                     List<FeatureTypeInfo> typeInfos = getFeatureTypeInfoFromQuery(q);
-                    Response wrapped = wrapResponse(typeInfos, request.getOutputFormat());
-                    if (wrapped != null) response = wrapped;
+                    Response templateResponse =
+                            getTemplateResponse(typeInfos, request.getOutputFormat());
+                    if (templateResponse != null) response = templateResponse;
                 }
             }
         }
         return super.responseDispatched(request, operation, result, response);
     }
 
-    private Response wrapResponse(List<FeatureTypeInfo> typeInfos, String outputFormat) {
+    private Response getTemplateResponse(List<FeatureTypeInfo> typeInfos, String outputFormat) {
         Response response = null;
         try {
 
             List<RootBuilder> rootBuilders =
                     getRootBuildersFromFeatureTypeInfo(typeInfos, outputFormat);
             if (rootBuilders.size() > 0) {
-                if (outputFormat.equalsIgnoreCase(TemplateIdentifier.JSON.getOutputFormat()))
-                    response =
-                            new GeoJSONTemplateGetFeatureResponse(
-                                    gs, configuration, TemplateIdentifier.JSON);
-                else {
-                    TemplateIdentifier identifier = getGMLTemplateIdentifier(outputFormat);
-                    if (identifier != null)
-                        response = new GML32TemplateResponse(gs, configuration, identifier);
+                TemplateIdentifier templateIdentifier =
+                        TemplateIdentifier.getTemplateIdentifierFromOutputFormat(outputFormat);
+                switch (templateIdentifier) {
+                    case JSON:
+                    case GEOJSON:
+                        response =
+                                new GeoJSONTemplateGetFeatureResponse(
+                                        gs, configuration, templateIdentifier);
+                        break;
+                    case GML32:
+                    case GML31:
+                    case GML2:
+                        response = new GMLTemplateResponse(gs, configuration, templateIdentifier);
+                        break;
                 }
             }
         } catch (Exception e) {
@@ -209,25 +221,20 @@ public class TemplateCallback extends AbstractDispatcherCallback {
     // null and json-ld output is requested
     private RootBuilder ensureTemplatesExist(FeatureTypeInfo typeInfo, String outputFormat)
             throws ExecutionException {
-        RootBuilder root = configuration.getTemplate(typeInfo, outputFormat);
-        if (outputFormat.equals(TemplateIdentifier.JSONLD.getOutputFormat()) && root == null) {
-            throw new RuntimeException(
-                    "No template found for feature type "
-                            + typeInfo.getName()
-                            + " for output format "
-                            + outputFormat);
+        TemplateIdentifier identifier =
+                TemplateIdentifier.getTemplateIdentifierFromOutputFormat(outputFormat);
+        RootBuilder rootBuilder = null;
+        if (identifier != null) {
+            rootBuilder = configuration.getTemplate(typeInfo, identifier.getOutputFormat());
+            if (outputFormat.equals(TemplateIdentifier.JSONLD.getOutputFormat())
+                    && rootBuilder == null) {
+                throw new RuntimeException(
+                        "No template found for feature type "
+                                + typeInfo.getName()
+                                + " for output format "
+                                + outputFormat);
+            }
         }
-        return root;
-    }
-
-    private TemplateIdentifier getGMLTemplateIdentifier(String outputFormat) {
-        TemplateIdentifier identifier = null;
-        if (outputFormat.trim().equalsIgnoreCase(TemplateIdentifier.GML32.getOutputFormat()))
-            identifier = TemplateIdentifier.GML32;
-        else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.GML31.getOutputFormat()))
-            identifier = TemplateIdentifier.GML31;
-        else if (TemplateIdentifier.GML2.getOutputFormat().contains(outputFormat))
-            identifier = TemplateIdentifier.GML2;
-        return identifier;
+        return rootBuilder;
     }
 }

@@ -75,6 +75,7 @@ public class TemplateGetFeatureResponseHelper {
                 }
             default:
                 outputWriter = null;
+                break;
         }
         return outputWriter;
     }

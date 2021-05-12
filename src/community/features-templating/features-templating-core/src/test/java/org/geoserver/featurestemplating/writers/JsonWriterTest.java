@@ -51,7 +51,7 @@ public class JsonWriterTest {
                 new JSONLDWriter(new JsonFactory().createGenerator(baos, JsonEncoding.UTF8));
         writer.writeStartObject();
         for (Property prop : f.getProperties()) {
-            writer.writeFieldName(prop.getName().toString());
+            writer.writeElementName(prop.getName().toString(), null);
             writer.writeValue(prop.getValue());
         }
         writer.endObject(null, null);

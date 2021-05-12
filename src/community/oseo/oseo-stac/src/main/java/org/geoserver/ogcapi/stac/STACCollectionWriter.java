@@ -19,7 +19,7 @@ public class STACCollectionWriter extends GeoJSONWriter {
     @Override
     public void startTemplateOutput(Map<String, Object> encodingHints) throws IOException {
         writeStartObject();
-        writeFieldName("collections");
+        generator.writeFieldName("collections");
         writeStartArray();
     }
 

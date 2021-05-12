@@ -1,3 +1,7 @@
+/* (c) 2021 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
+ */
 package org.geoserver.featurestemplating.readers;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -9,6 +13,9 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 
+/**
+ * This class provides the necessary logic to retrieve a reader based on the extension value passed.
+ */
 public class TemplateReaderProvider {
     enum SupportedExtension {
         JSON,
@@ -16,6 +23,15 @@ public class TemplateReaderProvider {
         XHTML
     }
 
+    /**
+     * Find the proper TemplateReader.
+     *
+     * @param resourceExtension the resource file extension can be xml, xhtml, json.
+     * @param is the input stream of the resource to be parsed.
+     * @param configuration the TemplateReaderConfiguration.
+     * @return
+     * @throws IOException
+     */
     public static TemplateReader findReader(
             String resourceExtension, InputStream is, TemplateReaderConfiguration configuration)
             throws IOException {

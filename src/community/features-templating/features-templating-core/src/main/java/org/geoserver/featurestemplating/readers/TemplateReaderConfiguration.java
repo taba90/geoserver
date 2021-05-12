@@ -7,7 +7,7 @@ package org.geoserver.featurestemplating.readers;
 import org.geoserver.featurestemplating.builders.TemplateBuilderMaker;
 import org.xml.sax.helpers.NamespaceSupport;
 
-/** Provides a configuration to setup a {@link JSONTemplateReader} */
+/** Provides a configuration to setup a {@link TemplateReader} */
 public class TemplateReaderConfiguration {
 
     private NamespaceSupport namespaces;

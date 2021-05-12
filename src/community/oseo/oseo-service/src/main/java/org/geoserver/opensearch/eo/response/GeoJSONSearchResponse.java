@@ -86,13 +86,13 @@ public class GeoJSONSearchResponse extends Response {
         // OpenSearch is 1-based, not zero based
         writeSimple(w, "startIndex", Optional.ofNullable(query.getStartIndex()).orElse(0) + 1);
 
-        w.writeFieldName("queries");
+        w.writeElementName("queries", null);
         w.writeStartObject();
-        w.writeFieldName("request");
+        w.writeElementName("request", null);
         writeQuery(w, results.getRequest());
         w.writeEndObject();
 
-        w.writeFieldName("properties");
+        w.writeElementName("properties", null);
         w.writeStartObject();
         writeCollectionProperties(results, w);
         w.writeEndObject();
@@ -100,7 +100,7 @@ public class GeoJSONSearchResponse extends Response {
 
     private void writeSimple(GeoJSONWriter w, String fieldName, Object value) throws IOException {
         if (value != null) {
-            w.writeFieldName(fieldName);
+            w.writeElementName(fieldName, null);
             w.writeValue(value);
         }
     }
@@ -112,7 +112,7 @@ public class GeoJSONSearchResponse extends Response {
         writeSimple(w, "title", oseo.getName() + " - Search Response");
         writeSimple(w, "creator", oseo.getName());
 
-        w.writeFieldName("authors");
+        w.writeElementName("authors", null);
         w.writeStartArray();
         w.writeStartObject();
         writeSimple(w, "name", gs.getSettings().getContact().getContactOrganization());
@@ -126,7 +126,7 @@ public class GeoJSONSearchResponse extends Response {
 
         PaginationLinkBuilder builder =
                 new PaginationLinkBuilder(results, oseo, GeoJSONSearchResponse.MIME);
-        w.writeFieldName("links");
+        w.writeElementName("links", null);
         w.writeStartObject();
         writeSingleLink(w, "profiles", new Link(OSEO_GEOJSON_PROFILE));
         writeSingleLink(
@@ -150,7 +150,7 @@ public class GeoJSONSearchResponse extends Response {
     }
 
     private void writeSingleLink(GeoJSONWriter w, String category, Link link) throws IOException {
-        w.writeFieldName(category);
+        w.writeElementName(category, null);
         w.writeStartArray();
         w.writeStartObject();
         writeSimple(w, "href", link.getHref());

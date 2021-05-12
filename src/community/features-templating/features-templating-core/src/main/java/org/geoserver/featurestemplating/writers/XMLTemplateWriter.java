@@ -1,8 +1,11 @@
+/* (c) 2021 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
+ */
 package org.geoserver.featurestemplating.writers;
 
 import static org.geoserver.featurestemplating.builders.EncodingHints.ENCODE_AS_ATTRIBUTE;
 
-import com.fasterxml.jackson.databind.util.StdDateFormat;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -12,11 +15,13 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import org.geoserver.util.ISO8601Formatter;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.Attribute;
 import org.opengis.feature.ComplexAttribute;
 
-public abstract class XMLTemplateWriter implements TemplateOutputWriter {
+/** A writer capable to generate a generic xml result. */
+public abstract class XMLTemplateWriter extends TemplateOutputWriter {
 
     protected XMLStreamWriter streamWriter;
 
@@ -54,9 +59,7 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
             String name, Object staticContent, Map<String, Object> encodingHints)
             throws IOException {
         try {
-            Object encodeAsAttribute = encodingHints.get(ENCODE_AS_ATTRIBUTE);
-            if (encodeAsAttribute != null
-                    && Boolean.valueOf(encodeAsAttribute.toString()).booleanValue())
+            if (isEncodeAsAttribute(encodingHints))
                 writeAsAttribute(name, staticContent, encodingHints);
             else {
                 streamWriter.writeStartElement(name);
@@ -126,7 +129,7 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
                 canClose = true;
             } else if (elementValue instanceof Date) {
                 Date timeStamp = (Date) elementValue;
-                String formatted = new StdDateFormat().withColonInTimeZone(true).format(timeStamp);
+                String formatted = new ISO8601Formatter().format(timeStamp);
                 if (encodeAsAttribute) writeAsAttribute(key, elementValue, encodingHints);
                 else {
                     streamWriter.writeCharacters(formatted);
@@ -146,7 +149,7 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
                     writeElementNameAndValue(key, list.get(0), encodingHints);
                 } else {
                     for (int i = 0; i < list.size(); i++) {
-                        writeElementNameAndValue(key + i, list.get(i), encodingHints);
+                        writeElementNameAndValue(key, list.get(i), encodingHints);
                     }
                 }
             }
@@ -184,9 +187,9 @@ public abstract class XMLTemplateWriter implements TemplateOutputWriter {
 
     private boolean isEncodeAsAttribute(Map<String, Object> encodingHints) {
         boolean result = false;
-        Object encodeAsAttribute = encodingHints.get(ENCODE_AS_ATTRIBUTE);
-        if (encodeAsAttribute != null)
-            result = Boolean.valueOf(encodeAsAttribute.toString()).booleanValue();
+        Boolean encodeAsAttribute =
+                getEncodingHintIfPresent(encodingHints, ENCODE_AS_ATTRIBUTE, Boolean.class);
+        if (encodeAsAttribute != null) result = encodeAsAttribute.booleanValue();
         return result;
     }
 }

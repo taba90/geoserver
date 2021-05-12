@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
@@ -19,7 +20,8 @@ import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
 import org.geoserver.featurestemplating.expressions.TemplateCQLManager;
 import org.geoserver.featurestemplating.request.TemplatePathVisitor;
 import org.geoserver.featurestemplating.wfs.BaseTemplateGetFeatureResponse;
-import org.geoserver.featurestemplating.wfs.GML32TemplateResponse;
+import org.geoserver.featurestemplating.wfs.GMLTemplateResponse;
+import org.geoserver.featurestemplating.wfs.TemplateCallback;
 import org.geoserver.ogcapi.APIService;
 import org.geoserver.ogcapi.features.FeatureService;
 import org.geoserver.ogcapi.features.FeaturesResponse;
@@ -36,6 +38,7 @@ import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.filter.function.EnvFunction;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
+import org.geotools.util.logging.Logging;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.springframework.http.HttpHeaders;
@@ -48,6 +51,8 @@ import org.springframework.http.HttpHeaders;
 public class TemplateCallBackOGC extends AbstractDispatcherCallback {
 
     static final FormatOptionsKvpParser PARSER = new FormatOptionsKvpParser("env");
+
+    private static final Logger LOGGER = Logging.getLogger(TemplateCallback.class);
 
     private Catalog catalog;
 
@@ -128,26 +133,18 @@ public class TemplateCallBackOGC extends AbstractDispatcherCallback {
         String format = request.getKvp() != null ? (String) request.getKvp().get("f") : null;
         TemplateIdentifier identifier = null;
         if (format != null) {
-            identifier = getTemplateIdentifer(format);
+            identifier = TemplateIdentifier.getTemplateIdentifierFromOutputFormat(format);
         } else if (accept != null) {
-            identifier = getTemplateIdentifer(accept);
+            identifier = TemplateIdentifier.getTemplateIdentifierFromOutputFormat(accept);
         }
         return identifier;
-    }
-
-    private boolean isFormatSupported(String format) {
-        return format.equals(TemplateIdentifier.JSONLD.getOutputFormat())
-                || format.equals(TemplateIdentifier.JSON.getOutputFormat())
-                || format.equals(TemplateIdentifier.GEOJSON.getOutputFormat());
     }
 
     private void replaceJsonLdPathWithFilter(
             String strFilter, RootBuilder root, FeatureTypeInfo typeInfo, Operation operation)
             throws Exception {
-        if (strFilter != null && strFilter.indexOf("features.") != -1) {
-            if (root != null) {
-                replaceFilter(strFilter, root, typeInfo, operation);
-            }
+        if (root != null) {
+            replaceFilter(strFilter, root, typeInfo, operation);
         }
     }
 
@@ -160,11 +157,11 @@ public class TemplateCallBackOGC extends AbstractDispatcherCallback {
         Filter old = XCQL.toFilter(strFilter);
         Filter f = (Filter) old.accept(visitor, root);
         if (old.equals(f))
-            throw new RuntimeException(
+            LOGGER.warning(
                     "Failed to resolve filter "
                             + strFilter
-                            + " against the template. "
-                            + "Check the path specified in the filter.");
+                            + " against the template. If the property name was intended to be a template path, "
+                            + "check that the path specified in the cql filter is correct.");
         List<Filter> templateFilters = new ArrayList<>();
         templateFilters.addAll(visitor.getFilters());
         if (templateFilters != null && templateFilters.size() > 0) {
@@ -197,7 +194,7 @@ public class TemplateCallBackOGC extends AbstractDispatcherCallback {
             Request request, Operation operation, Object result, Response response) {
         TemplateIdentifier identifier = getTemplateIdentifier(request);
         // we want to override Features API method that are returning a list of features, and
-        // when the output format is JSON os GeoJSON
+        // when the output format is JSON or GeoJSON or GML
         if ((identifier != null && !identifier.equals(TemplateIdentifier.JSONLD))
                 && request.getService().equals(FEATURES_SERVICE)
                 && result instanceof FeaturesResponse) {
@@ -207,7 +204,7 @@ public class TemplateCallBackOGC extends AbstractDispatcherCallback {
                     RootBuilder root =
                             configuration.getTemplate(typeInfo, identifier.getOutputFormat());
                     if (root != null) {
-                        Response templateResp = wrapResponse(operation, result, identifier);
+                        Response templateResp = getTemplateResponse(operation, result, identifier);
                         if (templateResp != null) response = templateResp;
                     }
                 } catch (Exception e) {
@@ -218,7 +215,7 @@ public class TemplateCallBackOGC extends AbstractDispatcherCallback {
         return response;
     }
 
-    private Response wrapResponse(
+    private Response getTemplateResponse(
             Operation operation, Object result, TemplateIdentifier identifier) {
         BaseTemplateGetFeatureResponse templatingResp = null;
         switch (identifier) {
@@ -239,7 +236,7 @@ public class TemplateCallBackOGC extends AbstractDispatcherCallback {
                 break;
             case GML32:
                 templatingResp =
-                        new GML32TemplateResponse(gs, configuration, identifier) {
+                        new GMLTemplateResponse(gs, configuration, identifier) {
                             @Override
                             protected void write(
                                     FeatureCollectionResponse featureCollection,
@@ -254,22 +251,5 @@ public class TemplateCallBackOGC extends AbstractDispatcherCallback {
         }
 
         return templatingResp;
-    }
-
-    private TemplateIdentifier getTemplateIdentifer(String outputFormat) {
-        TemplateIdentifier identifier = null;
-        if (outputFormat.equalsIgnoreCase(TemplateIdentifier.JSON.getOutputFormat()))
-            identifier = TemplateIdentifier.JSON;
-        else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.JSONLD.getOutputFormat())) {
-            identifier = TemplateIdentifier.JSONLD;
-        } else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.GEOJSON.getOutputFormat())) {
-            identifier = TemplateIdentifier.GEOJSON;
-        } else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.GML32.getOutputFormat()))
-            identifier = TemplateIdentifier.GML32;
-        else if (outputFormat.equalsIgnoreCase(TemplateIdentifier.GML31.getOutputFormat()))
-            identifier = TemplateIdentifier.GML31;
-        else if (TemplateIdentifier.GML2.getOutputFormat().contains(outputFormat))
-            identifier = TemplateIdentifier.GML2;
-        return identifier;
     }
 }

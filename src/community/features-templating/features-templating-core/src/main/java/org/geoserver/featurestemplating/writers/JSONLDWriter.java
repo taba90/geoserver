@@ -10,8 +10,10 @@ import static org.geoserver.featurestemplating.builders.EncodingHints.CONTEXT;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Map;
 import org.geotools.filter.function.FilterFunction_toWKT;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 
 /** Implements its superclass methods to write a valid json-ld output */
 public class JSONLDWriter extends CommonJSONWriter {
@@ -22,27 +24,54 @@ public class JSONLDWriter extends CommonJSONWriter {
 
     @Override
     public void writeValue(Object value) throws IOException {
-        writeString(String.valueOf(value));
+        generator.writeString(String.valueOf(value));
     }
 
     @Override
     public void writeGeometry(Object value) throws IOException {
         FilterFunction_toWKT toWKT = new FilterFunction_toWKT();
         String wkt = (String) toWKT.evaluate(value);
-        writeString(wkt);
+        generator.writeString(wkt);
     }
 
     @Override
     public void startTemplateOutput(Map<String, Object> encodingHints) throws IOException {
         writeStartObject();
         String contextName = "@context";
-        JsonNode context = (JsonNode) encodingHints.get(CONTEXT);
-        if (context.isArray()) writeArrayNode(contextName, context);
-        else if (context.isObject()) writeObjectNode(contextName, context);
-        else writeValueNode(contextName, context);
-        writeFieldName("type");
-        writeString("FeatureCollection");
-        writeFieldName("features");
+        JsonNode context = getEncodingHintIfPresent(encodingHints, CONTEXT, JsonNode.class);
+        if (context != null) {
+            if (context.isArray()) writeArrayNode(contextName, context);
+            else if (context.isObject()) writeObjectNode(contextName, context);
+            else writeValueNode(contextName, context);
+        }
+        generator.writeFieldName("type");
+        generator.writeString("FeatureCollection");
+        generator.writeFieldName("features");
         writeStartArray();
+    }
+
+    @Override
+    public void writeCollectionCounts(BigInteger featureCount) throws IOException {
+        // do nothing
+    }
+
+    @Override
+    public void writeCrs() throws IOException {
+        // do nothing
+    }
+
+    @Override
+    public void writeCollectionBounds(ReferencedEnvelope bounds) throws IOException {
+        // do nothing
+    }
+
+    @Override
+    public void writeTimeStamp() throws IOException {
+        // do nothing
+    }
+
+    @Override
+    public void writeNumberReturned() throws IOException {
+        // do nothing
     }
 }

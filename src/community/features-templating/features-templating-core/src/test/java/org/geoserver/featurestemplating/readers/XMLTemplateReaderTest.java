@@ -1,4 +1,4 @@
-package org.geoserver.featurestemplating;
+package org.geoserver.featurestemplating.readers;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -7,20 +7,19 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
-import org.geoserver.featurestemplating.readers.XMLTemplateReader;
 import org.junit.Test;
+import org.xml.sax.helpers.NamespaceSupport;
 
-public class StaxTest {
+public class XMLTemplateReaderTest {
 
     @Test
-    public void TestStax() throws FileNotFoundException, XMLStreamException {
-        URL url = getClass().getResource("xml-template-mock.xml");
+    public void testReader() throws FileNotFoundException, XMLStreamException {
+        URL url = getClass().getResource("../response/MappedFeatureGML32.xml");
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         xmlInputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, false);
         XMLEventReader reader =
                 xmlInputFactory.createXMLEventReader(new FileInputStream(url.getFile()));
-        XMLTemplateReader templateReader = new XMLTemplateReader(reader, null);
+        XMLTemplateReader templateReader = new XMLTemplateReader(reader, new NamespaceSupport());
         RootBuilder builder = templateReader.getRootBuilder();
-        builder.getChildren();
     }
 }

@@ -1,3 +1,7 @@
+/* (c) 2021 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
+ */
 package org.geoserver.featurestemplating.readers;
 
 import static org.geoserver.featurestemplating.builders.EncodingHints.ENCODE_AS_ATTRIBUTE;
@@ -24,6 +28,10 @@ import org.geoserver.featurestemplating.builders.TemplateBuilderMaker;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 import org.xml.sax.helpers.NamespaceSupport;
 
+/**
+ * This class create a TemplateBuilder tree from an XML document. The XMLParser being used is not
+ * namespaces aware.
+ */
 public class XMLTemplateReader implements TemplateReader {
 
     private XMLEventReader reader;
@@ -32,9 +40,17 @@ public class XMLTemplateReader implements TemplateReader {
     private NamespaceSupport namespaceSupport;
     private List<StartElement> parsedElements;
 
-    private static final String FEATURES_TEMPLATING_NS_URI =
-            "http://localhost:8080/geoserver/features-templating";
-    private static final String FEATURES_TEMPLATING_NS_PREFIX = "gft";
+    private static final String COLLECTION_ATTR = "gft:isCollection";
+
+    private static final String FILTER_ATTR = "gft:filter";
+
+    private static final String SOURCE_ATTR = "gft:source";
+
+    private static final String FEATURE_COLL_ELEMENT = "wfs:FeatureCollection";
+
+    private static final String NAMESPACE_PREFIX = "xmlns";
+
+    private static final String SCHEMA_LOCATION_ATTR = "xsi:schemaLocation";
 
     public XMLTemplateReader(XMLEventReader reader, NamespaceSupport namespaceSupport) {
         this.reader = reader;
@@ -64,22 +80,21 @@ public class XMLTemplateReader implements TemplateReader {
         try {
             while (reader.hasNext()) {
                 XMLEvent event = reader.nextEvent();
-                if (event.isStartElement())
-                    handleStartElementEvent(event.asStartElement(), builder);
+                if (event.isStartElement()) handleStartElement(event.asStartElement(), builder);
                 else if (event.isCharacters()) {
                     Characters characters = event.asCharacters();
                     if (!characters.isIgnorableWhiteSpace()
                             && !characters.isWhiteSpace()
                             && !characters.isEntityReference())
-                        handleCharacterEvent(event.asCharacters(), builder);
+                        templateBuilderFromCharacterElement(event.asCharacters(), builder);
                 } else if (event.isEndElement()) {
                     EndElement endElement = event.asEndElement();
                     boolean alreadyParsed = alreadyParsed(endElement);
                     if (!alreadyParsed && !elementsStack.isEmpty()) {
-                        buildTemplateBuilderFromElement(elementsStack.pop(), builder);
+                        templateBuilderFromElement(elementsStack.pop(), builder);
                     } else {
                         while (!elementsStack.isEmpty()) {
-                            buildTemplateBuilderFromElement(elementsStack.pop(), builder);
+                            templateBuilderFromElement(elementsStack.pop(), builder);
                         }
                         break;
                     }
@@ -90,11 +105,12 @@ public class XMLTemplateReader implements TemplateReader {
         }
     }
 
-    private void handleCharacterEvent(Characters characters, TemplateBuilder currentParent) {
+    private void templateBuilderFromCharacterElement(
+            Characters characters, TemplateBuilder currentParent) {
         String data = characters.getData();
         StartElement element = elementsStack.pop();
         TemplateBuilder leafBuilder;
-        if (getAttributeValueIfPresent(element, "isCollection") != null)
+        if (getAttributeValueIfPresent(element, COLLECTION_ATTR) != null)
             leafBuilder = createLeaf(data, null);
         else leafBuilder = createLeaf(data, element);
         parsedElements.add(element);
@@ -103,12 +119,14 @@ public class XMLTemplateReader implements TemplateReader {
         iterateReader(currentParent);
     }
 
-    private void handleStartElementEvent(StartElement startElement, TemplateBuilder currentParent) {
-        if (startElement.getName().toString().equals("wfs:FeatureCollection"))
-            handleFeatureCollectionElement(startElement, (RootBuilder) currentParent);
-        else if (!elementsStack.isEmpty()) {
+    private void handleStartElement(StartElement startElement, TemplateBuilder currentParent) {
+        if (startElement.getName().toString().equals(FEATURE_COLL_ELEMENT)) {
+            currentParent =
+                    builderFromFeatureCollectionElement(startElement, (RootBuilder) currentParent);
+            iterateReader(currentParent);
+        } else if (!elementsStack.isEmpty()) {
             StartElement previous = !elementsStack.isEmpty() ? elementsStack.pop() : null;
-            currentParent = buildTemplateBuilderFromElement(previous, currentParent);
+            currentParent = templateBuilderFromElement(previous, currentParent);
             parsedElements.add(previous);
             elementsStack.add(startElement);
             iterateReader(currentParent);
@@ -117,39 +135,45 @@ public class XMLTemplateReader implements TemplateReader {
         }
     }
 
-    private TemplateBuilder buildTemplateBuilderFromElement(
+    private TemplateBuilder templateBuilderFromElement(
             StartElement startElement, TemplateBuilder currentParent) {
         if (startElement != null && !parsedElements.contains(startElement)) {
-            Attribute attribute = startElement.getAttributeByName(new QName("gft:isCollection"));
+            String isCollection= getAttributeValueIfPresent(startElement,COLLECTION_ATTR);
             String qName = startElement.getName().toString();
-            boolean skipElement = qName.equals("gml:featureMembers");
-            if (!skipElement) {
-                boolean collection =
-                        attribute != null && Boolean.valueOf(attribute.getValue()).booleanValue();
-                maker.collection(collection)
-                        .name(qName)
-                        .namespaces(namespaceSupport)
-                        .filter(getAttributeValueIfPresent(startElement, "gft:filter"))
-                        .source(getAttributeValueIfPresent(startElement, "gft:source"));
-                if (collection) {
-                    maker.encodingOption(ITERATE_KEY, "true");
-                }
-                TemplateBuilder parentBuilder = maker.build();
-                Iterator<Attribute> attributeIterator = startElement.getAttributes();
-                addAttributeAsChildrenBuilder(attributeIterator, parentBuilder);
-                currentParent.addChild(parentBuilder);
-                currentParent = parentBuilder;
+            boolean collection =
+                    isCollection != null && Boolean.valueOf(isCollection).booleanValue();
+            maker.collection(collection)
+                    .name(qName)
+                    .namespaces(namespaceSupport)
+                    .filter(getAttributeValueIfPresent(startElement, FILTER_ATTR))
+                    .source(getAttributeValueIfPresent(startElement, SOURCE_ATTR));
+            if (collection) {
+                maker.encodingOption(ITERATE_KEY, "true");
             }
+            TemplateBuilder parentBuilder = maker.build();
+            Iterator<Attribute> attributeIterator = startElement.getAttributes();
+            addAttributeAsChildrenBuilder(attributeIterator, parentBuilder);
+            currentParent.addChild(parentBuilder);
+            currentParent = parentBuilder;
         }
         return currentParent;
     }
 
     private TemplateBuilder createLeaf(String data, StartElement startElement) {
-        maker.namespaces(namespaceSupport).textContent(data);
+        maker.namespaces(namespaceSupport);
         if (startElement != null) {
             maker.name(startElement.getName().toString());
-            String filter = getAttributeValueIfPresent(startElement, "gft:filter");
-            maker.filter(filter);
+            String filter = getAttributeValueIfPresent(startElement, FILTER_ATTR);
+            if (filter == null && data.contains(FILTERKEY)) {
+                data = data.replace(FILTERKEY + "{", "");
+                int sepIndex = data.indexOf('}') + 1;
+                String sep = String.valueOf(data.charAt(sepIndex));
+                String[] arrData = data.split(sep);
+                data = arrData[1];
+                filter = arrData[0];
+                filter = filter.substring(0, filter.length() - 1);
+            }
+            maker.filter(filter).textContent(data);
         }
         TemplateBuilder builder = maker.build();
 
@@ -161,10 +185,7 @@ public class XMLTemplateReader implements TemplateReader {
         while (attributes.hasNext()) {
             Attribute attribute = attributes.next();
             if (!attribute.isNamespace()) {
-                String localPart = attribute.getName().getLocalPart();
-                if (!localPart.equals("gft:filter")
-                        && !localPart.equals("gft:source")
-                        && !localPart.equals("gft:isCollection")) {
+                if (canEncodeAttribute(attribute.getName())) {
                     maker.namespaces(namespaceSupport)
                             .name(attribute.getName().toString())
                             .textContent(attribute.getValue())
@@ -176,32 +197,49 @@ public class XMLTemplateReader implements TemplateReader {
     }
 
     private String getAttributeValueIfPresent(StartElement startElement, String attributeName) {
-        Attribute filter = startElement.getAttributeByName(new QName(attributeName));
-        if (filter == null) return null;
-        return filter.getValue();
+        Attribute attribute = startElement.getAttributeByName(new QName(attributeName));
+        if (attribute==null){
+            String[] attributeArr=attributeName.split(":");
+            if (attributeArr.length>1) attribute=startElement.getAttributeByName(new QName("",attributeArr[1],attributeArr[0]));
+        }
+        if (attribute == null) return null;
+        return attribute.getValue();
     }
 
-    private void handleFeatureCollectionElement(
+    private TemplateBuilder builderFromFeatureCollectionElement(
             StartElement startElementEvent, RootBuilder rootBuilder) {
         Iterator<Attribute> attributeIterator = startElementEvent.getAttributes();
         Map<String, String> namespaces = new HashMap<>();
         Map<String, String> schemaLocation = new HashMap<>();
         while (attributeIterator.hasNext()) {
             Attribute attribute = attributeIterator.next();
-            String prefix = attribute.getName().getLocalPart();
-            if (prefix.startsWith("xmlns")) {
-                String localPart = prefix.split(":")[1];
-                namespaces.put(localPart, attribute.getValue());
-            } else if (prefix.startsWith("xsi")) {
+            QName name = attribute.getName();
+            if (isNamespace(name)) {
+                namespaces.put(strName(name), attribute.getValue());
+            } else if (isSchemaLocation(name)) {
                 schemaLocation.put(strName(attribute.getName()), attribute.getValue());
             }
         }
         rootBuilder.addEncodingHint(NAMESPACES, namespaces);
         rootBuilder.addEncodingHint(SCHEMA_LOCATION, schemaLocation);
+        maker.collection(true)
+                .name(startElementEvent.getName().toString())
+                .namespaces(namespaceSupport)
+                .rootCollection(true);
+        TemplateBuilder builder = maker.build();
+        rootBuilder.addChild(builder);
+        return builder;
     }
 
-    String strName(QName qName) {
-        return qName.getLocalPart();
+    String strName(QName name) {
+        String[] nameAr = name.getLocalPart().split(":");
+        String strName;
+        if (nameAr.length>1){
+            strName=nameAr[1];
+        } else {
+            strName=name.getLocalPart();
+        }
+        return strName;
     }
 
     private boolean alreadyParsed(EndElement endElement) {
@@ -211,6 +249,8 @@ public class XMLTemplateReader implements TemplateReader {
                         .filter(se -> se.getName().equals(endElement.getName()))
                         .count();
         boolean alreadyParsed = count == 1;
+        // additional check to avoid breaking an iteration in case of nodes with same name
+        // where the nested one is a self closing or void node.
         if (count > 1) {
             alreadyParsed =
                     elementsStack.empty()
@@ -218,4 +258,24 @@ public class XMLTemplateReader implements TemplateReader {
         }
         return alreadyParsed;
     }
+
+    private boolean isSchemaLocation(QName name){
+        return name.getLocalPart().equals(SCHEMA_LOCATION_ATTR) ||
+                name.getLocalPart().equals(SCHEMA_LOCATION_ATTR.split(":")[1]);
+    }
+
+    private boolean isNamespace(QName name){
+        return name.getLocalPart().startsWith(NAMESPACE_PREFIX) || name.getPrefix() !=null && name.getPrefix().startsWith(NAMESPACE_PREFIX);
+    }
+
+    private boolean canEncodeAttribute (QName name){
+        boolean hasPrefix=name.getPrefix()!=null && !name.getPrefix().equals("");
+        String strName=name.getLocalPart();
+        if (hasPrefix)
+            strName=name.getPrefix()+":"+strName;
+        return !strName.equals(FILTER_ATTR)
+                && !strName.equals(SOURCE_ATTR)
+                && !strName.equals(COLLECTION_ATTR);
+    }
 }
+

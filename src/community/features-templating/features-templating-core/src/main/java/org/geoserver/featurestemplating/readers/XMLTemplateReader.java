@@ -138,7 +138,7 @@ public class XMLTemplateReader implements TemplateReader {
     private TemplateBuilder templateBuilderFromElement(
             StartElement startElement, TemplateBuilder currentParent) {
         if (startElement != null && !parsedElements.contains(startElement)) {
-            String isCollection= getAttributeValueIfPresent(startElement,COLLECTION_ATTR);
+            String isCollection = getAttributeValueIfPresent(startElement, COLLECTION_ATTR);
             String qName = startElement.getName().toString();
             boolean collection =
                     isCollection != null && Boolean.valueOf(isCollection).booleanValue();
@@ -193,9 +193,12 @@ public class XMLTemplateReader implements TemplateReader {
 
     private String getAttributeValueIfPresent(StartElement startElement, String attributeName) {
         Attribute attribute = startElement.getAttributeByName(new QName(attributeName));
-        if (attribute==null){
-            String[] attributeArr=attributeName.split(":");
-            if (attributeArr.length>1) attribute=startElement.getAttributeByName(new QName("",attributeArr[1],attributeArr[0]));
+        if (attribute == null) {
+            String[] attributeArr = attributeName.split(":");
+            if (attributeArr.length > 1)
+                attribute =
+                        startElement.getAttributeByName(
+                                new QName("", attributeArr[1], attributeArr[0]));
         }
         if (attribute == null) return null;
         return attribute.getValue();
@@ -229,10 +232,10 @@ public class XMLTemplateReader implements TemplateReader {
     String strName(QName name) {
         String[] nameAr = name.getLocalPart().split(":");
         String strName;
-        if (nameAr.length>1){
-            strName=nameAr[1];
+        if (nameAr.length > 1) {
+            strName = nameAr[1];
         } else {
-            strName=name.getLocalPart();
+            strName = name.getLocalPart();
         }
         return strName;
     }
@@ -254,23 +257,22 @@ public class XMLTemplateReader implements TemplateReader {
         return alreadyParsed;
     }
 
-    private boolean isSchemaLocation(QName name){
-        return name.getLocalPart().equals(SCHEMA_LOCATION_ATTR) ||
-                name.getLocalPart().equals(SCHEMA_LOCATION_ATTR.split(":")[1]);
+    private boolean isSchemaLocation(QName name) {
+        return name.getLocalPart().equals(SCHEMA_LOCATION_ATTR)
+                || name.getLocalPart().equals(SCHEMA_LOCATION_ATTR.split(":")[1]);
     }
 
-    private boolean isNamespace(QName name){
-        return name.getLocalPart().startsWith(NAMESPACE_PREFIX) || name.getPrefix() !=null && name.getPrefix().startsWith(NAMESPACE_PREFIX);
+    private boolean isNamespace(QName name) {
+        return name.getLocalPart().startsWith(NAMESPACE_PREFIX)
+                || name.getPrefix() != null && name.getPrefix().startsWith(NAMESPACE_PREFIX);
     }
 
-    private boolean canEncodeAttribute (QName name){
-        boolean hasPrefix=name.getPrefix()!=null && !name.getPrefix().equals("");
-        String strName=name.getLocalPart();
-        if (hasPrefix)
-            strName=name.getPrefix()+":"+strName;
+    private boolean canEncodeAttribute(QName name) {
+        boolean hasPrefix = name.getPrefix() != null && !name.getPrefix().equals("");
+        String strName = name.getLocalPart();
+        if (hasPrefix) strName = name.getPrefix() + ":" + strName;
         return !strName.equals(FILTER_ATTR)
                 && !strName.equals(SOURCE_ATTR)
                 && !strName.equals(COLLECTION_ATTR);
     }
 }
-

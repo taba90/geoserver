@@ -7,26 +7,12 @@ package org.geoserver.featurestemplating.wfs;
 import static org.geoserver.featurestemplating.builders.EncodingHints.NAMESPACES;
 import static org.geoserver.featurestemplating.builders.EncodingHints.SCHEMA_LOCATION;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 import net.opengis.wfs.GetFeatureType;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
@@ -39,14 +25,11 @@ import org.geoserver.featurestemplating.writers.XMLTemplateWriter;
 import org.geoserver.platform.Operation;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wfs.request.FeatureCollectionResponse;
-import org.geoserver.wfs.xml.GML3OutputFormat;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.w3c.dom.Document;
 
 /** A template response able to write a GML output format according to gml version. */
 public class GMLTemplateResponse extends BaseTemplateGetFeatureResponse {
-
 
     public GMLTemplateResponse(
             GeoServer gs, TemplateConfiguration configuration, TemplateIdentifier identifier) {

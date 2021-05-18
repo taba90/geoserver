@@ -17,11 +17,19 @@ import org.eclipse.emf.common.util.URI;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
+import org.geoserver.featurestemplating.builders.visitors.SimplifiedPropertyReplacer;
 import org.geoserver.featurestemplating.readers.TemplateReaderConfiguration;
 import org.geoserver.featurestemplating.validation.TemplateValidator;
 import org.geoserver.platform.resource.Resource;
+import org.geoserver.security.decorators.DecoratingDataAccess;
+import org.geotools.data.DataAccess;
+import org.geotools.data.complex.AppSchemaDataAccess;
+import org.geotools.data.complex.AppSchemaDataAccessRegistry;
+import org.geotools.data.complex.DataAccessRegistry;
+import org.geotools.data.complex.FeatureTypeMapping;
 import org.geotools.data.complex.feature.type.ComplexFeatureTypeImpl;
 import org.geotools.data.complex.feature.type.Types;
+import org.opengis.feature.Feature;
 import org.opengis.feature.type.FeatureType;
 import org.xml.sax.helpers.NamespaceSupport;
 
@@ -61,6 +69,17 @@ public class TemplateConfiguration {
                                                         resource,
                                                         new TemplateReaderConfiguration(
                                                                 namespaces));
+                                        RootBuilder builder=template.getRootBuilder();
+                                        try {
+                                            DataAccessRegistry registry=AppSchemaDataAccessRegistry.getInstance();
+                                            FeatureTypeMapping featureTypeMapping=AppSchemaDataAccessRegistry.getInstance().mappingByElement(key.getResource().getQualifiedName());
+                                            if (featureTypeMapping!=null) {
+                                                SimplifiedPropertyReplacer visitor = new SimplifiedPropertyReplacer(featureTypeMapping);
+                                                template.getRootBuilder().accept(visitor, null);
+                                            }
+                                        }catch (Exception e){
+                                            throw new RuntimeException();
+                                        }
                                         return template;
                                     }
                                 });
@@ -77,11 +96,22 @@ public class TemplateConfiguration {
                         .getFilename();
         CacheKey key = new CacheKey(typeInfo, fileName);
         Template template = templateCache.get(key);
-        if (template.checkTemplate()) templateCache.put(key, template);
+        if (template.checkTemplate()){
+            templateCache.put(key, template);
+        }
         RootBuilder root = template.getRootBuilder();
         // check if reload is needed anyway and eventually reload the template
         if (root != null && root.needsReload()) {
             template.reloadTemplate();
+            try {
+                FeatureTypeMapping featureTypeMapping=AppSchemaDataAccessRegistry.getInstance().mappingByElement(key.getResource().getQualifiedName());
+                if (featureTypeMapping!=null) {
+                    SimplifiedPropertyReplacer visitor = new SimplifiedPropertyReplacer(featureTypeMapping);
+                    template.getRootBuilder().accept(visitor, null);
+                }
+            }catch (Exception e){
+                throw new RuntimeException();
+            }
             templateCache.put(key, template);
             root = template.getRootBuilder();
         }

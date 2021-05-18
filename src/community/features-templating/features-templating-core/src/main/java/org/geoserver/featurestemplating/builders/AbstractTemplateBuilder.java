@@ -5,6 +5,7 @@
 package org.geoserver.featurestemplating.builders;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import org.geoserver.featurestemplating.builders.impl.TemplateBuilderContext;
 import org.geoserver.featurestemplating.expressions.TemplateCQLManager;
@@ -128,6 +129,7 @@ public abstract class AbstractTemplateBuilder implements TemplateBuilder {
 
     @Override
     public List<TemplateBuilder> getChildren() {
+        if (children==null) return Collections.emptyList();
         return children;
     }
 

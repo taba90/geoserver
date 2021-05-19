@@ -64,6 +64,7 @@ public abstract class XMLTemplateWriter extends TemplateOutputWriter {
             else {
                 streamWriter.writeStartElement(name);
                 streamWriter.writeCharacters(staticContent.toString());
+                streamWriter.writeEndElement();
             }
         } catch (XMLStreamException e) {
             throw new IOException(e);
@@ -107,6 +108,7 @@ public abstract class XMLTemplateWriter extends TemplateOutputWriter {
         }
     }
 
+    @Override
     public void writeElementNameAndValue(
             String key, Object elementValue, EncodingHints encodingHints) throws IOException {
         boolean encodeAsAttribute = isEncodeAsAttribute(encodingHints);
@@ -145,7 +147,7 @@ public abstract class XMLTemplateWriter extends TemplateOutputWriter {
                         encodeAsAttribute ? key : null, attr.getValue(), encodingHints);
             } else if (elementValue instanceof List) {
                 List list = (List) elementValue;
-                if (!repeatName) {
+                if (!repeatName && !list.isEmpty()) {
                     writeElementNameAndValue(key, list.get(0), encodingHints);
                 } else {
                     for (int i = 0; i < list.size(); i++) {

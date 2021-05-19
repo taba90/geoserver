@@ -56,6 +56,8 @@ public class TemplateCQLManager {
         String strXpath = extractXpath(this.strCql);
         this.contextPos = determineContextPos(strXpath);
         strXpath = removeBackDots(strXpath);
+        if (strXpath.indexOf(".")!=-1)
+            strXpath=strXpath.replaceAll("\\.","/");
         return new AttributeExpressionImpl(strXpath, namespaces);
     }
 

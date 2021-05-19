@@ -69,16 +69,18 @@ public class TemplateConfiguration {
                                                         resource,
                                                         new TemplateReaderConfiguration(
                                                                 namespaces));
-                                        RootBuilder builder=template.getRootBuilder();
-                                        try {
-                                            DataAccessRegistry registry=AppSchemaDataAccessRegistry.getInstance();
-                                            FeatureTypeMapping featureTypeMapping=AppSchemaDataAccessRegistry.getInstance().mappingByElement(key.getResource().getQualifiedName());
-                                            if (featureTypeMapping!=null) {
-                                                SimplifiedPropertyReplacer visitor = new SimplifiedPropertyReplacer(featureTypeMapping);
-                                                template.getRootBuilder().accept(visitor, null);
+                                        RootBuilder builder = template.getRootBuilder();
+                                        if (builder != null) {
+                                            try {
+                                                DataAccessRegistry registry = AppSchemaDataAccessRegistry.getInstance();
+                                                FeatureTypeMapping featureTypeMapping = AppSchemaDataAccessRegistry.getInstance().mappingByElement(key.getResource().getQualifiedName());
+                                                if (featureTypeMapping != null) {
+                                                    SimplifiedPropertyReplacer visitor = new SimplifiedPropertyReplacer(featureTypeMapping);
+                                                    template.getRootBuilder().accept(visitor, null);
+                                                }
+                                            } catch (Exception e) {
+                                                throw new RuntimeException();
                                             }
-                                        }catch (Exception e){
-                                            throw new RuntimeException();
                                         }
                                         return template;
                                     }
@@ -97,6 +99,15 @@ public class TemplateConfiguration {
         CacheKey key = new CacheKey(typeInfo, fileName);
         Template template = templateCache.get(key);
         if (template.checkTemplate()){
+            try {
+                FeatureTypeMapping featureTypeMapping=AppSchemaDataAccessRegistry.getInstance().mappingByElement(key.getResource().getQualifiedName());
+                if (featureTypeMapping!=null) {
+                    SimplifiedPropertyReplacer visitor = new SimplifiedPropertyReplacer(featureTypeMapping);
+                    template.getRootBuilder().accept(visitor, null);
+                }
+            }catch (Exception e){
+                throw new RuntimeException();
+            }
             templateCache.put(key, template);
         }
         RootBuilder root = template.getRootBuilder();

@@ -95,6 +95,6 @@ public class RootBuilder implements TemplateBuilder {
 
     @Override
     public Object accept(TemplateVisitor visitor, Object value) {
-        return visitor.visit(this,value);
+        return visitor.visit(this, value);
     }
 }

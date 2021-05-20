@@ -151,7 +151,6 @@ public class IteratingBuilder extends SourceBuilder {
 
     @Override
     public Object accept(TemplateVisitor visitor, Object value) {
-        return visitor.visit(this,value);
+        return visitor.visit(this, value);
     }
-
 }

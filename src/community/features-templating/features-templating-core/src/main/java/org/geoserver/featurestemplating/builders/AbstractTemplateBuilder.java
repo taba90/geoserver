@@ -5,7 +5,7 @@
 package org.geoserver.featurestemplating.builders;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import org.geoserver.featurestemplating.builders.impl.TemplateBuilderContext;
 import org.geoserver.featurestemplating.expressions.TemplateCQLManager;
@@ -87,6 +87,16 @@ public abstract class AbstractTemplateBuilder implements TemplateBuilder {
     }
 
     /**
+     * Set the filter to the builder
+     *
+     * @param filter the filter to be setted
+     * @throws CQLException
+     */
+    public void setFilter(Filter filter) {
+        this.filter = filter;
+    }
+
+    /**
      * Get context position of the filter if present
      *
      * @return
@@ -129,7 +139,7 @@ public abstract class AbstractTemplateBuilder implements TemplateBuilder {
 
     @Override
     public List<TemplateBuilder> getChildren() {
-        if (children==null) return Collections.emptyList();
+        if (children == null) return new ArrayList<>();
         return children;
     }
 
@@ -143,5 +153,27 @@ public abstract class AbstractTemplateBuilder implements TemplateBuilder {
     public void addEncodingHint(String key, Object value) {
         if (this.encodingHints == null) this.encodingHints = new EncodingHints();
         this.encodingHints.put(key, value);
+    }
+
+    @Override
+    public void addChild(TemplateBuilder builder) {
+        if (this.children == null) this.children = new ArrayList<>();
+        this.children.add(builder);
+    }
+
+    protected ChildrenEvaluation getChildrenEvaluation(
+            TemplateOutputWriter writer, TemplateBuilderContext context) {
+        ChildrenEvaluation action =
+                () -> {
+                    for (TemplateBuilder b : children) {
+                        b.evaluate(writer, context);
+                    }
+                };
+        return action;
+    }
+
+    @FunctionalInterface
+    public interface ChildrenEvaluation {
+        void evaluate() throws IOException;
     }
 }

@@ -7,6 +7,7 @@ package org.geoserver.featurestemplating.builders.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import org.geoserver.featurestemplating.builders.AbstractTemplateBuilder;
+import org.geoserver.featurestemplating.builders.EncodingHints;
 import org.geoserver.featurestemplating.builders.visitors.TemplateVisitor;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
 import org.xml.sax.helpers.NamespaceSupport;
@@ -37,6 +38,9 @@ public class StaticBuilder extends AbstractTemplateBuilder {
 
     protected void evaluateInternal(TemplateOutputWriter writer, TemplateBuilderContext context)
             throws IOException {
+        if (children != null && !children.isEmpty())
+            getEncodingHints()
+                    .put(EncodingHints.CHILDREN_EVALUATION, getChildrenEvaluation(writer, context));
         if (strValue != null) writer.writeStaticContent(getKey(), strValue, getEncodingHints());
         else writer.writeStaticContent(getKey(), staticValue, getEncodingHints());
     }
@@ -56,6 +60,6 @@ public class StaticBuilder extends AbstractTemplateBuilder {
 
     @Override
     public Object accept(TemplateVisitor visitor, Object value) {
-        return visitor.visit(this,value);
+        return visitor.visit(this, value);
     }
 }

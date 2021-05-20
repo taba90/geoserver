@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import org.geoserver.featurestemplating.builders.AbstractTemplateBuilder;
 import org.geoserver.featurestemplating.builders.EncodingHints;
 import org.geoserver.util.ISO8601Formatter;
 import org.locationtech.jts.geom.Geometry;
@@ -63,11 +64,22 @@ public abstract class XMLTemplateWriter extends TemplateOutputWriter {
                 writeAsAttribute(name, staticContent, encodingHints);
             else {
                 streamWriter.writeStartElement(name);
+                evaluateChildren(encodingHints);
                 streamWriter.writeCharacters(staticContent.toString());
                 streamWriter.writeEndElement();
             }
         } catch (XMLStreamException e) {
             throw new IOException(e);
+        }
+    }
+
+    private void evaluateChildren(EncodingHints encodingHints) throws IOException {
+        AbstractTemplateBuilder.ChildrenEvaluation eval =
+                encodingHints.get(
+                        EncodingHints.CHILDREN_EVALUATION,
+                        AbstractTemplateBuilder.ChildrenEvaluation.class);
+        if (eval != null) {
+            eval.evaluate();
         }
     }
 
@@ -114,7 +126,10 @@ public abstract class XMLTemplateWriter extends TemplateOutputWriter {
         boolean encodeAsAttribute = isEncodeAsAttribute(encodingHints);
         boolean repeatName = elementValue instanceof List && ((List) elementValue).size() > 1;
         boolean canClose = false;
-        if (key != null && !repeatName && !encodeAsAttribute) writeElementName(key, encodingHints);
+        if (key != null && !repeatName && !encodeAsAttribute) {
+            writeElementName(key, encodingHints);
+            evaluateChildren(encodingHints);
+        }
         try {
             if (elementValue instanceof String
                     || elementValue instanceof Number
@@ -166,14 +181,20 @@ public abstract class XMLTemplateWriter extends TemplateOutputWriter {
     private void writeAsAttribute(String key, Object elementValue, EncodingHints encodingHints)
             throws IOException {
         try {
-            if (key.indexOf(":") != -1) {
+            if (key.indexOf(":") != -1 && !key.contains("xmlns")) {
                 String[] splitKey = key.split(":");
                 streamWriter.writeAttribute(
                         splitKey[0],
                         namespaces.get(splitKey[0]),
                         splitKey[1],
                         elementValue.toString());
-            } else streamWriter.writeAttribute(key, elementValue.toString());
+            } else {
+                if (key.contains("xmlns")) {
+                    streamWriter.writeNamespace(key.split(":")[1], elementValue.toString());
+                } else {
+                    streamWriter.writeAttribute(key, elementValue.toString());
+                }
+            }
         } catch (XMLStreamException e) {
             throw new IOException(e);
         }

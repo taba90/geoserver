@@ -9,10 +9,13 @@ import org.geoserver.featurestemplating.builders.impl.StaticBuilder;
 import org.geotools.data.complex.AttributeMapping;
 import org.geotools.data.complex.FeatureTypeMapping;
 import org.geotools.data.complex.NestedAttributeMapping;
+import org.geotools.data.complex.config.JdbcMultipleValue;
+import org.geotools.data.complex.config.MultipleValue;
 import org.geotools.data.complex.filter.MultipleValueExtractor;
 import org.geotools.filter.AttributeExpressionImpl;
 import org.geotools.filter.FilterAttributeExtractor;
 import org.geotools.filter.visitor.DuplicatingFilterVisitor;
+import org.opengis.feature.Attribute;
 import org.opengis.feature.Feature;
 import org.opengis.feature.Property;
 import org.opengis.feature.type.Name;
@@ -161,10 +164,15 @@ public class SimplifiedPropertyReplacer implements TemplateVisitor {
 
 
 
-    private String findMatchingXpathInNestedList(String pathPart, List<NestedAttributeMapping> nestedMappings) throws IOException {
+    private String findMatchingXpathInNestedList(String pathPart, List<AttributeMapping> mappings) throws IOException {
         String result=null;
-        for (NestedAttributeMapping mapping:nestedMappings){
-            result=findMatchingXpathInNested(pathPart, mapping);
+        for (AttributeMapping mapping:mappings){
+            if (mapping instanceof NestedAttributeMapping)
+                result=findMatchingXpathInNested(pathPart, (NestedAttributeMapping) mapping);
+            else {
+                Expression sourceExpression=mapping.getSourceExpression();
+            }
+
             if (result!=null)
                 break;
         }
@@ -173,6 +181,26 @@ public class SimplifiedPropertyReplacer implements TemplateVisitor {
 
     private String findMatchingXpathInNested(String pathPart, NestedAttributeMapping nested) throws IOException {
         FeatureTypeMapping ftm=nested.getFeatureTypeMapping(null);
+        String result=null;
+        if(ftm.getSource().getName().getLocalPart().equals(pathPart)){
+            result=nested.getTargetXPath().toString()+"/"+strName(ftm.getTargetFeature().getName());//+"/"+ftm.getTargetFeature().getName().toString();;
+            mappingsStack.add(ftm);
+        }
+        return result;
+    }
+
+    private String findMatchingXpathInJdbcMultipleValue(String pathPart, AttributeMapping attributeMapping) throws IOException {
+        MultipleValueExtractor mvExtractor=new MultipleValueExtractor();
+        Expression expression=attributeMapping.getSourceExpression();
+        expression.accept(mvExtractor,null);
+        String result=null;
+        if (!mvExtractor.getMultipleValues().isEmpty()){
+            for (MultipleValue mv:mvExtractor.getMultipleValues()){
+                if (mv instanceof JdbcMultipleValue){
+                    ((JdbcMultipleValue)mv).getTargetTable();
+                }
+            }
+        }
         String result=null;
         if(ftm.getSource().getName().getLocalPart().equals(pathPart)){
             result=nested.getTargetXPath().toString()+"/"+strName(ftm.getTargetFeature().getName());//+"/"+ftm.getTargetFeature().getName().toString();;

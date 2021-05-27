@@ -1,0 +1,51 @@
+<html xmlns:wicket="http://wicket.apache.org/">
+<head>
+    <title><wicket:message key="ruleConfiguration">Rule Configuration</wicket:message></title>
+</head>
+<body>
+<wicket:panel>
+<form name="theForm" wicket:id="theForm" id="theForm">
+    <ul>
+        <li>
+            <fieldset>
+                <ul>
+                    <li>
+                        <label for="templateName"><wicket:message key="templateName"></wicket:message></label>
+                        <input id="templateName" wicket:id="templateName" type="text" class="text" />
+                    </li>
+                    <li>
+                        <label for="outputFormats"><wicket:message key="outputFormats"></wicket:message></label>
+                        <select wicket:id="outputFormats" id="outputFormats" />
+                    </li>
+                    <li>
+                        <label for="services"><wicket:message key="services"></wicket:message></label>
+                        <select wicket:id="services" id="services" />
+                    </li>
+                    <li>
+                        <label for="operations"><wicket:message key="operations"></wicket:message></label>
+                        <select wicket:id="operations" id="operations" />
+                    </li>
+                    <li>
+                        <label for="singleFeature"><wicket:message key="singleFeature"></wicket:message></label>
+                        <input type="checkbox" wicket:id="singleFeature" id="singleFeature" />
+                    </li>
+                    <li>
+                        <label for="cqlFilter"><wicket:message key="cqlFilter"></wicket:message></label>
+                        <textarea wicket:id="cqlFilter" id="cqlFilter" style="width: 200px; height:100px;"/>
+                    </li>
+                    <li>
+                        <label for="regex"><wicket:message key="regex"></wicket:message></label>
+                        <input wicket:id="regex" id="regex" type="text" class="text"/>
+                    </li>
+                </ul>
+            </fieldset>
+        </li>
+    </ul>
+    <div class="button-group toolbar-sticky selfclear">
+        <a href="#" class="form-button-save" wicket:id="save"><wicket:message key="save">Save</wicket:message></a>
+        <a href="#" class="form-button-cancel" wicket:id="cancel"><wicket:message key="cancel">Cancel</wicket:message></a>
+    </div>
+</form>
+</wicket:panel>
+</body>
+</html>

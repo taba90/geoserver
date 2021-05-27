@@ -1,5 +1,9 @@
 package org.geoserver.featurestemplating.configuration;
 
+import java.io.Serializable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.xml.bind.annotation.XmlRootElement;
 import org.geoserver.featurestemplating.expressions.RequestIsSingleFeature;
 import org.geoserver.ows.Request;
 import org.geoserver.util.XCQL;
@@ -7,11 +11,10 @@ import org.geotools.filter.text.cql2.CQL;
 import org.geotools.filter.text.cql2.CQLException;
 import org.opengis.filter.Filter;
 
-import java.io.Serializable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+@XmlRootElement(name = "rules")
 public class TemplateRule implements Serializable {
+
+    private String templateIdentifier;
 
     private String templateName;
 
@@ -23,7 +26,7 @@ public class TemplateRule implements Serializable {
 
     private String operation;
 
-    private Filter cqlFilter;
+    private String cqlFilter;
 
     private String regex;
 
@@ -31,34 +34,38 @@ public class TemplateRule implements Serializable {
         return templateName;
     }
 
-    public boolean applyRule (Request request){
-        boolean result=true;
-        if (outputFormat!=null){
-            result=outputFormat.equalsIgnoreCase(request.getOutputFormat());
+    public boolean applyRule(Request request) {
+        boolean result = true;
+        if (outputFormat != null) {
+            result =matchOutputFormat(request.getOutputFormat());
         }
 
-        if (result && service!=null){
-            result=request.getService().equals(service);
+        if (result && service != null) {
+            result = request.getService().equals(service);
         }
 
-        if (result && operation!=null){
-            result=request.getOperation().equals(operation);
+        if (result && operation != null) {
+            result = request.getOperation().equals(operation);
         }
 
-        if (result){
+        if (result) {
             RequestIsSingleFeature isSingleFeature = new RequestIsSingleFeature();
-            Boolean isSingle=isSingleFeature.evaluate(null,Boolean.class);
-            result=isSingle.booleanValue() == singleFeatureTemplate;
+            Boolean isSingle = isSingleFeature.evaluate(null, Boolean.class);
+            result = isSingle.booleanValue() == singleFeatureTemplate;
         }
 
-        if (result && cqlFilter !=null){
-            result= cqlFilter.evaluate(request);
+        if (result && cqlFilter != null) {
+            try {
+                result = XCQL.toFilter(cqlFilter).evaluate(request);
+            } catch (CQLException e) {
+                throw new RuntimeException(e);
+            }
         }
 
-        if (result && regex!=null){
+        if (result && regex != null) {
             Pattern pattern = Pattern.compile(regex);
-            Matcher matcher=pattern.matcher(request.getRequest());
-            result=matcher.matches();
+            Matcher matcher = pattern.matcher(request.getRequest());
+            result = matcher.matches();
         }
 
         return result;
@@ -101,17 +108,11 @@ public class TemplateRule implements Serializable {
     }
 
     public String getCqlFilter() {
-        if (cqlFilter!=null)
-            return CQL.toCQL(cqlFilter);
-        return null;
+        return cqlFilter;
     }
 
     public void setCqlFilter(String cqlFilter) {
-        try {
-            this.cqlFilter = XCQL.toFilter(cqlFilter);
-        } catch (CQLException e) {
-            throw new RuntimeException(e);
-        }
+            this.cqlFilter = cqlFilter;
     }
 
     public String getRegex() {
@@ -120,5 +121,46 @@ public class TemplateRule implements Serializable {
 
     public void setRegex(String regex) {
         this.regex = regex;
+    }
+
+    public String getTemplateIdentifier() {
+        return templateIdentifier;
+    }
+
+    public void setTemplateIdentifier(String templateIdentifier) {
+        this.templateIdentifier = templateIdentifier;
+    }
+
+    private boolean matchOutputFormat(String outputFormat){
+        String nameIdentifier=TemplateIdentifier.getTemplateIdentifierFromOutputFormat(outputFormat).name();
+        if (this.outputFormat.equals(SupportedMimeType.GML.name()))
+            return nameIdentifier.startsWith(this.outputFormat);
+        else
+            return nameIdentifier.equals(this.outputFormat);
+    }
+
+    public void setTemplateInfo(TemplateInfo templateInfo){
+        if (templateInfo!=null) {
+            this.templateName = templateInfo.getFullName();
+            this.templateIdentifier = templateInfo.getIdentifier();
+        }
+    }
+
+    public TemplateInfo getTemplateInfo(){
+        TemplateInfo ti=new TemplateInfo();
+        if (templateName!=null && templateName.indexOf(":")!=-1){
+            String [] nameSplit=templateName.split(":");
+            if (nameSplit.length==3){
+                ti.setWorkspace(nameSplit[0]);
+                ti.setFeatureType(nameSplit[1]);
+                ti.setTemplateName(nameSplit[2]);
+            } else {
+                ti.setWorkspace(nameSplit[0]);
+                ti.setTemplateName(nameSplit[1]);
+            }
+        } else{
+            ti.setIdentifier(ti.getIdentifier());
+        }
+        return ti;
     }
 }

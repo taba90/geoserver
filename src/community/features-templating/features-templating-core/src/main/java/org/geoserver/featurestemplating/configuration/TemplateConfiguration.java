@@ -9,18 +9,20 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.eclipse.emf.common.util.URI;
-import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 import org.geoserver.featurestemplating.builders.visitors.SimplifiedPropertyReplacer;
 import org.geoserver.featurestemplating.readers.TemplateReaderConfiguration;
 import org.geoserver.featurestemplating.validation.TemplateValidator;
+import org.geoserver.ows.Dispatcher;
+import org.geoserver.ows.Request;
 import org.geoserver.platform.resource.Resource;
 import org.geotools.data.complex.AppSchemaDataAccessRegistry;
 import org.geotools.data.complex.DataAccessRegistry;
@@ -58,7 +60,12 @@ public class TemplateConfiguration {
                                                             + "Exception is: "
                                                             + e.getMessage());
                                         }
-                                        Resource resource =
+                                        TemplateInfo templateInfo=TemplateInfoDaoImpl.get().findById(key.getPath());
+                                        Resource resource;
+                                        if (templateInfo!=null)
+                                            resource=templateInfo.getTemplateResource();
+                                        else
+                                            resource =
                                                 getDataDirectory()
                                                         .get(key.getResource(), key.getPath());
                                         Template template =
@@ -77,15 +84,16 @@ public class TemplateConfiguration {
     }
 
     /**
-     * Get the template related to the featureType. If template has benn modified updates the cache
-     * with the new JsonLdTemplate
+     * Get the template related to the featureType. If template has been modified updates the cache
+     * with the new Template
      */
     public RootBuilder getTemplate(FeatureTypeInfo typeInfo, String outputFormat)
             throws ExecutionException {
-        String fileName =
-                TemplateIdentifier.getTemplateIdentifierFromOutputFormat(outputFormat)
+        String templateIdentifier= getTemplateIdentifierByLayerRuleEvaluation(typeInfo);
+        if (templateIdentifier==null)
+                templateIdentifier=TemplateIdentifier.getTemplateIdentifierFromOutputFormat(outputFormat)
                         .getFilename();
-        CacheKey key = new CacheKey(typeInfo, fileName);
+        CacheKey key = new CacheKey(typeInfo, templateIdentifier);
         Template template = templateCache.get(key);
         boolean updateCache = false;
         if (template.checkTemplate()) updateCache = true;
@@ -195,5 +203,20 @@ public class TemplateConfiguration {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String getTemplateIdentifierByLayerRuleEvaluation(FeatureTypeInfo featureTypeInfo){
+        TemplateLayerConfig config=featureTypeInfo.getMetadata().get(TemplateLayerConfig.METADATA_KEY,TemplateLayerConfig.class);
+        if (config==null || config.getTemplateRules().isEmpty())
+            return null;
+        else{
+            List<TemplateRule> rules = config.getTemplateRules();
+            Request request= Dispatcher.REQUEST.get();
+            for (TemplateRule r:rules){
+                if(r.applyRule(request))
+                    return r.getTemplateIdentifier();
+            }
+        }
+        return null;
     }
 }

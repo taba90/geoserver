@@ -16,47 +16,44 @@ public class TemplateRuleBuilder {
 
     private String regex;
 
+    public TemplateRuleBuilder() {}
 
-    public TemplateRuleBuilder () {
-
-    }
-
-    public TemplateRuleBuilder name(String templateName){
-        this.templateName=templateName;
+    public TemplateRuleBuilder name(String templateName) {
+        this.templateName = templateName;
         return this;
     }
 
-    public TemplateRuleBuilder singleFeature(boolean singleFeatureTemplate){
-        this.singleFeatureTemplate=singleFeatureTemplate;
+    public TemplateRuleBuilder singleFeature(boolean singleFeatureTemplate) {
+        this.singleFeatureTemplate = singleFeatureTemplate;
         return this;
     }
 
-    public TemplateRuleBuilder outputFormat(String outputFormat){
-        this.outputFormat=outputFormat;
+    public TemplateRuleBuilder outputFormat(String outputFormat) {
+        this.outputFormat = outputFormat;
         return this;
     }
 
-    public TemplateRuleBuilder service(String service){
-        this.service=service;
+    public TemplateRuleBuilder service(String service) {
+        this.service = service;
         return this;
     }
 
-    public TemplateRuleBuilder operation(String operation){
-        this.operation=operation;
+    public TemplateRuleBuilder operation(String operation) {
+        this.operation = operation;
         return this;
     }
 
-    public TemplateRuleBuilder cqlRule(String cqlTemplateRule){
-        this.cqlTemplateRule=cqlTemplateRule;
+    public TemplateRuleBuilder cqlRule(String cqlTemplateRule) {
+        this.cqlTemplateRule = cqlTemplateRule;
         return this;
     }
 
-    public TemplateRuleBuilder regex(String regex){
-        this.regex=regex;
+    public TemplateRuleBuilder regex(String regex) {
+        this.regex = regex;
         return this;
     }
 
-    public TemplateRule build () {
+    public TemplateRule build() {
         TemplateRule rule = new TemplateRule();
         rule.setTemplateName(this.templateName);
         rule.setOperation(this.operation);
@@ -69,15 +66,13 @@ public class TemplateRuleBuilder {
         return rule;
     }
 
-    public void reset () {
-       this.templateName=null;
-        this.operation=null;
-        this.service=null;
-        this.outputFormat=null;
-        this.singleFeatureTemplate=false;
-        this.cqlTemplateRule=null;
-        this.regex=null;
+    public void reset() {
+        this.templateName = null;
+        this.operation = null;
+        this.service = null;
+        this.outputFormat = null;
+        this.singleFeatureTemplate = false;
+        this.cqlTemplateRule = null;
+        this.regex = null;
     }
-
-
 }

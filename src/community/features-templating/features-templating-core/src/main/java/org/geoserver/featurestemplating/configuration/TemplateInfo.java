@@ -1,5 +1,10 @@
 package org.geoserver.featurestemplating.configuration;
 
+import java.io.File;
+import java.io.Serializable;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.DataStoreInfo;
 import org.geoserver.catalog.FeatureTypeInfo;
@@ -8,14 +13,9 @@ import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.resource.Resource;
 
-import java.io.File;
-import java.io.Serializable;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 public class TemplateInfo implements Serializable, Comparable<TemplateInfo> {
 
-    private String id;
+    private String identifier;
 
     private String templateName;
 
@@ -31,8 +31,8 @@ public class TemplateInfo implements Serializable, Comparable<TemplateInfo> {
 
     private String rawTemplate;
 
-    public TemplateInfo () {
-
+    public TemplateInfo() {
+        this.identifier = UUID.randomUUID().toString();
     }
 
     public TemplateInfo(String templateName, String workspace, String featureType) {
@@ -73,14 +73,6 @@ public class TemplateInfo implements Serializable, Comparable<TemplateInfo> {
         this.featureType = featureType;
     }
 
-    public String getRawTemplate() {
-        return rawTemplate;
-    }
-
-    public void setRawTemplate(String rawTemplate) {
-        this.rawTemplate = rawTemplate;
-    }
-
     public String getExtension() {
         return extension;
     }
@@ -90,43 +82,48 @@ public class TemplateInfo implements Serializable, Comparable<TemplateInfo> {
     }
 
     public File getTemplateLocation() {
-        Path path= getTemplateParentDir();
+        Resource resource = null;
+        Catalog catalog = (Catalog) GeoServerExtensions.bean("catalog");
         GeoServerDataDirectory dd = GeoServerExtensions.bean(GeoServerDataDirectory.class);
-        File destDir=dd.get(path.toString()).dir();
+        if (featureType != null) {
+            FeatureTypeInfo fti = catalog.getFeatureTypeByName(featureType);
+            resource = dd.get(fti);
+        } else if (workspace != null) {
+            WorkspaceInfo ws = catalog.getWorkspaceByName(workspace);
+            resource = dd.get(workspace);
+        } else {
+            resource = dd.get(TemplateInfoDaoImpl.TEMPLATE_DIR);
+        }
+        File destDir = resource.dir();
         if (!destDir.exists() || !destDir.isDirectory()) {
             destDir.mkdir();
         }
         return destDir;
     }
 
-    public Path getTemplateFilePath(){
-        Path path =getTemplateParentDir();
-        return path.resolve(templateName+"."+extension);
-    }
-
     public Path getTemplateParentDir() {
         Path path;
-        if (workspace==null){
-            path= Paths.get(TemplateInfoDaoImpl.TEMPLATE_DIR);
+        if (workspace == null) {
+            path = Paths.get(TemplateInfoDaoImpl.TEMPLATE_DIR);
         } else {
-            path=Paths.get("workspace",workspace);
-            if (featureType!=null){
-                Catalog catalog =  (Catalog) GeoServerExtensions.bean("catalog");
-                FeatureTypeInfo fti=catalog.getFeatureTypeByName(featureType);
-                DataStoreInfo store=fti.getStore();
-                path=path.resolve(store.getName()).resolve(fti.getQualifiedName().getLocalPart());
+            path = Paths.get("workspace", workspace);
+            if (featureType != null) {
+                Catalog catalog = (Catalog) GeoServerExtensions.bean("catalog");
+                FeatureTypeInfo fti = catalog.getFeatureTypeByName(featureType);
+                DataStoreInfo store = fti.getStore();
+                path = path.resolve(store.getName()).resolve(fti.getQualifiedName().getLocalPart());
             }
         }
 
         return path;
     }
 
-    public String getId() {
-        return id;
+    public String getIdentifier() {
+        return identifier;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
 
     public void setTemplateLocation(String templateLocation) {
@@ -138,19 +135,27 @@ public class TemplateInfo implements Serializable, Comparable<TemplateInfo> {
         return this.templateName.compareTo(o.getTemplateName());
     }
 
-    public Resource getTemplateResource(){
-        Resource resource=null;
-        Catalog catalog=(Catalog)GeoServerExtensions.bean("catalog");
+    public Resource getTemplateResource() {
+        Resource resource = null;
+        Catalog catalog = (Catalog) GeoServerExtensions.bean("catalog");
         GeoServerDataDirectory dd = GeoServerExtensions.bean(GeoServerDataDirectory.class);
-        if (featureType!=null) {
+        if (featureType != null) {
             FeatureTypeInfo fti = catalog.getFeatureTypeByName(featureType);
-            resource=dd.get(fti,templateName+"."+extension);
-        } else if (workspace!=null){
-            WorkspaceInfo ws=catalog.getWorkspaceByName(workspace);
-            resource=dd.get(workspace,templateName+"."+extension);
-        }else{
-            resource=dd.get(TemplateInfoDaoImpl.TEMPLATE_DIR,templateName+"."+extension);
+            resource = dd.get(fti, templateName + "." + extension);
+        } else if (workspace != null) {
+            WorkspaceInfo ws = catalog.getWorkspaceByName(workspace);
+            resource = dd.get(ws, templateName + "." + extension);
+        } else {
+            resource = dd.get(TemplateInfoDaoImpl.TEMPLATE_DIR, templateName + "." + extension);
         }
         return resource;
+    }
+
+    public String getFullName() {
+        String fullName = "";
+        if (workspace != null) fullName += workspace + ":";
+        if (featureType != null) fullName += featureType + ":";
+        fullName += templateName;
+        return fullName;
     }
 }

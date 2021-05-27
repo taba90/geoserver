@@ -26,6 +26,21 @@
                         <label for="featureTypeInfo"><wicket:message key="featureTypeInfo"></wicket:message></label>
                         <select wicket:id="featureTypeInfo" id="featureTypeInfo" />
                     </li>
+
+                    <div style="padding-top: 2em">
+                        <fieldset style="margin-bottom: 0em">
+                        <legend>
+                            <span><wicket:message key="templateContentSpan">Template Content</wicket:message></span>
+                        </legend>
+                        <ul>
+                            <li>
+                                <label for="filename"><wicket:message key="templateFile">Template file</wicket:message></label>
+                                <input type="file" id="filename" wicket:id="filename"/>
+                                <a href="#" wicket:id="upload"><wicket:message key="upload">Upload</wicket:message></a>
+                            </li>
+                        </ul>
+                    </fieldset>
+                    </div>
                     <li>
                         <label for="templateEditor"><wicket:message key="templateEditor"></wicket:message></label>
                         <div class="field" wicket:id="templateEditor" id="templateEditor"> </div>

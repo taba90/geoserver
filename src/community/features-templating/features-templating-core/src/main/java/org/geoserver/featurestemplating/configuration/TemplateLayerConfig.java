@@ -2,15 +2,19 @@ package org.geoserver.featurestemplating.configuration;
 
 import org.geoserver.ows.Request;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@XmlRootElement(name = "TemplateLayerConfig")
 public class TemplateLayerConfig implements Serializable {
 
     public static final String METADATA_KEY = "FEATURES_TEMPLATING_LAYER_CONF";
 
+    @XmlElement(name = "rules")
     private List<TemplateRule> templateRules;
 
     public TemplateLayerConfig (List<TemplateRule> templateRules) {

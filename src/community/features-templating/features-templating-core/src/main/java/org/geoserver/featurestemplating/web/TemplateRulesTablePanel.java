@@ -6,14 +6,27 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.util.ListModel;
+import org.checkerframework.checker.units.qual.A;
 import org.geoserver.catalog.FeatureTypeInfo;
+import org.geoserver.catalog.MetadataMap;
+import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.featurestemplating.configuration.TemplateLayerConfig;
 import org.geoserver.featurestemplating.configuration.TemplateRule;
 import org.geoserver.web.data.SelectionRemovalLink;
 import org.geoserver.web.data.layer.NewLayerPage;
+import org.geoserver.web.util.MapModel;
 import org.geoserver.web.wicket.GeoServerDataProvider;
 import org.geoserver.web.wicket.GeoServerDialog;
 import org.geoserver.web.wicket.GeoServerTablePanel;
+import org.geoserver.web.wicket.LiveCollectionModel;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import static org.geoserver.featurestemplating.web.TemplateRuleProvider.CQL_FILTER;
 import static org.geoserver.featurestemplating.web.TemplateRuleProvider.NAME;
@@ -32,15 +45,17 @@ public class TemplateRulesTablePanel extends Panel {
     SelectionRemovalLink removal;
     GeoServerDialog dialog;
 
-    public TemplateRulesTablePanel(String id, FeatureTypeInfo featureTypeInfo) {
+    private LiveCollectionModel<TemplateRule, List<TemplateRule>> model;
+
+    public TemplateRulesTablePanel(String id, IModel<MetadataMap> metadataModel) {
 
         super(id);
-        TemplateLayerConfig layerConfig=featureTypeInfo.getMetadata().get(TemplateLayerConfig.METADATA_KEY,TemplateLayerConfig.class);
-        if (layerConfig==null){
-            layerConfig=new TemplateLayerConfig();
-            featureTypeInfo.getMetadata().put(TemplateLayerConfig.METADATA_KEY,layerConfig);
-        }
-        table = new TemplateRuleTable("table", new TemplateRuleProvider(layerConfig), true);
+        MapModel<TemplateLayerConfig> mapModelLayerConf=new MapModel<>(metadataModel,TemplateLayerConfig.METADATA_KEY);
+        if (mapModelLayerConf.getObject()==null)
+            mapModelLayerConf.setObject(new TemplateLayerConfig());
+        this.model= LiveCollectionModel.list(new PropertyModel<List<TemplateRule>>(mapModelLayerConf,"templateRules"));
+        GeoServerDataProvider<TemplateRule> dataProvider = new TemplateRuleProvider(model);
+        table = new TemplateRuleTable("table", dataProvider, true);
         table.setOutputMarkupId(true);
         add(table);
     }
@@ -88,4 +103,11 @@ public class TemplateRulesTablePanel extends Panel {
         }
     }
 
+    public LiveCollectionModel<TemplateRule, List<TemplateRule>> getModel() {
+        return model;
+    }
+
+    public GeoServerTablePanel<TemplateRule> getTable (){
+        return table;
+    }
 }

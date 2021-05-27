@@ -9,6 +9,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
+import org.geoserver.featurestemplating.configuration.TemplateInfoDao;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDaoImpl;
 import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.web.GeoServerSecuredPage;
@@ -42,7 +43,9 @@ public class TemplateInfoPage extends GeoServerSecuredPage {
 
                             @Override
                             public void onClick(AjaxRequestTarget target) {
-                                TemplateInfoDaoImpl.get().deleteAll(tablePanel.getSelection());
+                                TemplateInfoDao dao=TemplateInfoDaoImpl.get();
+                                dao.findAll().forEach(ti->ti.getTemplateResource().delete());
+                                dao.deleteAll(tablePanel.getSelection());
                                 target.add(tablePanel);
                             }
                         });

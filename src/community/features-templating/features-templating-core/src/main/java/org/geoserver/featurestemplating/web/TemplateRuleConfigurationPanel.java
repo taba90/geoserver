@@ -1,7 +1,9 @@
 package org.geoserver.featurestemplating.web;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,6 +19,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.util.ListModel;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.event.CatalogListener;
@@ -25,20 +28,27 @@ import org.geoserver.featurestemplating.configuration.Template;
 import org.geoserver.featurestemplating.configuration.TemplateLayerConfig;
 import org.geoserver.featurestemplating.configuration.TemplateRule;
 import org.geoserver.platform.GeoServerExtensions;
+import org.geoserver.web.wicket.LiveCollectionModel;
 
 public class TemplateRuleConfigurationPanel extends Panel {
 
     IModel<TemplateRule> templateRuleModel;
-    FeatureTypeInfo featureTypeInfo;
-    public TemplateRuleConfigurationPanel(String id, IModel<TemplateRule> model, FeatureTypeInfo featureTypeInfo) {
+    TemplateRulesTablePanel tablePanel;
+
+    public TemplateRuleConfigurationPanel(String id, IModel<TemplateRule> model, boolean isUpdate, Supplier<LiveCollectionModel<TemplateRule,List<TemplateRule>>> templateRuleSupplier) {
         super(id, model);
         this.templateRuleModel =model;
-        this.featureTypeInfo=featureTypeInfo;
-        initUI(templateRuleModel);
+        initUI(templateRuleModel,isUpdate);
     }
 
-    private void initUI(IModel<TemplateRule> model) {
-        Form<TemplateRule> form=new Form<>("theForm",model);
+    private void initUI(IModel<TemplateRule> model, boolean isUpdate) {
+        Form<TemplateRule> form=new Form<TemplateRule>("theForm",model){
+            @Override
+            protected void onSubmit() {
+                super.onSubmit();
+            }
+        };
+        form.setOutputMarkupId(true);
         add(form);
         form.add(new TextField<>("templateName", new PropertyModel<>(model, "templateName")));
         DropDownChoice<String> mimeTypeDropDown =
@@ -46,16 +56,19 @@ public class TemplateRuleConfigurationPanel extends Panel {
                         "outputFormats",
                         new PropertyModel<>(model, "outputFormat"),
                         getSupportedOutputFormats());
+        mimeTypeDropDown.setOutputMarkupId(true);
         DropDownChoice<String> serviceDropDown =
                 new DropDownChoice<>(
                         "services",
                         new PropertyModel<>(model, "service"),
                         getSupportedServices());
+        serviceDropDown.setOutputMarkupId(true);
         DropDownChoice<String> operationsDropDown =
                 new DropDownChoice<>(
                         "operations",
                         new PropertyModel<>(model, "operation"),
                         getSupportedOperations());
+        operationsDropDown.setOutputMarkupId(true);
         form.add(mimeTypeDropDown);
         form.add(serviceDropDown);
         form.add(operationsDropDown);
@@ -67,10 +80,15 @@ public class TemplateRuleConfigurationPanel extends Panel {
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 super.onSubmit(target, form);
                 TemplateRule rule=(TemplateRule)form.getModelObject();
-                TemplateLayerConfig config=featureTypeInfo.getMetadata().get(TemplateLayerConfig.METADATA_KEY,TemplateLayerConfig.class);
-                config.addTemplateRule(rule);
-                featureTypeInfo.getMetadata().put(TemplateLayerConfig.METADATA_KEY,config);
-                getCatalog().save(featureTypeInfo);
+                List<TemplateRule> rules=new ArrayList<>(tablePanel.getModel().getObject());
+                rules.add(rule);
+                tablePanel.getModel().setObject(rules);
+                tablePanel.modelChanged();
+                tablePanel.getTable().modelChanged();
+                target.add(tablePanel);
+                target.add(tablePanel.getTable());
+                form.clearInput();
+                target.add(form);
             }
         };
         form.add(submitLink);
@@ -105,4 +123,7 @@ public class TemplateRuleConfigurationPanel extends Panel {
        return (Catalog) GeoServerExtensions.bean("catalog");
     }
 
+    void setTemplateRuleTablePanel(TemplateRulesTablePanel panel){
+        this.tablePanel=panel;
+    }
 }

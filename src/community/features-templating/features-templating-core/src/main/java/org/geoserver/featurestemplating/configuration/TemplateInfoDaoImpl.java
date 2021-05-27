@@ -88,6 +88,7 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
 
     private TemplateInfo parseProperty(String key, String value){
         TemplateInfo templateData=new TemplateInfo();
+        templateData.setId(key);
         String [] values=value.split(";");
         for (String v:values){
             String[] attribute=v.split("=");
@@ -118,7 +119,7 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
             String fti=td.getFeatureType();
             if (fti!=null)
                 sb.append(";featureTypeInfo=").append(td.getFeatureType());
-            properties.put(td.getTemplateName(),sb.toString());
+            properties.put(td.getId(),sb.toString());
         }
         return properties;
     }

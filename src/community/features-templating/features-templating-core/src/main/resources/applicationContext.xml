@@ -27,6 +27,9 @@
         <property name="icon" value="img/templateIcon.png" />
     </bean>
 
+    <bean id="templateLayerConfXMLPersister"
+          class="org.geoserver.featurestemplating.configuration.TemplateLayerConfigXStreamPersisterInitializer" />
+
     <bean id="templateDao" class="org.geoserver.featurestemplating.configuration.TemplateInfoDaoImpl"/>
 
 </beans>

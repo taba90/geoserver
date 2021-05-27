@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 public class TemplateInfo implements Serializable, Comparable<TemplateInfo> {
 
@@ -32,7 +33,7 @@ public class TemplateInfo implements Serializable, Comparable<TemplateInfo> {
     private String rawTemplate;
 
     public TemplateInfo () {
-
+        this.id=UUID.randomUUID().toString();
     }
 
     public TemplateInfo(String templateName, String workspace, String featureType) {
@@ -90,19 +91,25 @@ public class TemplateInfo implements Serializable, Comparable<TemplateInfo> {
     }
 
     public File getTemplateLocation() {
-        Path path= getTemplateParentDir();
+        Resource resource=null;
+        Catalog catalog=(Catalog)GeoServerExtensions.bean("catalog");
         GeoServerDataDirectory dd = GeoServerExtensions.bean(GeoServerDataDirectory.class);
-        File destDir=dd.get(path.toString()).dir();
+        if (featureType!=null) {
+            FeatureTypeInfo fti = catalog.getFeatureTypeByName(featureType);
+            resource=dd.get(fti);
+        } else if (workspace!=null){
+            WorkspaceInfo ws=catalog.getWorkspaceByName(workspace);
+            resource=dd.get(workspace);
+        }else{
+            resource=dd.get(TemplateInfoDaoImpl.TEMPLATE_DIR);
+        }
+        File destDir=resource.dir();
         if (!destDir.exists() || !destDir.isDirectory()) {
             destDir.mkdir();
         }
         return destDir;
     }
 
-    public Path getTemplateFilePath(){
-        Path path =getTemplateParentDir();
-        return path.resolve(templateName+"."+extension);
-    }
 
     public Path getTemplateParentDir() {
         Path path;
@@ -147,7 +154,7 @@ public class TemplateInfo implements Serializable, Comparable<TemplateInfo> {
             resource=dd.get(fti,templateName+"."+extension);
         } else if (workspace!=null){
             WorkspaceInfo ws=catalog.getWorkspaceByName(workspace);
-            resource=dd.get(workspace,templateName+"."+extension);
+            resource=dd.get(ws,templateName+"."+extension);
         }else{
             resource=dd.get(TemplateInfoDaoImpl.TEMPLATE_DIR,templateName+"."+extension);
         }

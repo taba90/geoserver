@@ -3,7 +3,6 @@ package org.geoserver.featurestemplating.readers;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
@@ -12,6 +11,7 @@ import java.io.IOException;
 import org.geoserver.platform.resource.FileSystemResourceStore;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class RecursiveJSONParserTest {
 
@@ -151,7 +151,7 @@ public class RecursiveJSONParserTest {
 
     @Test
     public void testRecursionLimited() {
-        RuntimeException ex = checkThrowingTemplate("recurse.json");
+        checkThrowingTemplate("recurse.json");
         assertThat(
                 ex.getMessage(),
                 containsString(
@@ -160,14 +160,13 @@ public class RecursiveJSONParserTest {
 
     @Test
     public void testDanglingInclude() {
-        RuntimeException ex = checkThrowingTemplate("dangling.json");
-        assertEquals("Path notThere.json does not exist", ex.getMessage());
+        checkThrowingTemplate("dangling.json","Path notThere.json does not exist");
     }
 
     @Test
     public void testRecursionPingPong() {
         // ping and pong import each other in an infinite recursion
-        RuntimeException ex = checkThrowingTemplate("ping.json");
+        checkThrowingTemplate("ping.json");
         assertThat(
                 ex.getMessage(),
                 containsString(
@@ -175,8 +174,11 @@ public class RecursiveJSONParserTest {
         assertThat(ex.getMessage(), containsString("pong.json"));
     }
 
-    private RuntimeException checkThrowingTemplate(String s) {
-        return assertThrows(
-                RuntimeException.class, () -> new RecursiveJSONParser(store.get(s)).parse());
+    @org.junit.Rule public ExpectedException thrown = ExpectedException.none();
+
+    private void checkThrowingTemplate(String s, String message) {
+        thrown.expect(RuntimeException.class);
+        thrown.expectMessage(message);
+        new RecursiveJSONParser(store.get(s)).parse();
     }
 }

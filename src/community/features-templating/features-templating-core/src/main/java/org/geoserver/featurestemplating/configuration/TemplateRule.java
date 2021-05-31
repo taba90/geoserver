@@ -10,6 +10,7 @@ import org.geoserver.util.XCQL;
 import org.geotools.filter.text.cql2.CQL;
 import org.geotools.filter.text.cql2.CQLException;
 import org.opengis.filter.Filter;
+import org.springframework.http.HttpHeaders;
 
 @XmlRootElement(name = "rules")
 public class TemplateRule implements Serializable {
@@ -37,7 +38,7 @@ public class TemplateRule implements Serializable {
     public boolean applyRule(Request request) {
         boolean result = true;
         if (outputFormat != null) {
-            result =matchOutputFormat(request.getOutputFormat());
+            result =matchOutputFormat(getOutputFormat(request));
         }
 
         if (result && service != null) {
@@ -162,5 +163,14 @@ public class TemplateRule implements Serializable {
             ti.setIdentifier(ti.getIdentifier());
         }
         return ti;
+    }
+
+    private String getOutputFormat(Request request){
+        String outputFormat=request.getOutputFormat();
+        if (outputFormat==null)
+            outputFormat= request.getHttpRequest().getHeader(HttpHeaders.ACCEPT);
+        if (outputFormat==null)
+            outputFormat= request.getKvp() != null ? (String) request.getKvp().get("f") : null;
+        return outputFormat;
     }
 }

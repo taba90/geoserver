@@ -36,6 +36,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.NamespaceInfo;
 import org.geoserver.config.GeoServer;
+import org.geoserver.featurestemplating.configuration.TemplateFileManager;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDaoImpl;
 import org.geoserver.featurestemplating.configuration.TemplateInfoValidator;
@@ -74,7 +75,8 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
     }
 
     private void initUI(IModel<TemplateInfo> model) {
-
+        if (!isNew)
+            getTemplateFileManager().addMemento(model.getObject());
         form =
                 new Form<TemplateInfo>("theForm", model) {
                     @Override
@@ -85,7 +87,7 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                         TemplateInfoValidator validator= new TemplateInfoValidator(templateInfo,rawTemplate);
                         if (!validateAndReport(validator))
                             return;
-                        File destDir = templateInfo.getTemplateLocation();
+                        File destDir = getTemplateFileManager().getTemplateLocation(templateInfo);
                         try {
                             File file =
                                     new File(
@@ -101,6 +103,7 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                             throw new RuntimeException(e);
                         }
                         TemplateInfoDaoImpl.get().saveOrUpdate(templateInfo);
+                        getTemplateFileManager().deleteOldTemplateFile(templateInfo);
                     }
                 };
 
@@ -206,7 +209,7 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
     private String getStringTemplate(TemplateInfo templateInfo) {
         String rawTemplate = "";
         if (!isNew) {
-            Resource resource = templateInfo.getTemplateResource();
+            Resource resource = getTemplateFileManager().getTemplateResource(templateInfo);
             try {
                 rawTemplate = FileUtils.readFileToString(resource.file(), Charset.forName("UTF-8"));
             } catch (IOException io) {
@@ -308,7 +311,6 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                         editor.setMode(extension);
                     }
                     editor.modelChanged();
-                    editor.get(editor.getTextAreaMarkupId());
                     templateName.modelChanged();
                     templateExtension.modelChanged();
                 target.add(getTemplateConfPage());
@@ -384,5 +386,9 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
             return false;
         }
         return true;
+    }
+
+     static TemplateFileManager getTemplateFileManager(){
+        return GeoServerExtensions.bean(TemplateFileManager.class);
     }
 }

@@ -7,6 +7,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.geoserver.featurestemplating.configuration.TemplateConfiguration;
+import org.geoserver.featurestemplating.configuration.TemplateFileManager;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDao;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDaoImpl;
@@ -43,7 +45,8 @@ public class TemplateInfoPage extends GeoServerSecuredPage {
                             @Override
                             public void onClick(AjaxRequestTarget target) {
                                 TemplateInfoDao dao = TemplateInfoDaoImpl.get();
-                                dao.findAll().forEach(ti -> ti.getTemplateResource().delete());
+                                TemplateFileManager fileManager= TemplateConfigurationPage.getTemplateFileManager();
+                                dao.findAll().forEach(ti -> fileManager.getTemplateResource(ti).delete());
                                 dao.deleteAll(tablePanel.getSelection());
                                 tablePanel.modelChanged();
                                 target.add(tablePanel);

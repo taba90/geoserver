@@ -6,6 +6,7 @@ import org.geoserver.config.GeoServer;
 import org.geoserver.platform.GeoServerExtensions;
 
 import java.util.List;
+import java.util.Set;
 
 public class FeatureTypeTemplateListener implements TemplateListener{
 
@@ -17,7 +18,7 @@ public class FeatureTypeTemplateListener implements TemplateListener{
     public void handleDeleteEvent(TemplateInfoRemoveEvent removeEvent) {
         TemplateLayerConfig layerConfig=fti.getMetadata().get(TemplateLayerConfig.METADATA_KEY,TemplateLayerConfig.class);
         if (layerConfig!=null) {
-            List<TemplateRule> rules=layerConfig.getTemplateRules();
+            Set<TemplateRule> rules=layerConfig.getTemplateRules();
             if (!rules.isEmpty()){
                 if(rules.removeIf(r->r.getTemplateIdentifier().equals(removeEvent.getSource().getIdentifier()))) {
                     fti.getMetadata().put(TemplateLayerConfig.METADATA_KEY,layerConfig);

@@ -16,7 +16,9 @@ import org.opengis.feature.type.Name;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class TemplateRulesTabPanel extends PublishedEditTabPanel<LayerInfo> {
 
@@ -62,7 +64,7 @@ public class TemplateRulesTabPanel extends PublishedEditTabPanel<LayerInfo> {
     @Override
     public void save() throws IOException {
         TemplateRule ruleModel=configurationPanel.templateRuleModel.getObject();
-        List<TemplateRule> rules=new ArrayList<>(
+        Set<TemplateRule> rules=new HashSet<>(
                 configurationPanel.tablePanel.getModel().getObject());
         rules.add(ruleModel);
         configurationPanel.tablePanel.getModel().setObject(rules);

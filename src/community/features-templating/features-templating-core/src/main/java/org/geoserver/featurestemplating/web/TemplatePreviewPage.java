@@ -1,14 +1,14 @@
 package org.geoserver.featurestemplating.web;
 
 
-import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.commons.io.IOUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.markup.html.form.Button;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.geoserver.catalog.Catalog;
@@ -22,37 +22,44 @@ import org.geoserver.featurestemplating.configuration.TemplateLayerConfig;
 import org.geoserver.featurestemplating.configuration.TemplateRule;
 import org.geoserver.ows.URLMangler;
 import org.geoserver.ows.util.ResponseUtils;
-import org.geoserver.platform.GeoServerExtensions;
+import org.geoserver.util.XCQL;
 import org.geoserver.web.GeoServerApplication;
 import org.geoserver.web.GeoServerSecuredPage;
-import org.opengis.feature.type.Name;
-import org.opengis.feature.type.Namespace;
+import org.geoserver.web.wicket.CodeMirrorEditor;
+import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.filter.text.cql2.CQL;
+import org.geotools.http.SimpleHttpClient;
+import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory2;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 public class TemplatePreviewPage extends GeoServerSecuredPage {
 
+    private FilterFactory2 FF= CommonFactoryFinder.getFilterFactory2();
 
     private String output;
 
+    private String outputFormat;
     private FeatureTypeInfo featureType;
 
     private WorkspaceInfo ws;
 
-    private TextArea<String> textArea;
+    private CodeMirrorEditor textArea;
 
     private String url;
 
-    ExternalLink previewLink;
+    AjaxLink<String> ajaxLink;
 
     DropDownChoice<FeatureTypeInfo> featureTypesDD;
 
@@ -71,16 +78,16 @@ public class TemplatePreviewPage extends GeoServerSecuredPage {
         rule.setTemplateName(templateInfo.getFullName());
         this.templateInfo=templateInfo;
         Model model= Model.of(rule);
-        outputFormatsDropDown=new OutputFormatsDropDown("outputFormats",model);
+        outputFormatsDropDown=new OutputFormatsDropDown("outputFormats",new PropertyModel<>(this,"outputFormat"));
         outputFormatsDropDown.add(new OnChangeAjaxBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
                 String link=buildWFSLink();
                 if (link!=null){
                     url=link;
-                    previewLink.modelChanged();
-                    previewLink.setEnabled(true);
-                    ajaxRequestTarget.add(previewLink);
+                    ajaxLink.modelChanged();
+                    ajaxLink.setEnabled(true);
+                    ajaxRequestTarget.add(ajaxLink);
                 }
             }
         });
@@ -106,9 +113,9 @@ public class TemplatePreviewPage extends GeoServerSecuredPage {
                 String link=buildWFSLink();
                 if (link!=null){
                     url=link;
-                    previewLink.modelChanged();
-                    previewLink.setEnabled(true);
-                    ajaxRequestTarget.add(previewLink);
+                    ajaxLink.modelChanged();
+                    ajaxLink.setEnabled(true);
+                    ajaxRequestTarget.add(ajaxLink);
                 }
                 ajaxRequestTarget.add(featureTypesDD);
             }
@@ -130,21 +137,45 @@ public class TemplatePreviewPage extends GeoServerSecuredPage {
                 String link=buildWFSLink();
                 if (link!=null){
                     url=link;
-                    previewLink.modelChanged();
-                    previewLink.setEnabled(true);
-                    ajaxRequestTarget.add(previewLink);
+                    ajaxLink.modelChanged();
+                    ajaxLink.setEnabled(true);
+                    ajaxRequestTarget.add(ajaxLink);
                 }
             }
         });
         featureTypesDD.setOutputMarkupId(true);
         if (hasFeatureType || !hasWorkspace) featureTypesDD.setEnabled(false);
         add(featureTypesDD);
-        textArea= new TextArea<>("previewArea",new PropertyModel<>(this,"output"));
+        textArea= new CodeMirrorEditor(
+                "previewArea", "xml", Model.of(""));
         textArea.setOutputMarkupId(true);
+        textArea.setTextAreaMarkupId("previewTextArea");
+        String extension=templateInfo.getExtension();
+        if(extension.equals("json")){
+            textArea.setModeAndSubMode("javascript",extension);
+        }
         add(textArea);
-        previewLink= new ExternalLink("previewLink",new PropertyModel<>(this, "url"));
-        previewLink.setOutputMarkupId(true);
-        add(previewLink);
+        ajaxLink = new AjaxLink<String>("previewLink",new PropertyModel<>(this, "url")){
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                SimpleHttpClient httpClient= new SimpleHttpClient();
+                httpClient.setConnectTimeout(6000);
+                try {
+                    URL wfsUrl= new URL(url);
+                    org.geotools.http.HTTPResponse resp=httpClient.get(wfsUrl);
+                    InputStream is=resp.getResponseStream();
+                    output = IOUtils.toString(is, StandardCharsets.UTF_8.name());
+                } catch (Exception e) {
+                    output=e.getMessage();
+                }
+                textArea.setModelObject(output);
+                textArea.modelChanged();
+                target.add(textArea);
+            }
+        };
+
+        ajaxLink.setOutputMarkupId(true);
+        add(ajaxLink);
 
     }
 
@@ -166,6 +197,7 @@ public class TemplatePreviewPage extends GeoServerSecuredPage {
             rule.setTemplateIdentifier(templateInfo.getIdentifier());
             rule.setTemplateName(templateInfo.getFullName());
             rule.setOutputFormat(outputFormat);
+            rule.setCqlFilter("requestParam('previewTemplate') = 'true'");
             if (layerConfig==null){
                 layerConfig=new TemplateLayerConfig();
             }
@@ -181,15 +213,17 @@ public class TemplatePreviewPage extends GeoServerSecuredPage {
     }
 
     String buildWfsLink(Map<String, String> wfsParams) {
-        Map<String, String> params = new LinkedHashMap<>();
-        params.put("service", "WFS");
-        params.put("version", "2.0.0");
-        params.put("request", "GetFeature");
-        params.put("typeNames", wfsParams.get("typeNames"));
-        params.put("outputFormat", wfsParams.get("outputFormat"));
+            Map<String, String> params = new LinkedHashMap<>();
+            params.put("service", "WFS");
+            params.put("version", "2.0.0");
+            params.put("request", "GetFeature");
+            params.put("typeNames", wfsParams.get("typeNames"));
+            params.put("outputFormat",wfsParams.get("outputFormat"));
+            params.put("count","1");
+            params.put("previewTemplate","true");
+            return ResponseUtils.buildURL(
+                    getBaseURL(), getPath("ows", false), params, URLMangler.URLType.SERVICE);
 
-        return ResponseUtils.buildURL(
-                getBaseURL(), getPath("ows", false), params, URLMangler.URLType.SERVICE);
     }
 
     private String getBaseURL() {
@@ -214,7 +248,7 @@ public class TemplatePreviewPage extends GeoServerSecuredPage {
         } else if (outputFormatName.equals(SupportedMimeType.JSONLD.name())){
             realOutputFormat=TemplateIdentifier.JSONLD.getOutputFormat();
         } else if (outputFormatName.equals(SupportedMimeType.GML.name())){
-            realOutputFormat= TemplateIdentifier.GML32.getOutputFormat();
+            realOutputFormat= "application/gml+xml; version=3.2";
         }
         return realOutputFormat;
     }

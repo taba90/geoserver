@@ -2,7 +2,9 @@ package org.geoserver.featurestemplating.web;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -163,8 +165,8 @@ public class TemplateRuleConfigurationPanel extends Panel {
     }
 
     private void updateModelRules(TemplateRule rule){
-        List<TemplateRule> rules =
-                new ArrayList<>(tablePanel.getModel().getObject());
+        Set<TemplateRule> rules =
+                new HashSet<>(tablePanel.getModel().getObject());
         rules.add(rule);
         tablePanel.getModel().setObject(rules);
         tablePanel.modelChanged();

@@ -9,7 +9,10 @@ import static org.geoserver.featurestemplating.web.TemplateRuleProvider.SERVICE;
 import static org.geoserver.featurestemplating.web.TemplateRuleProvider.SINGLE_FEATURE;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -51,7 +54,7 @@ public class TemplateRulesTablePanel extends Panel {
     private TemplateRuleConfigurationPanel configurationPanel;
     GeoServerDialog dialog;
 
-    private LiveCollectionModel<TemplateRule, List<TemplateRule>> model;
+    private LiveCollectionModel<TemplateRule, Set<TemplateRule>> model;
 
     public TemplateRulesTablePanel(String id, IModel<MetadataMap> metadataModel) {
 
@@ -61,8 +64,8 @@ public class TemplateRulesTablePanel extends Panel {
         if (mapModelLayerConf.getObject() == null)
             mapModelLayerConf.setObject(new TemplateLayerConfig());
         this.model =
-                LiveCollectionModel.list(
-                        new PropertyModel<List<TemplateRule>>(mapModelLayerConf, "templateRules"));
+                LiveCollectionModel.set(
+                        new PropertyModel<Set<TemplateRule>>(mapModelLayerConf, "templateRules"));
         GeoServerDataProvider<TemplateRule> dataProvider = new TemplateRuleProvider(model);
         table = new TemplateRuleTable("table", dataProvider, true);
         table.setOutputMarkupId(true);
@@ -73,8 +76,8 @@ public class TemplateRulesTablePanel extends Panel {
 
                             @Override
                             public void onClick(AjaxRequestTarget target) {
-                                List<TemplateRule> rules=TemplateRulesTablePanel.this.getModel().getObject();
-                                List<TemplateRule> updated=new ArrayList<>(rules);
+                                Set<TemplateRule> rules=TemplateRulesTablePanel.this.getModel().getObject();
+                                Set<TemplateRule> updated=new HashSet<>(rules);
                                 updated.removeAll(table.getSelection());
                                 TemplateRulesTablePanel.this.getModel().setObject(updated);
                                 TemplateRulesTablePanel.this.modelChanged();
@@ -125,7 +128,7 @@ public class TemplateRulesTablePanel extends Panel {
         }
     }
 
-    public LiveCollectionModel<TemplateRule, List<TemplateRule>> getModel() {
+    public LiveCollectionModel<TemplateRule, Set<TemplateRule>> getModel() {
         return model;
     }
 

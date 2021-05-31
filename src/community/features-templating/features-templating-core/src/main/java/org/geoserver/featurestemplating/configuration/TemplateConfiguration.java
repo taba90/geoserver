@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.eclipse.emf.common.util.URI;
@@ -23,6 +24,7 @@ import org.geoserver.featurestemplating.readers.TemplateReaderConfiguration;
 import org.geoserver.featurestemplating.validation.TemplateValidator;
 import org.geoserver.ows.Dispatcher;
 import org.geoserver.ows.Request;
+import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.resource.Resource;
 import org.geotools.data.complex.AppSchemaDataAccessRegistry;
 import org.geotools.data.complex.DataAccessRegistry;
@@ -63,7 +65,7 @@ public class TemplateConfiguration {
                                         TemplateInfo templateInfo=TemplateInfoDaoImpl.get().findById(key.getPath());
                                         Resource resource;
                                         if (templateInfo!=null)
-                                            resource=templateInfo.getTemplateResource();
+                                            resource=getTemplateFileManager().getTemplateResource(templateInfo);
                                         else
                                             resource =
                                                 getDataDirectory()
@@ -210,7 +212,7 @@ public class TemplateConfiguration {
         if (config==null || config.getTemplateRules().isEmpty())
             return null;
         else{
-            List<TemplateRule> rules = config.getTemplateRules();
+            Set<TemplateRule> rules = config.getTemplateRules();
             Request request= Dispatcher.REQUEST.get();
             for (TemplateRule r:rules){
                 if(r.applyRule(request))
@@ -218,5 +220,9 @@ public class TemplateConfiguration {
             }
         }
         return null;
+    }
+
+    private TemplateFileManager getTemplateFileManager(){
+        return GeoServerExtensions.bean(TemplateFileManager.class);
     }
 }

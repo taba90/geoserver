@@ -32,4 +32,9 @@
 
     <bean id="templateDao" class="org.geoserver.featurestemplating.configuration.TemplateInfoDaoImpl"/>
 
+    <bean id="templateFileManager" class="org.geoserver.featurestemplating.configuration.TemplateFileManager">
+        <constructor-arg ref="catalog"/>
+        <constructor-arg ref="dataDirectory"/>
+    </bean>
+
 </beans>

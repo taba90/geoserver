@@ -84,11 +84,8 @@ public class TemplateRuleConfigurationPanel extends Panel {
                         templateInfoChoicheRenderer);
         templateInfoDropDownChoice.setNullValid(true);
         form.add(templateInfoDropDownChoice);
-        DropDownChoice<String> mimeTypeDropDown =
-                new DropDownChoice<>(
-                        "outputFormats",
-                        new PropertyModel<>(model, "outputFormat"),
-                        getSupportedOutputFormats());
+        DropDownChoice<String> mimeTypeDropDown = new OutputFormatsDropDown("outputFormats",
+                new PropertyModel<>(model,"outputFormat"));
         mimeTypeDropDown.setOutputMarkupId(true);
         DropDownChoice<String> serviceDropDown =
                 new DropDownChoice<>(
@@ -138,12 +135,6 @@ public class TemplateRuleConfigurationPanel extends Panel {
                         target.add(this);
                     }
                 });
-    }
-
-    private List<String> getSupportedOutputFormats() {
-        return Stream.of(SupportedMimeType.values())
-                .map(smt -> smt.name())
-                .collect(Collectors.toList());
     }
 
     private List<String> getSupportedServices() {

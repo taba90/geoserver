@@ -14,17 +14,19 @@ public class TemplateLayerConfig implements Serializable {
     public static final String METADATA_KEY = "FEATURES_TEMPLATING_LAYER_CONF";
 
     @XmlElement(name = "rules")
-    private List<TemplateRule> templateRules=new ArrayList<>();
+    private List<TemplateRule> templateRules;
 
     public TemplateLayerConfig(List<TemplateRule> templateRules) {
         this.templateRules = templateRules;
     }
 
     public TemplateLayerConfig() {
-        
+        templateRules=new ArrayList<>();
     }
 
     public void addTemplateRule(TemplateRule rule) {
+        if (this.templateRules==null)
+            templateRules=new ArrayList<>();
         this.templateRules.add(rule);
     }
 
@@ -54,6 +56,8 @@ public class TemplateLayerConfig implements Serializable {
     }
 
     public List<TemplateRule> getTemplateRules() {
+        if (this.templateRules==null)
+            this.templateRules=new ArrayList<>();
         return templateRules;
     }
 }

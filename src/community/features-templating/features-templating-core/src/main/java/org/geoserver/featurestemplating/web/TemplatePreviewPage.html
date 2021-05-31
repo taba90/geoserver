@@ -1,0 +1,34 @@
+<html xmlns:wicket="http://wicket.apache.org/">
+<head>
+    <title><wicket:message key="title">Template Preview</wicket:message></title>
+</head>
+<body>
+<wicket:extend>
+    <ul>
+        <li>
+            <fieldset>
+                <ul>
+                    <li>
+                        <label for="outputFormats"><wicket:message key="outputFormats"></wicket:message></label>
+                        <select wicket:id="outputFormats" id="outputFormats" />
+                    </li>
+                    <li>
+                        <label for="workspaces"><wicket:message key="workspaces"></wicket:message></label>
+                        <select wicket:id="workspaces" id="workspaces" />
+                    </li>
+                    <li>
+                        <label for="featureTypes"><wicket:message key="featureTypes"></wicket:message></label>
+                        <select wicket:id="featureTypes" id="featureTypes" />
+                    </li>
+                    <li>
+                        <label for="previewArea"><wicket:message key="previewArea"></wicket:message></label>
+                        <textarea wicket:id="previewArea" id="previewArea"/>
+                    </li>
+                </ul>
+            </fieldset>
+        </li>
+    </ul>
+    <a href="#" class="form-button-save" wicket:id="previewLink" id="previewLink"><wicket:message key="previewLink">Preview</wicket:message></a>
+</wicket:extend>
+</body>
+</html>

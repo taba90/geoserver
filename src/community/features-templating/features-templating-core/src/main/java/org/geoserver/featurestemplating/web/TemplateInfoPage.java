@@ -4,6 +4,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
@@ -76,6 +77,14 @@ public class TemplateInfoPage extends GeoServerSecuredPage {
                         else if (property.equals(TemplateInfoProvider.FEATURE_TYPE_INFO)) {
                             return new Label(
                                     id, TemplateInfoProvider.FEATURE_TYPE_INFO.getModel(itemModel));
+                        } else if (property.equals(TemplateInfoProvider.PREVIEW_LINK)){
+                            return new SimpleAjaxLink<TemplateInfo>(id, itemModel, TemplateInfoProvider.NAME.getModel(itemModel)) {
+
+                                @Override
+                                protected void onClick(AjaxRequestTarget target) {
+                                    setResponsePage(new TemplatePreviewPage(getModelObject()));
+                                }
+                            };
                         }
                         return null;
                     }

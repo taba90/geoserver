@@ -16,10 +16,12 @@ public class TemplateInfoProvider extends GeoServerDataProvider<TemplateInfo> {
             new BeanProperty<>("workspace", "workspace");
     public static final Property<TemplateInfo> FEATURE_TYPE_INFO =
             new BeanProperty<>("featureTypeInfo", "featureType");
+    public static final PropertyPlaceholder<TemplateInfo> PREVIEW_LINK=
+            new PropertyPlaceholder<>("previewLink");
 
     @Override
     protected List<Property<TemplateInfo>> getProperties() {
-        return Arrays.asList(NAME, EXTENSION, WORKSPACE, FEATURE_TYPE_INFO);
+        return Arrays.asList(NAME, EXTENSION, WORKSPACE, FEATURE_TYPE_INFO,PREVIEW_LINK);
     }
 
     @Override

@@ -42,14 +42,6 @@ public class TemplateRule implements Serializable {
             result =matchOutputFormat(getOutputFormat(request));
         }
 
-        if (result && service != null) {
-            result = request.getService().equals(service);
-        }
-
-        if (result && operation != null) {
-            result = request.getOperation().equals(operation);
-        }
-
         if (result) {
             RequestIsSingleFeature isSingleFeature = new RequestIsSingleFeature();
             Boolean isSingle = isSingleFeature.evaluate(null, Boolean.class);

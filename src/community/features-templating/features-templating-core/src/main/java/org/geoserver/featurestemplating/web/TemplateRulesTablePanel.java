@@ -2,10 +2,8 @@ package org.geoserver.featurestemplating.web;
 
 import static org.geoserver.featurestemplating.web.TemplateRuleProvider.CQL_FILTER;
 import static org.geoserver.featurestemplating.web.TemplateRuleProvider.NAME;
-import static org.geoserver.featurestemplating.web.TemplateRuleProvider.OPERATION;
 import static org.geoserver.featurestemplating.web.TemplateRuleProvider.OUTPUT_FORMAT;
 import static org.geoserver.featurestemplating.web.TemplateRuleProvider.REGEX;
-import static org.geoserver.featurestemplating.web.TemplateRuleProvider.SERVICE;
 import static org.geoserver.featurestemplating.web.TemplateRuleProvider.SINGLE_FEATURE;
 
 import java.util.HashSet;
@@ -101,9 +99,6 @@ public class TemplateRulesTablePanel extends Panel {
             else if (property.equals(OUTPUT_FORMAT))
                 return new Label(id, OUTPUT_FORMAT.getModel(itemModel));
             else if (property.equals(REGEX)) return new Label(id, REGEX.getModel(itemModel));
-            else if (property.equals(SERVICE)) return new Label(id, SERVICE.getModel(itemModel));
-            else if (property.equals(OPERATION))
-                return new Label(id, OPERATION.getModel(itemModel));
             else if (property.equals(CQL_FILTER))
                 return new Label(id, CQL_FILTER.getModel(itemModel));
             else if (property.equals(SINGLE_FEATURE)) {

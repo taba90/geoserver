@@ -47,8 +47,6 @@ import java.util.Set;
 
 public class TemplatePreviewPage extends GeoServerSecuredPage {
 
-    private FilterFactory2 FF= CommonFactoryFinder.getFilterFactory2();
-
     private String output;
 
     private String outputFormat;
@@ -171,8 +169,6 @@ public class TemplatePreviewPage extends GeoServerSecuredPage {
                     output = IOUtils.toString(is, StandardCharsets.UTF_8.name());
                 } catch (Exception e) {
                     output=e.getMessage();
-                }finally {
-                    removeTemplatePreviewRule();
                 }
                 textArea.setModelObject(output);
                 textArea.modelChanged();
@@ -260,7 +256,7 @@ public class TemplatePreviewPage extends GeoServerSecuredPage {
     private void removeTemplatePreviewRule(){
         TemplateLayerConfig config=featureType.getMetadata().get(TemplateLayerConfig.METADATA_KEY,TemplateLayerConfig.class);
         Set<TemplateRule> rules=config.getTemplateRules();
-        rules.removeIf(r->r.getCqlFilter().equals(PREVIEW_RULE_FILTER));
+        rules.removeIf(r->r.getCqlFilter()!=null && r.getCqlFilter().equals(PREVIEW_RULE_FILTER));
         featureType.getMetadata().put(TemplateLayerConfig.METADATA_KEY,config);
         getCatalog().save(featureType);
     }

@@ -14,9 +14,6 @@ public class TemplateRuleProvider extends GeoServerDataProvider<TemplateRule> {
     public static final Property<TemplateRule> NAME = new BeanProperty<>("name", "templateName");
     public static final Property<TemplateRule> OUTPUT_FORMAT =
             new BeanProperty<>("outputFormat", "outputFormat");
-    public static final Property<TemplateRule> SERVICE = new BeanProperty<>("service", "service");
-    public static final Property<TemplateRule> OPERATION =
-            new BeanProperty<>("operation", "operation");
     public static final Property<TemplateRule> SINGLE_FEATURE =
             new BeanProperty<>("singleFeatureTemplate", "singleFeatureTemplate");
     public static final Property<TemplateRule> CQL_FILTER =
@@ -31,7 +28,7 @@ public class TemplateRuleProvider extends GeoServerDataProvider<TemplateRule> {
     @Override
     protected List<Property<TemplateRule>> getProperties() {
         return Arrays.asList(
-                NAME, OUTPUT_FORMAT, SERVICE, OPERATION, SINGLE_FEATURE, CQL_FILTER, REGEX);
+                NAME, OUTPUT_FORMAT, SINGLE_FEATURE, CQL_FILTER, REGEX);
     }
 
     @Override

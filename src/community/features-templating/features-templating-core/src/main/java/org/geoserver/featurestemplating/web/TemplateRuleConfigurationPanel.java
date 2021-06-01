@@ -78,19 +78,7 @@ public class TemplateRuleConfigurationPanel extends Panel {
         DropDownChoice<String> mimeTypeDropDown = new OutputFormatsDropDown("outputFormats",
                 model.bind("outputFormat"));
         mimeTypeDropDown.setOutputMarkupId(true);
-        DropDownChoice<String> serviceDropDown =
-                new DropDownChoice<>(
-                        "services", model.bind( "service"), getSupportedServices());
-        serviceDropDown.setOutputMarkupId(true);
-        DropDownChoice<String> operationsDropDown =
-                new DropDownChoice<>(
-                        "operations",
-                        model.bind("operation"),
-                        getSupportedOperations());
-        operationsDropDown.setOutputMarkupId(true);
         theForm.add(mimeTypeDropDown);
-        theForm.add(serviceDropDown);
-        theForm.add(operationsDropDown);
         theForm.add(
                 new CheckBox("singleFeature", model.bind("singleFeatureTemplate")));
         theForm.add(new TextArea<>("cqlFilter", model.bind("cqlFilter")));

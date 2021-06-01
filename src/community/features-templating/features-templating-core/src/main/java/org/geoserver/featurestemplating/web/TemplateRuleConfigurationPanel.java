@@ -1,54 +1,44 @@
 package org.geoserver.featurestemplating.web;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.AjaxRequestTargetListenerCollection;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.FeatureTypeInfo;
-import org.geoserver.featurestemplating.configuration.SupportedMimeType;
-import org.geoserver.featurestemplating.configuration.Template;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDaoImpl;
 import org.geoserver.featurestemplating.configuration.TemplateLayerConfig;
 import org.geoserver.featurestemplating.configuration.TemplateRule;
 import org.geoserver.platform.GeoServerExtensions;
-import org.geoserver.web.wicket.LiveCollectionModel;
 import org.opengis.feature.type.Name;
 
 public class TemplateRuleConfigurationPanel extends Panel {
 
-    IModel<TemplateRule> templateRuleModel;
+    CompoundPropertyModel<TemplateRule> templateRuleModel;
     TemplateRulesTablePanel tablePanel;
-    Form<TemplateRule> form;
+    Form<TemplateRule> theForm;
     DropDownChoice<TemplateInfo> templateInfoDropDownChoice;
 
     private Name featureTypeInfoName;
 
     public TemplateRuleConfigurationPanel(
             String id,
-            IModel<TemplateRule> model,
+            CompoundPropertyModel<TemplateRule> model,
             boolean isUpdate,
             Name name) {
         super(id, model);
@@ -57,8 +47,8 @@ public class TemplateRuleConfigurationPanel extends Panel {
         initUI(templateRuleModel, isUpdate);
     }
 
-    private void initUI(IModel<TemplateRule> model, boolean isUpdate) {
-        this.form =
+    private void initUI(CompoundPropertyModel<TemplateRule> model, boolean isUpdate) {
+        this.theForm =
                 new Form<TemplateRule>("theForm", model){
                     @Override
                     protected void onSubmit() {
@@ -75,66 +65,59 @@ public class TemplateRuleConfigurationPanel extends Panel {
                         }
                     }
                 };
-        form.setOutputMarkupId(true);
-        add(form);
+        theForm.setOutputMarkupId(true);
+        add(theForm);
         ChoiceRenderer<TemplateInfo> templateInfoChoicheRenderer=new ChoiceRenderer<>("fullName","identifier");
         templateInfoDropDownChoice =
                 new DropDownChoice<>(
                         "templateIdentifier",
-                        new PropertyModel<>(model, "templateInfo"),
+                        model.bind( "templateInfo"),
                         getTemplateInfoList(),
                         templateInfoChoicheRenderer);
-        templateInfoDropDownChoice.setNullValid(true);
-        form.add(templateInfoDropDownChoice);
+        theForm.add(templateInfoDropDownChoice);
         DropDownChoice<String> mimeTypeDropDown = new OutputFormatsDropDown("outputFormats",
-                new PropertyModel<>(model,"outputFormat"));
+                model.bind("outputFormat"));
         mimeTypeDropDown.setOutputMarkupId(true);
         DropDownChoice<String> serviceDropDown =
                 new DropDownChoice<>(
-                        "services", new PropertyModel<>(model, "service"), getSupportedServices());
+                        "services", model.bind( "service"), getSupportedServices());
         serviceDropDown.setOutputMarkupId(true);
         DropDownChoice<String> operationsDropDown =
                 new DropDownChoice<>(
                         "operations",
-                        new PropertyModel<>(model, "operation"),
+                        model.bind("operation"),
                         getSupportedOperations());
         operationsDropDown.setOutputMarkupId(true);
-        form.add(mimeTypeDropDown);
-        form.add(serviceDropDown);
-        form.add(operationsDropDown);
-        form.add(
-                new CheckBox("singleFeature", new PropertyModel<>(model, "singleFeatureTemplate")));
-        form.add(new TextArea<>("cqlFilter", new PropertyModel<>(model, "cqlFilter")));
-        form.add(new TextField<>("regex", new PropertyModel<>(model, "regex")));
+        theForm.add(mimeTypeDropDown);
+        theForm.add(serviceDropDown);
+        theForm.add(operationsDropDown);
+        theForm.add(
+                new CheckBox("singleFeature", model.bind("singleFeatureTemplate")));
+        theForm.add(new TextArea<>("cqlFilter", model.bind("cqlFilter")));
+        theForm.add(new TextField<>("regex", model.bind("regex")));
         AjaxSubmitLink submitLink =
                 new AjaxSubmitLink("save") {
                     @Override
                     protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         super.onSubmit(target, form);
-                        TemplateRule rule = (TemplateRule) form.getModelObject();
-                        TemplateInfo ti=templateInfoDropDownChoice.getConvertedInput();
-                        if (ti!=null){
-                            rule.setTemplateName(ti.getTemplateName());
-                            rule.setTemplateIdentifier(ti.getIdentifier());
-                        }
+                        TemplateRule rule = theForm.getModelObject();
                         updateModelRules(rule);
                         target.add(tablePanel);
                         target.add(tablePanel.getTable());
-                        form.clearInput();
-                        target.add(form);
+                        theForm.clearInput();
+                        target.add(theForm);
                     }
                 };
-        form.add(submitLink);
-        form.add(
+        theForm.add(submitLink);
+        theForm.add(
                 new AjaxSubmitLink("cancel") {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        Form<TemplateRule> ruleForm=(Form<TemplateRule>)  form;
-                        ruleForm.clearInput();
-                        ruleForm.setModel(new Model<>(new TemplateRule()));
-                        target.add(ruleForm);
-                        target.add(this);
+                        theForm.clearInput();
+                        theForm.setModel(new Model<>(new TemplateRule()));
+                        theForm.modelChanged();
+                        target.add(theForm);
                     }
                 });
     }
@@ -147,7 +130,7 @@ public class TemplateRuleConfigurationPanel extends Panel {
         return Arrays.asList("GetFeature");
     }
 
-    private void setModel(Model<TemplateRule> model) {
+    private void setModel(CompoundPropertyModel<TemplateRule> model) {
         this.templateRuleModel = model;
         super.setDefaultModel(model);
     }

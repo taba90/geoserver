@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -95,8 +96,9 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
     }
 
     @Override
-    public boolean templateDataExists(String templateName) {
-        return templateDataSet.stream().anyMatch(td -> td.getTemplateName().equals(templateName));
+    public boolean templateDataExists(TemplateInfo templateInfo) {
+        if (isModified()) loadTemplateInfo();
+        return templateDataSet.stream().anyMatch(td -> td.lenientEquals(templateInfo));
     }
 
     @Override

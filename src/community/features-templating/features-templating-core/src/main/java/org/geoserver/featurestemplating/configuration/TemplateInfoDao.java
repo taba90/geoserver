@@ -24,7 +24,7 @@ public interface TemplateInfoDao {
 
     public void delete(String templateName);
 
-    public boolean templateDataExists(String templateName);
+    public boolean templateDataExists(TemplateInfo templateInfo);
 
     public void fireTemplateInfoRemoveEvent(TemplateInfo templateInfo);
 

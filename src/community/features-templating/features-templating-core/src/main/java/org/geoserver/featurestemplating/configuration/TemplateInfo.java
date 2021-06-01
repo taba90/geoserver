@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.UUID;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.DataStoreInfo;
@@ -24,8 +25,8 @@ public class TemplateInfo extends AbstractFeatureTemplateInfo {
         this.identifier = UUID.randomUUID().toString();
     }
 
-    public TemplateInfo(String templateName, String workspace, String featureType) {
-        super(templateName,workspace,featureType);
+    public TemplateInfo(String templateName, String workspace, String featureType, String extension) {
+        super(templateName,workspace,featureType,extension);
     }
 
     public String getDescription() {
@@ -53,5 +54,25 @@ public class TemplateInfo extends AbstractFeatureTemplateInfo {
         if (featureType != null) fullName += featureType + ":";
         fullName += templateName;
         return fullName;
+    }
+
+    public boolean lenientEquals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        TemplateInfo that = (TemplateInfo) o;
+        return Objects.equals(description, that.description);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), identifier, description);
+    }
+
+    @Override
+    public boolean equals(Object info){
+        if (!lenientEquals(info)) return false;
+        TemplateInfo templateInfo=(TemplateInfo) info;
+        return Objects.equals(identifier,templateInfo.identifier);
     }
 }

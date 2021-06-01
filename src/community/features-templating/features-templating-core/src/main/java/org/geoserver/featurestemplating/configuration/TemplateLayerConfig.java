@@ -62,4 +62,8 @@ public class TemplateLayerConfig implements Serializable {
             this.templateRules=new HashSet<>();
         return templateRules;
     }
+
+    public void setTemplateRules(Set<TemplateRule> templateRules) {
+        this.templateRules = templateRules;
+    }
 }

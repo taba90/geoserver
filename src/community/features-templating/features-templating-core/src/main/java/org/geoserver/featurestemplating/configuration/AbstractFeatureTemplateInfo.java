@@ -25,10 +25,11 @@ public abstract class AbstractFeatureTemplateInfo implements Serializable, Compa
     public AbstractFeatureTemplateInfo() {
     }
 
-    public AbstractFeatureTemplateInfo(String templateName, String workspace, String featureType) {
+    public AbstractFeatureTemplateInfo(String templateName, String workspace, String featureType, String extension) {
         this.templateName = templateName;
         this.workspace = workspace;
         this.featureType = featureType;
+        this.extension=extension;
     }
 
     public String getTemplateName() {

@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class TemplatePreviewPage extends GeoServerSecuredPage {
 
@@ -59,6 +60,9 @@ public class TemplatePreviewPage extends GeoServerSecuredPage {
 
     private String url;
 
+    private static final String PREVIEW_RULE_FILTER="requestParam('gsPreviewTemplate') = 'true'";
+
+    private static final String PREVIEW_REQUEST_PARAM="gsPreviewTemplate";
     AjaxLink<String> ajaxLink;
 
     DropDownChoice<FeatureTypeInfo> featureTypesDD;
@@ -167,16 +171,16 @@ public class TemplatePreviewPage extends GeoServerSecuredPage {
                     output = IOUtils.toString(is, StandardCharsets.UTF_8.name());
                 } catch (Exception e) {
                     output=e.getMessage();
+                }finally {
+                    removeTemplatePreviewRule();
                 }
                 textArea.setModelObject(output);
                 textArea.modelChanged();
                 target.add(textArea);
             }
         };
-
         ajaxLink.setOutputMarkupId(true);
         add(ajaxLink);
-
     }
 
     private List<WorkspaceInfo> getWorkspaces(Catalog catalog){
@@ -197,7 +201,7 @@ public class TemplatePreviewPage extends GeoServerSecuredPage {
             rule.setTemplateIdentifier(templateInfo.getIdentifier());
             rule.setTemplateName(templateInfo.getFullName());
             rule.setOutputFormat(outputFormat);
-            rule.setCqlFilter("requestParam('previewTemplate') = 'true'");
+            rule.setCqlFilter(PREVIEW_RULE_FILTER);
             if (layerConfig==null){
                 layerConfig=new TemplateLayerConfig();
             }
@@ -220,7 +224,7 @@ public class TemplatePreviewPage extends GeoServerSecuredPage {
             params.put("typeNames", wfsParams.get("typeNames"));
             params.put("outputFormat",wfsParams.get("outputFormat"));
             params.put("count","1");
-            params.put("previewTemplate","true");
+            params.put(PREVIEW_REQUEST_PARAM,"true");
             return ResponseUtils.buildURL(
                     getBaseURL(), getPath("ows", false), params, URLMangler.URLType.SERVICE);
 
@@ -251,5 +255,13 @@ public class TemplatePreviewPage extends GeoServerSecuredPage {
             realOutputFormat= "application/gml+xml; version=3.2";
         }
         return realOutputFormat;
+    }
+
+    private void removeTemplatePreviewRule(){
+        TemplateLayerConfig config=featureType.getMetadata().get(TemplateLayerConfig.METADATA_KEY,TemplateLayerConfig.class);
+        Set<TemplateRule> rules=config.getTemplateRules();
+        rules.removeIf(r->r.getCqlFilter().equals(PREVIEW_RULE_FILTER));
+        featureType.getMetadata().put(TemplateLayerConfig.METADATA_KEY,config);
+        getCatalog().save(featureType);
     }
 }

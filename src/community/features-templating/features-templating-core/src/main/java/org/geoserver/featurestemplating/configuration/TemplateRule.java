@@ -1,6 +1,7 @@
 package org.geoserver.featurestemplating.configuration;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -159,9 +160,8 @@ public class TemplateRule implements Serializable {
                 ti.setWorkspace(nameSplit[0]);
                 ti.setTemplateName(nameSplit[1]);
             }
-        } else{
-            ti.setIdentifier(ti.getIdentifier());
         }
+        ti.setIdentifier(templateIdentifier);
         return ti;
     }
 
@@ -172,5 +172,25 @@ public class TemplateRule implements Serializable {
         if (outputFormat==null)
             outputFormat= request.getKvp() != null ? (String) request.getKvp().get("f") : null;
         return outputFormat;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TemplateRule that = (TemplateRule) o;
+        return singleFeatureTemplate == that.singleFeatureTemplate &&
+                Objects.equals(templateIdentifier, that.templateIdentifier) &&
+                Objects.equals(templateName, that.templateName) &&
+                Objects.equals(outputFormat, that.outputFormat) &&
+                Objects.equals(service, that.service) &&
+                Objects.equals(operation, that.operation) &&
+                Objects.equals(cqlFilter, that.cqlFilter) &&
+                Objects.equals(regex, that.regex);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(templateIdentifier, templateName, singleFeatureTemplate, outputFormat, service, operation, cqlFilter, regex);
     }
 }

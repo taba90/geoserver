@@ -153,7 +153,6 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
         if (mode.equals("javascript"))
             editor.setModeAndSubMode(mode, model.getObject().getExtension());
         editor.setOutputMarkupId(true);
-        editor.setRequired(true);
         templateExtension.add(
                 new OnChangeAjaxBehavior() {
                     @Override

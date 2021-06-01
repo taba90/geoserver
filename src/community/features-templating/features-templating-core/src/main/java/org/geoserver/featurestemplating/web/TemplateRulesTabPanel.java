@@ -1,5 +1,6 @@
 package org.geoserver.featurestemplating.web;
 
+import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -46,7 +47,7 @@ public class TemplateRulesTabPanel extends PublishedEditTabPanel<LayerInfo> {
             configurationPanel =
                     new TemplateRuleConfigurationPanel(
                             "ruleConfiguration",
-                            new Model<>(new TemplateRule()),
+                            new CompoundPropertyModel<>(new TemplateRule()),
                             false,
                             name);
             configurationPanel.setTemplateRuleTablePanel(tablePanel);

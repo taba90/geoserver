@@ -4,11 +4,11 @@ public class TemplateInfoRemoveEvent {
 
     private TemplateInfo ti;
 
-    public TemplateInfoRemoveEvent(TemplateInfo templateInfo){
-        this.ti=templateInfo;
-
+    public TemplateInfoRemoveEvent(TemplateInfo templateInfo) {
+        this.ti = templateInfo;
     }
-    public TemplateInfo getSource(){
+
+    public TemplateInfo getSource() {
         return ti;
     }
 }

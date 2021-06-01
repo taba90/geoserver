@@ -15,6 +15,7 @@ public class RequestParameterFunction extends FunctionExpressionImpl {
                     "requestParam",
                     parameter("result", String.class),
                     parameter("name", String.class));
+
     public RequestParameterFunction() {
         super(NAME);
     }
@@ -28,6 +29,6 @@ public class RequestParameterFunction extends FunctionExpressionImpl {
         Request request = (Request) object;
         String parameter = getParameters().get(0).evaluate(null, String.class);
         Object value = request.getRawKvp().get(parameter.toUpperCase());
-        return Converters.convert(value,String.class);
+        return Converters.convert(value, String.class);
     }
 }

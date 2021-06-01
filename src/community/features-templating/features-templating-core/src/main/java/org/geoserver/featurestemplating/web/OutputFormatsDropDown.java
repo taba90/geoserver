@@ -1,18 +1,17 @@
 package org.geoserver.featurestemplating.web;
 
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.model.IModel;
-import org.geoserver.featurestemplating.configuration.SupportedMimeType;
-
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.model.IModel;
+import org.geoserver.featurestemplating.configuration.SupportedMimeType;
 
 public class OutputFormatsDropDown extends DropDownChoice<String> {
 
     public OutputFormatsDropDown(String id, IModel<String> model) {
         super(id);
-        List<String> mimeTypes=getSupportedOutputFormats();
+        List<String> mimeTypes = getSupportedOutputFormats();
         this.setChoices(mimeTypes);
         this.setModel(model);
     }

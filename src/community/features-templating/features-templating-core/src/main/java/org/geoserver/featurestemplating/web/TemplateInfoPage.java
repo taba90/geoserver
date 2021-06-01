@@ -4,10 +4,8 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.geoserver.featurestemplating.configuration.TemplateConfiguration;
 import org.geoserver.featurestemplating.configuration.TemplateFileManager;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDao;
@@ -44,9 +42,12 @@ public class TemplateInfoPage extends GeoServerSecuredPage {
 
                             @Override
                             public void onClick(AjaxRequestTarget target) {
-                                TemplateInfoDao dao = TemplateInfoDaoImpl.get();
-                                TemplateFileManager fileManager= TemplateConfigurationPage.getTemplateFileManager();
-                                dao.findAll().forEach(ti -> fileManager.getTemplateResource(ti).delete());
+                                TemplateInfoDao dao = TemplateInfoDao.get();
+                                TemplateFileManager fileManager =
+                                        TemplateConfigurationPage.getTemplateFileManager();
+                                dao.findAll()
+                                        .forEach(
+                                                ti -> fileManager.getTemplateResource(ti).delete());
                                 dao.deleteAll(tablePanel.getSelection());
                                 tablePanel.modelChanged();
                                 target.add(tablePanel);
@@ -80,8 +81,9 @@ public class TemplateInfoPage extends GeoServerSecuredPage {
                         else if (property.equals(TemplateInfoProvider.FEATURE_TYPE_INFO)) {
                             return new Label(
                                     id, TemplateInfoProvider.FEATURE_TYPE_INFO.getModel(itemModel));
-                        } else if (property.equals(TemplateInfoProvider.PREVIEW_LINK)){
-                            return new SimpleAjaxLink<TemplateInfo>(id, itemModel, TemplateInfoProvider.NAME.getModel(itemModel)) {
+                        } else if (property.equals(TemplateInfoProvider.PREVIEW_LINK)) {
+                            return new SimpleAjaxLink<TemplateInfo>(
+                                    id, itemModel, TemplateInfoProvider.NAME.getModel(itemModel)) {
 
                                 @Override
                                 protected void onClick(AjaxRequestTarget target) {

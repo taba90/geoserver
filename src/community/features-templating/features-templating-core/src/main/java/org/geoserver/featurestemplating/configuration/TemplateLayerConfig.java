@@ -1,9 +1,7 @@
 package org.geoserver.featurestemplating.configuration;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import javax.xml.bind.annotation.XmlElement;
@@ -23,12 +21,11 @@ public class TemplateLayerConfig implements Serializable {
     }
 
     public TemplateLayerConfig() {
-        templateRules=new HashSet<>();
+        templateRules = new HashSet<>();
     }
 
     public void addTemplateRule(TemplateRule rule) {
-        if (this.templateRules==null)
-            templateRules=new HashSet<>();
+        if (this.templateRules == null) templateRules = new HashSet<>();
         this.templateRules.add(rule);
     }
 
@@ -58,8 +55,7 @@ public class TemplateLayerConfig implements Serializable {
     }
 
     public Set<TemplateRule> getTemplateRules() {
-        if (this.templateRules==null)
-            this.templateRules=new HashSet<>();
+        if (this.templateRules == null) this.templateRules = new HashSet<>();
         return templateRules;
     }
 

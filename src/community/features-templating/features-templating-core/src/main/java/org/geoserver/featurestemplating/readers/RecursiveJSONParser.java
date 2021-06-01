@@ -18,72 +18,33 @@ import java.util.Iterator;
 import java.util.List;
 import org.geoserver.platform.resource.Resource;
 
+import static org.geoserver.featurestemplating.readers.TemplateReader.MAX_RECURSION_DEPTH;
+
 /** Parses a JSON structure, processing eventual includes and expanding them */
-public class RecursiveJSONParser {
+public class RecursiveJSONParser extends RecursiveTemplateResourceParser {
 
     private static final String INCLUDE_KEY = "$include";
     private static final String INCLUDE_FLAT_KEY = "$includeFlat";
 
-    public static final int MAX_RECURSION_DEPTH =
-            Integer.parseInt(System.getProperty("GEOSERVER_FT_MAX_DEPTH", "50"));
-
-    private final Resource resource;
     private final ObjectMapper mapper;
-    private final RecursiveJSONParser parent;
 
     public RecursiveJSONParser(Resource resource) {
-        this.resource = resource;
+        super(resource);
         validateResource(resource);
         this.mapper = new ObjectMapper(new JsonFactory().enable(JsonParser.Feature.ALLOW_COMMENTS));
-        this.parent = null;
     }
 
     private RecursiveJSONParser(RecursiveJSONParser parent, String path) {
+        super(parent);
         this.resource = getResource(parent.resource, path);
         validateResource(resource);
         this.mapper = parent.mapper;
         this.parent = parent;
-        int depth = getDepth();
-        if (depth > MAX_RECURSION_DEPTH)
-            throw new RuntimeException(
-                    "Went beyond maximum nested inclusion depth ("
-                            + depth
-                            + "), inclusion chain is: "
-                            + getInclusionChain());
-    }
-
-    private void validateResource(Resource resource) {
-        if (!resource.getType().equals(Resource.Type.RESOURCE))
-            throw new IllegalArgumentException("Path " + resource.path() + " does not exist");
-    }
-
-    /**
-     * Returns the list of inclusions, starting from the top-most parent and walking down to the
-     * current reader
-     */
-    private List<String> getInclusionChain() {
-        List<String> resources = new ArrayList<>();
-        RecursiveJSONParser curr = this;
-        while (curr != null) {
-            resources.add(curr.resource.path());
-            curr = curr.parent;
-        }
-        Collections.reverse(resources);
-        return resources;
-    }
-
-    private int getDepth() {
-        int depth = 0;
-        RecursiveJSONParser curr = this.parent;
-        while (curr != null) {
-            curr = curr.parent;
-            depth++;
-        }
-        return depth;
+        validateDepth();
     }
 
     public JsonNode parse() throws IOException {
-        // read and close before doing recursion, avoids keeping severa files open in parallel
+        // read and close before doing recursion, avoids keeping several files open in parallel
         JsonNode root = readResource();
         return expandIncludes(root);
     }
@@ -199,24 +160,5 @@ public class RecursiveJSONParser {
         try (InputStream is = resource.in()) {
             return mapper.readTree(is);
         }
-    }
-
-    private Resource getResource(Resource resource, String path) {
-        // relative paths are
-        if (path.startsWith("./")) path = path.substring(2);
-        if (path.startsWith("/")) return getRoot(resource).get(path);
-        return resource.parent().get(path);
-    }
-
-    /** API is not 100% clear, but going up should lead us to the root of the virtual file system */
-    private Resource getRoot(Resource resource) {
-        Resource r = resource;
-        Resource parent = r.parent();
-        while (parent != null && !parent.equals(r)) {
-            r = parent;
-            parent = r.parent();
-        }
-
-        return r;
     }
 }

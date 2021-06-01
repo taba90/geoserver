@@ -1,5 +1,10 @@
 package org.geoserver.featurestemplating.configuration;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.WorkspaceInfo;
@@ -7,13 +12,6 @@ import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.resource.Resource;
 import org.geotools.util.logging.Logging;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class TemplateFileManager {
 
@@ -23,18 +21,17 @@ public class TemplateFileManager {
     private GeoServerDataDirectory dd;
     private Map<String, TemplateInfoMemento> mementoMap;
 
-
-    public TemplateFileManager(Catalog catalog, GeoServerDataDirectory dd){
-        this.catalog=catalog;
-        this.dd=dd;
-        this.mementoMap=new HashMap<>();
+    public TemplateFileManager(Catalog catalog, GeoServerDataDirectory dd) {
+        this.catalog = catalog;
+        this.dd = dd;
+        this.mementoMap = new HashMap<>();
     }
 
     public Resource getTemplateResource(AbstractFeatureTemplateInfo templateInfo) {
-        String featureType=templateInfo.getFeatureType();
+        String featureType = templateInfo.getFeatureType();
         String workspace = templateInfo.getWorkspace();
-        String templateName=templateInfo.getTemplateName();
-        String extension= templateInfo.getExtension();
+        String templateName = templateInfo.getTemplateName();
+        String extension = templateInfo.getExtension();
         Resource resource;
         Catalog catalog = (Catalog) GeoServerExtensions.bean("catalog");
         GeoServerDataDirectory dd = GeoServerExtensions.bean(GeoServerDataDirectory.class);
@@ -50,23 +47,30 @@ public class TemplateFileManager {
         return resource;
     }
 
-    public void deleteOldTemplateFile(TemplateInfo info){
-        String identifier=info.getIdentifier();
-        TemplateInfoMemento memento=mementoMap.get(identifier);
-        if (memento==null){
-            if(LOGGER.isLoggable(Level.WARNING))
-                LOGGER.log(Level.WARNING, "Cannot delete old template file, " +
-                        "something went wrong when saving the previous info state");
+    public void deleteOldTemplateFile(TemplateInfo info) {
+        String identifier = info.getIdentifier();
+        TemplateInfoMemento memento = mementoMap.get(identifier);
+        if (memento == null) {
+            if (LOGGER.isLoggable(Level.WARNING))
+                LOGGER.log(
+                        Level.WARNING,
+                        "Cannot delete old template file, "
+                                + "something went wrong when saving the previous info state");
         } else {
-            if(LOGGER.isLoggable(Level.FINE)){
-                LOGGER.log(Level.FINE,"Deleting template file for template with name "+memento.getTemplateName());
+            if (LOGGER.isLoggable(Level.FINE)) {
+                LOGGER.log(
+                        Level.FINE,
+                        "Deleting template file for template with name "
+                                + memento.getTemplateName());
             }
-            TemplateInfoMemento infoMemento=mementoMap.get(identifier);
+            TemplateInfoMemento infoMemento = mementoMap.get(identifier);
             if (!infoMemento.equals(info)) {
                 boolean result = getTemplateResource(memento).delete();
                 if (!result) {
                     if (LOGGER.isLoggable(Level.WARNING))
-                        LOGGER.log(Level.WARNING, "Cannot delete old template file, something went wrong during the delete process");
+                        LOGGER.log(
+                                Level.WARNING,
+                                "Cannot delete old template file, something went wrong during the delete process");
                 }
             }
             mementoMap.remove(identifier);
@@ -74,15 +78,15 @@ public class TemplateFileManager {
     }
 
     public File getTemplateLocation(AbstractFeatureTemplateInfo templateInfo) {
-        String featureType=templateInfo.getFeatureType();
-        String workspace=templateInfo.getWorkspace();
+        String featureType = templateInfo.getFeatureType();
+        String workspace = templateInfo.getWorkspace();
         Resource resource = null;
         if (featureType != null) {
             FeatureTypeInfo fti = catalog.getFeatureTypeByName(featureType);
             resource = dd.get(fti);
         } else if (workspace != null) {
             WorkspaceInfo ws = catalog.getWorkspaceByName(workspace);
-            resource = dd.get(workspace);
+            resource = dd.get(ws);
         } else {
             resource = dd.get(TemplateInfoDaoImpl.TEMPLATE_DIR);
         }
@@ -93,8 +97,8 @@ public class TemplateFileManager {
         return destDir;
     }
 
-    public void addMemento(TemplateInfo templateInfo){
-        TemplateInfoMemento memento=new TemplateInfoMemento(templateInfo);
-        mementoMap.put(templateInfo.getIdentifier(),memento);
+    public void addMemento(TemplateInfo templateInfo) {
+        TemplateInfoMemento memento = new TemplateInfoMemento(templateInfo);
+        mementoMap.put(templateInfo.getIdentifier(), memento);
     }
 }

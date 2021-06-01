@@ -4,9 +4,25 @@
 <wicket:panel>
     <ul>
         <li>
+            <div style="padding-top: 2em">
+                <fieldset style="margin-bottom: 0em">
+                    <legend>
+                        <span><wicket:message key="ruleList">Layer Template Rules</wicket:message></span>
+                    </legend>
             <div wicket:id="rulesTable" id="rulesTable"/>
+                </fieldset>
+            </div>
         </li>
-        <li><div wicket:id="ruleConfiguration" id="ruleConfiguration"/></li>
+        <li>
+            <div style="padding-top: 2em">
+                <fieldset style="margin-bottom: 0em">
+                    <legend>
+                        <span><wicket:message key="ruleConfiguration">Rule Configuration</wicket:message></span>
+                    </legend>
+                    <div wicket:id="ruleConfiguration" id="ruleConfiguration"/>
+                </fieldset>
+            </div>
+        </li>
     </ul>
 </wicket:panel>
 </body>

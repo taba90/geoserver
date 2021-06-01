@@ -9,6 +9,9 @@ import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 /** Base interface for all the Template readers. */
 public interface TemplateReader {
 
+    public static final int MAX_RECURSION_DEPTH =
+            Integer.parseInt(System.getProperty("GEOSERVER_FT_MAX_DEPTH", "50"));
+
     public static final String FILTERKEY = "$filter";
 
     public static final String EXPRSTART = "${";

@@ -10,9 +10,7 @@ import org.opengis.filter.capability.FunctionName;
 public class MimeTypeFunction extends FunctionExpressionImpl {
 
     public static FunctionName NAME =
-            new FunctionNameImpl(
-                    "mimeType",
-                    parameter("result", String.class));
+            new FunctionNameImpl("mimeType", parameter("result", String.class));
 
     public MimeTypeFunction() {
         super(NAME);

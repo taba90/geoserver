@@ -39,17 +39,8 @@ public class TemplateReaderProvider {
             reader = new JSONTemplateReader(parser.parse(), configuration);
         } else if (resourceExtension.equalsIgnoreCase(SupportedExtension.XHTML.name())
                 || resourceExtension.equalsIgnoreCase(SupportedExtension.XML.name())) {
-            try (InputStream is = resource.in()) {
-                XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-                xmlInputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, false);
-                XMLEventReader eventReader = null;
-                try {
-                    eventReader = xmlInputFactory.createXMLEventReader(is);
-                } catch (XMLStreamException e) {
-                    throw new IOException(e);
-                }
-                reader = new XMLTemplateReader(eventReader, configuration.getNamespaces());
-            }
+
+                reader = new XMLTemplateReader(resource, configuration.getNamespaces());
         } else {
             throw new UnsupportedOperationException(
                     "Not a supported extension " + resourceExtension);

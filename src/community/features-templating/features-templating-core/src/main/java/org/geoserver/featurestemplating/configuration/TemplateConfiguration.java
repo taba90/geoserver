@@ -9,7 +9,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -62,14 +61,17 @@ public class TemplateConfiguration {
                                                             + "Exception is: "
                                                             + e.getMessage());
                                         }
-                                        TemplateInfo templateInfo=TemplateInfoDaoImpl.get().findById(key.getPath());
+                                        TemplateInfo templateInfo =
+                                                TemplateInfoDao.get().findById(key.getPath());
                                         Resource resource;
-                                        if (templateInfo!=null)
-                                            resource=getTemplateFileManager().getTemplateResource(templateInfo);
+                                        if (templateInfo != null)
+                                            resource =
+                                                    getTemplateFileManager()
+                                                            .getTemplateResource(templateInfo);
                                         else
                                             resource =
-                                                getDataDirectory()
-                                                        .get(key.getResource(), key.getPath());
+                                                    getDataDirectory()
+                                                            .get(key.getResource(), key.getPath());
                                         Template template =
                                                 new Template(
                                                         resource,
@@ -91,10 +93,11 @@ public class TemplateConfiguration {
      */
     public RootBuilder getTemplate(FeatureTypeInfo typeInfo, String outputFormat)
             throws ExecutionException {
-        String templateIdentifier= getTemplateIdentifierByLayerRuleEvaluation(typeInfo);
-        if (templateIdentifier==null)
-                templateIdentifier=TemplateIdentifier.getTemplateIdentifierFromOutputFormat(outputFormat)
-                        .getFilename();
+        String templateIdentifier = getTemplateIdentifierByLayerRuleEvaluation(typeInfo);
+        if (templateIdentifier == null)
+            templateIdentifier =
+                    TemplateIdentifier.getTemplateIdentifierFromOutputFormat(outputFormat)
+                            .getFilename();
         CacheKey key = new CacheKey(typeInfo, templateIdentifier);
         Template template = templateCache.get(key);
         boolean updateCache = false;
@@ -207,22 +210,23 @@ public class TemplateConfiguration {
         }
     }
 
-    private String getTemplateIdentifierByLayerRuleEvaluation(FeatureTypeInfo featureTypeInfo){
-        TemplateLayerConfig config=featureTypeInfo.getMetadata().get(TemplateLayerConfig.METADATA_KEY,TemplateLayerConfig.class);
-        if (config==null || config.getTemplateRules().isEmpty())
-            return null;
-        else{
+    private String getTemplateIdentifierByLayerRuleEvaluation(FeatureTypeInfo featureTypeInfo) {
+        TemplateLayerConfig config =
+                featureTypeInfo
+                        .getMetadata()
+                        .get(TemplateLayerConfig.METADATA_KEY, TemplateLayerConfig.class);
+        if (config == null || config.getTemplateRules().isEmpty()) return null;
+        else {
             Set<TemplateRule> rules = config.getTemplateRules();
-            Request request= Dispatcher.REQUEST.get();
-            for (TemplateRule r:rules){
-                if(r.applyRule(request))
-                    return r.getTemplateIdentifier();
+            Request request = Dispatcher.REQUEST.get();
+            for (TemplateRule r : rules) {
+                if (r.applyRule(request)) return r.getTemplateIdentifier();
             }
         }
         return null;
     }
 
-    private TemplateFileManager getTemplateFileManager(){
+    private TemplateFileManager getTemplateFileManager() {
         return GeoServerExtensions.bean(TemplateFileManager.class);
     }
 }

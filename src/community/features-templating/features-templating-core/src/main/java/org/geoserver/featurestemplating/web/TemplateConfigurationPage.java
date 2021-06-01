@@ -35,9 +35,9 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.NamespaceInfo;
-import org.geoserver.config.GeoServer;
 import org.geoserver.featurestemplating.configuration.TemplateFileManager;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
+import org.geoserver.featurestemplating.configuration.TemplateInfoDao;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDaoImpl;
 import org.geoserver.featurestemplating.configuration.TemplateInfoValidator;
 import org.geoserver.ows.util.ResponseUtils;
@@ -75,8 +75,7 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
     }
 
     private void initUI(IModel<TemplateInfo> model) {
-        if (!isNew)
-            getTemplateFileManager().addMemento(model.getObject());
+        if (!isNew) getTemplateFileManager().addMemento(model.getObject());
         form =
                 new Form<TemplateInfo>("theForm", model) {
                     @Override
@@ -84,9 +83,9 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                         super.onSubmit();
                         TemplateInfo templateInfo = (TemplateInfo) form.getModelObject();
                         String rawTemplate = getRawTemplate();
-                        TemplateInfoValidator validator= new TemplateInfoValidator(templateInfo,rawTemplate);
-                        if (!validateAndReport(validator))
-                            return;
+                        TemplateInfoValidator validator =
+                                new TemplateInfoValidator(templateInfo, rawTemplate);
+                        if (!validateAndReport(validator)) return;
                         File destDir = getTemplateFileManager().getTemplateLocation(templateInfo);
                         try {
                             File file =
@@ -102,7 +101,7 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
-                        TemplateInfoDaoImpl.get().saveOrUpdate(templateInfo);
+                        TemplateInfoDao.get().saveOrUpdate(templateInfo);
                         getTemplateFileManager().deleteOldTemplateFile(templateInfo);
                     }
                 };
@@ -158,7 +157,8 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                     @Override
                     protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
                         String mode = templateExtension.getConvertedInput();
-                        if (mode!=null && (mode.equals("xml") || mode.equals("xhtml"))) editor.setMode("xml");
+                        if (mode != null && (mode.equals("xml") || mode.equals("xhtml")))
+                            editor.setMode("xml");
                         else editor.setModeAndSubMode("javascript", mode);
                         ajaxRequestTarget.add(editor);
                     }
@@ -294,24 +294,24 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
 
                 TemplateInfo templateInfo =
                         getTemplateConfPage().getTemplateInfoModel().getObject();
-                    // set it
-                    String fileName = upload.getClientFileName();
+                // set it
+                String fileName = upload.getClientFileName();
                 if (templateInfo.getTemplateName() == null
                         || "".equals(templateInfo.getTemplateName().trim())) {
                     templateName.setModelValue(
-                            new String[]{ResponseUtils.stripExtension(fileName)});
+                            new String[] {ResponseUtils.stripExtension(fileName)});
                 }
-                    int index = fileName.lastIndexOf(".");
-                    String extension = fileName.substring(index+1);
-                    templateInfo.setExtension(extension);
-                    if (!extension.equals("xml")) {
-                        editor.setModeAndSubMode("javascript", "json");
-                    } else {
-                        editor.setMode(extension);
-                    }
-                    editor.modelChanged();
-                    templateName.modelChanged();
-                    templateExtension.modelChanged();
+                int index = fileName.lastIndexOf(".");
+                String extension = fileName.substring(index + 1);
+                templateInfo.setExtension(extension);
+                if (!extension.equals("xml")) {
+                    editor.setModeAndSubMode("javascript", "json");
+                } else {
+                    editor.setMode(extension);
+                }
+                editor.modelChanged();
+                templateName.modelChanged();
+                templateExtension.modelChanged();
                 target.add(getTemplateConfPage());
                 target.add(editor);
             }
@@ -377,17 +377,17 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
         return templateInfoModel;
     }
 
-    private boolean validateAndReport(TemplateInfoValidator validator){
+    private boolean validateAndReport(TemplateInfoValidator validator) {
         try {
             validator.validate();
-        }catch (GeoServerException e){
+        } catch (GeoServerException e) {
             form.error(e.getMessage());
             return false;
         }
         return true;
     }
 
-     static TemplateFileManager getTemplateFileManager(){
+    static TemplateFileManager getTemplateFileManager() {
         return GeoServerExtensions.bean(TemplateFileManager.class);
     }
 }

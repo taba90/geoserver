@@ -3,6 +3,7 @@ package org.geoserver.featurestemplating.web;
 import java.util.Arrays;
 import java.util.List;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
+import org.geoserver.featurestemplating.configuration.TemplateInfoDao;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDaoImpl;
 import org.geoserver.web.wicket.GeoServerDataProvider;
 
@@ -16,16 +17,16 @@ public class TemplateInfoProvider extends GeoServerDataProvider<TemplateInfo> {
             new BeanProperty<>("workspace", "workspace");
     public static final Property<TemplateInfo> FEATURE_TYPE_INFO =
             new BeanProperty<>("featureTypeInfo", "featureType");
-    public static final PropertyPlaceholder<TemplateInfo> PREVIEW_LINK=
+    public static final PropertyPlaceholder<TemplateInfo> PREVIEW_LINK =
             new PropertyPlaceholder<>("previewLink");
 
     @Override
     protected List<Property<TemplateInfo>> getProperties() {
-        return Arrays.asList(NAME, EXTENSION, WORKSPACE, FEATURE_TYPE_INFO,PREVIEW_LINK);
+        return Arrays.asList(NAME, EXTENSION, WORKSPACE, FEATURE_TYPE_INFO, PREVIEW_LINK);
     }
 
     @Override
     protected List<TemplateInfo> getItems() {
-        return TemplateInfoDaoImpl.get().findAll();
+        return TemplateInfoDao.get().findAll();
     }
 }

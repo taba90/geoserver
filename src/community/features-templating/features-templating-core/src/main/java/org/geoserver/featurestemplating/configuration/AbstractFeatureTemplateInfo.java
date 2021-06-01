@@ -1,5 +1,7 @@
 package org.geoserver.featurestemplating.configuration;
 
+import java.io.Serializable;
+import java.util.Objects;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.WorkspaceInfo;
@@ -7,12 +9,8 @@ import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.resource.Resource;
 
-import java.io.File;
-import java.io.Serializable;
-import java.util.Objects;
-import java.util.UUID;
-
-public abstract class AbstractFeatureTemplateInfo implements Serializable, Comparable<AbstractFeatureTemplateInfo> {
+public abstract class AbstractFeatureTemplateInfo
+        implements Serializable, Comparable<AbstractFeatureTemplateInfo> {
 
     protected String templateName;
 
@@ -22,14 +20,14 @@ public abstract class AbstractFeatureTemplateInfo implements Serializable, Compa
 
     protected String extension;
 
-    public AbstractFeatureTemplateInfo() {
-    }
+    public AbstractFeatureTemplateInfo() {}
 
-    public AbstractFeatureTemplateInfo(String templateName, String workspace, String featureType, String extension) {
+    public AbstractFeatureTemplateInfo(
+            String templateName, String workspace, String featureType, String extension) {
         this.templateName = templateName;
         this.workspace = workspace;
         this.featureType = featureType;
-        this.extension=extension;
+        this.extension = extension;
     }
 
     public String getTemplateName() {
@@ -90,10 +88,10 @@ public abstract class AbstractFeatureTemplateInfo implements Serializable, Compa
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AbstractFeatureTemplateInfo that = (AbstractFeatureTemplateInfo) o;
-        return Objects.equals(templateName, that.templateName) &&
-                Objects.equals(workspace, that.workspace) &&
-                Objects.equals(featureType, that.featureType) &&
-                Objects.equals(extension, that.extension);
+        return Objects.equals(templateName, that.templateName)
+                && Objects.equals(workspace, that.workspace)
+                && Objects.equals(featureType, that.featureType)
+                && Objects.equals(extension, that.extension);
     }
 
     @Override

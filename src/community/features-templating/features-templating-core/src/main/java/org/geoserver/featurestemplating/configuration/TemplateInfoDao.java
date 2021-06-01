@@ -1,16 +1,21 @@
 package org.geoserver.featurestemplating.configuration;
 
-import org.opengis.feature.type.Name;
+import org.geoserver.platform.GeoServerExtensions;
 
 import java.util.List;
 
 public interface TemplateInfoDao {
 
+    static TemplateInfoDaoImpl get() {
+        return GeoServerExtensions.bean(TemplateInfoDaoImpl.class);
+    }
+
     public static final String TEMPLATE_DIR = "features-templating";
 
     public List<TemplateInfo> findAll();
 
-    public List<TemplateInfo> findByWorkspaceAndFeatureTypeInfo(String workspace, String featureTypeInfo);
+    public List<TemplateInfo> findByWorkspaceAndFeatureTypeInfo(
+            String workspace, String featureTypeInfo);
 
     public TemplateInfo findByName(String templateName);
 

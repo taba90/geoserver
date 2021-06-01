@@ -6,13 +6,11 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-
 import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.resource.Resource;
@@ -30,10 +28,6 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
 
     private static final String PROPERTY_FILE_NAME = "features-templates-data.properties";
 
-    public static TemplateInfoDaoImpl get() {
-        return GeoServerExtensions.bean(TemplateInfoDaoImpl.class);
-    }
-
     public TemplateInfoDaoImpl(GeoServerDataDirectory dd) {
         this.dd = dd;
         Resource templateDir = dd.get(TEMPLATE_DIR);
@@ -43,7 +37,7 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
         prop.file();
         this.fileWatcher = new PropertyFileWatcher(prop);
         this.templateDataSet = new TreeSet<>();
-        this.listeners=new HashSet<>();
+        this.listeners = new HashSet<>();
     }
 
     @Override
@@ -69,6 +63,8 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
 
     @Override
     public TemplateInfo saveOrUpdate(TemplateInfo templateData) {
+        if (isModified() || templateDataSet.isEmpty()) loadTemplateInfo();
+        templateDataSet.removeIf(ti->ti.getIdentifier().equals(templateData.getIdentifier()));
         templateDataSet.add(templateData);
         storeProperties();
         return templateData;
@@ -85,8 +81,7 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
     public void deleteAll(List<TemplateInfo> templateInfos) {
         templateDataSet.removeAll(templateInfos);
         storeProperties();
-        for (TemplateInfo ti:templateInfos)
-            fireTemplateInfoRemoveEvent(ti);
+        for (TemplateInfo ti : templateInfos) fireTemplateInfoRemoveEvent(ti);
     }
 
     @Override
@@ -103,7 +98,7 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
 
     @Override
     public void fireTemplateInfoRemoveEvent(TemplateInfo templateInfo) {
-        for (TemplateListener listener: listeners){
+        for (TemplateListener listener : listeners) {
             listener.handleDeleteEvent(new TemplateInfoRemoveEvent(templateInfo));
         }
     }
@@ -188,24 +183,28 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
         }
     }
 
-
-
     @Override
     public TemplateInfo findById(String id) {
-        if (isModified() || templateDataSet.isEmpty())
-            loadTemplateInfo();
-        Optional<TemplateInfo> optional=templateDataSet.stream().filter(ti->ti.getIdentifier().equals(id)).findFirst();
-        if (optional.isPresent())
-            return optional.get();
-        else
-            return null;
+        if (isModified() || templateDataSet.isEmpty()) loadTemplateInfo();
+        Optional<TemplateInfo> optional =
+                templateDataSet.stream().filter(ti -> ti.getIdentifier().equals(id)).findFirst();
+        if (optional.isPresent()) return optional.get();
+        else return null;
     }
 
     @Override
-    public List<TemplateInfo> findByWorkspaceAndFeatureTypeInfo(String workspace, String featureTypeInfo) {
-        return templateDataSet.stream().filter(ti->(ti.getWorkspace()==null && ti.getFeatureType()==null) ||
-                ti.getFeatureType()==null && ti.getWorkspace().equals(workspace)
-                || (ti.getWorkspace().equals(workspace) && ti.getFeatureType().equals(featureTypeInfo))
-        ).collect(Collectors.toList());
+    public List<TemplateInfo> findByWorkspaceAndFeatureTypeInfo(
+            String workspace, String featureTypeInfo) {
+        if (isModified() || templateDataSet.isEmpty()) loadTemplateInfo();
+        return templateDataSet
+                .stream()
+                .filter(
+                        ti ->
+                                (ti.getWorkspace() == null && ti.getFeatureType() == null)
+                                        || ti.getFeatureType() == null
+                                                && ti.getWorkspace().equals(workspace)
+                                        || (ti.getWorkspace().equals(workspace)
+                                                && ti.getFeatureType().equals(featureTypeInfo)))
+                .collect(Collectors.toList());
     }
 }

@@ -3,12 +3,9 @@ package org.geoserver.featurestemplating.web;
 import static org.geoserver.featurestemplating.web.TemplateRuleProvider.CQL_FILTER;
 import static org.geoserver.featurestemplating.web.TemplateRuleProvider.NAME;
 import static org.geoserver.featurestemplating.web.TemplateRuleProvider.OUTPUT_FORMAT;
-import static org.geoserver.featurestemplating.web.TemplateRuleProvider.REGEX;
-import static org.geoserver.featurestemplating.web.TemplateRuleProvider.SINGLE_FEATURE;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -59,8 +56,9 @@ public class TemplateRulesTablePanel extends Panel {
 
                             @Override
                             public void onClick(AjaxRequestTarget target) {
-                                Set<TemplateRule> rules=TemplateRulesTablePanel.this.getModel().getObject();
-                                Set<TemplateRule> updated=new HashSet<>(rules);
+                                Set<TemplateRule> rules =
+                                        TemplateRulesTablePanel.this.getModel().getObject();
+                                Set<TemplateRule> updated = new HashSet<>(rules);
                                 updated.removeAll(table.getSelection());
                                 TemplateRulesTablePanel.this.getModel().setObject(updated);
                                 TemplateRulesTablePanel.this.modelChanged();
@@ -70,7 +68,6 @@ public class TemplateRulesTablePanel extends Panel {
                         });
         add(table);
     }
-
 
     public class TemplateRuleTable extends GeoServerTablePanel<TemplateRule> {
 
@@ -85,12 +82,11 @@ public class TemplateRulesTablePanel extends Panel {
                 IModel<TemplateRule> itemModel,
                 GeoServerDataProvider.Property<TemplateRule> property) {
             if (property.equals(NAME))
-                return new SimpleAjaxLink<TemplateRule>(
-                        id, itemModel, NAME.getModel(itemModel)) {
+                return new SimpleAjaxLink<TemplateRule>(id, itemModel, NAME.getModel(itemModel)) {
 
                     @Override
                     protected void onClick(AjaxRequestTarget target) {
-                        TemplateRule rule=itemModel.getObject();
+                        TemplateRule rule = itemModel.getObject();
                         configurationPanel.theForm.getModel().setObject(rule);
                         configurationPanel.theForm.modelChanged();
                         target.add(configurationPanel.theForm);
@@ -98,12 +94,8 @@ public class TemplateRulesTablePanel extends Panel {
                 };
             else if (property.equals(OUTPUT_FORMAT))
                 return new Label(id, OUTPUT_FORMAT.getModel(itemModel));
-            else if (property.equals(REGEX)) return new Label(id, REGEX.getModel(itemModel));
             else if (property.equals(CQL_FILTER))
                 return new Label(id, CQL_FILTER.getModel(itemModel));
-            else if (property.equals(SINGLE_FEATURE)) {
-                return new Label(id,SINGLE_FEATURE.getModel(itemModel));
-            }
             return null;
         }
     }
@@ -116,8 +108,7 @@ public class TemplateRulesTablePanel extends Panel {
         return table;
     }
 
-    public void setConfigurationPanel (TemplateRuleConfigurationPanel panel){
-        this.configurationPanel=panel;
+    public void setConfigurationPanel(TemplateRuleConfigurationPanel panel) {
+        this.configurationPanel = panel;
     }
-
 }

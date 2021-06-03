@@ -1,5 +1,6 @@
 package org.geoserver.featurestemplating.configuration;
 
+import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.platform.GeoServerExtensions;
 
 import java.util.List;
@@ -14,10 +15,8 @@ public interface TemplateInfoDao {
 
     public List<TemplateInfo> findAll();
 
-    public List<TemplateInfo> findByWorkspaceAndFeatureTypeInfo(
-            String workspace, String featureTypeInfo);
-
-    public TemplateInfo findByName(String templateName);
+    public List<TemplateInfo> findByFeatureTypeInfo(
+            FeatureTypeInfo featureTypeInfo);
 
     public TemplateInfo findById(String id);
 
@@ -27,9 +26,8 @@ public interface TemplateInfoDao {
 
     public void delete(TemplateInfo templateData);
 
-    public void delete(String templateName);
 
-    public boolean templateDataExists(TemplateInfo templateInfo);
+    public void fireTemplateUpdateEvent(TemplateInfo templateInfo);
 
     public void fireTemplateInfoRemoveEvent(TemplateInfo templateInfo);
 

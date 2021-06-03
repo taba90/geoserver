@@ -1,72 +1,55 @@
 package org.geoserver.featurestemplating.web;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
+
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.WicketRuntimeException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxCallListener;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.core.util.string.JavaScriptUtils;
-import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.extensions.ajax.markup.html.tabs.AjaxTabbedPanel;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.extensions.markup.html.tabs.PanelCachingTab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.form.upload.FileUpload;
-import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.geoserver.catalog.Catalog;
-import org.geoserver.catalog.NamespaceInfo;
 import org.geoserver.featurestemplating.configuration.TemplateFileManager;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDao;
-import org.geoserver.featurestemplating.configuration.TemplateInfoDaoImpl;
-import org.geoserver.featurestemplating.configuration.TemplateInfoValidator;
-import org.geoserver.ows.util.ResponseUtils;
 import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.exception.GeoServerException;
 import org.geoserver.platform.resource.Resource;
 import org.geoserver.web.GeoServerSecuredPage;
 import org.geoserver.web.wicket.CodeMirrorEditor;
-import org.geoserver.web.wicket.ParamResourceModel;
 
 public class TemplateConfigurationPage extends GeoServerSecuredPage {
 
+
+
+    protected AjaxTabbedPanel<ITab> tabbedPanel;
+
     private boolean isNew;
 
-    CodeMirrorEditor editor;
+    private CodeMirrorEditor editor;
 
-    TextField templateName;
+    private Form<TemplateInfo> form;
 
-    private Form form;
+    private IModel<TemplateInfo> templateInfoModel;
 
-    protected FileUploadField fileUploadField;
-
-    IModel<TemplateInfo> templateInfoModel;
-
-    DropDownChoice<String> templateExtension;
+    private TemplatePreviewPanel previewPanel;
 
     String rawTemplate;
 
-    AjaxSubmitLink uploadLink;
 
     public TemplateConfigurationPage(IModel<TemplateInfo> model, boolean isNew) {
         this.isNew = isNew;
@@ -77,71 +60,69 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
     private void initUI(IModel<TemplateInfo> model) {
         if (!isNew) getTemplateFileManager().addMemento(model.getObject());
         form =
-                new Form<TemplateInfo>("theForm", model) {
+                new Form<>("theForm", model);
+        List<ITab> tabs = new ArrayList<>();
+        PanelCachingTab previewTab= new PanelCachingTab(
+                new AbstractTab(new Model<>("Preview")) {
                     @Override
-                    protected void onSubmit() {
-                        super.onSubmit();
-                        TemplateInfo templateInfo = (TemplateInfo) form.getModelObject();
-                        String rawTemplate = getRawTemplate();
-                        TemplateInfoValidator validator =
-                                new TemplateInfoValidator(templateInfo, rawTemplate);
-                        if (!validateAndReport(validator)) return;
-                        File destDir = getTemplateFileManager().getTemplateLocation(templateInfo);
-                        try {
-                            File file =
-                                    new File(
-                                            destDir,
-                                            templateInfo.getTemplateName()
-                                                    + "."
-                                                    + templateInfo.getExtension());
-                            file.createNewFile();
-                            try (FileOutputStream fos = new FileOutputStream(file, false)) {
-                                fos.write(rawTemplate.getBytes());
+                    public Panel getPanel(String id) {
+                        previewPanel=new TemplatePreviewPanel(id,TemplateConfigurationPage.this);
+                        return previewPanel;
+                    }
+                }
+        );
+        PanelCachingTab dataTab= new PanelCachingTab(
+                new AbstractTab(new Model<>("Data")) {
+                    @Override
+                    public Panel getPanel(String id) {
+                        return new TemplateInfoDataPanel(id,TemplateConfigurationPage.this){
+                            @Override
+                            protected TemplatePreviewPanel getPreviewPanel() {
+                                return previewPanel;
                             }
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                        TemplateInfoDao.get().saveOrUpdate(templateInfo);
-                        getTemplateFileManager().deleteOldTemplateFile(templateInfo);
+                        };
                     }
-                };
+                }
+        );
+        tabs.add(dataTab);
+        tabs.add(previewTab);
+        tabbedPanel=new AjaxTabbedPanel<ITab>("tabbedPanel", tabs) {
+            @Override
+            protected String getTabContainerCssClass() {
+                return "tab-row tab-row-compact";
+            }
 
-        templateName = new TextField<>("templateName", new PropertyModel<>(model, "templateName"));
-        templateName.setRequired(true);
-        form.add(templateName);
-        // form.add (new TextField<>("templateLocation",new PropertyModel<>(model,
-        // "templateLocation")));
-        templateExtension =
-                new DropDownChoice<>(
-                        "extension", new PropertyModel<>(model, "extension"), getExtensions());
-        DropDownChoice<String> wsDropDown =
-                new DropDownChoice<>(
-                        "workspace", new PropertyModel<>(model, "workspace"), getWorkspaces());
-        wsDropDown.setNullValid(true);
-        DropDownChoice<String> ftiDropDown =
-                new DropDownChoice<>(
-                        "featureTypeInfo",
-                        new PropertyModel<>(model, "featureType"),
-                        Collections.emptyList());
-        form.add(wsDropDown);
-        if (wsDropDown.getValue() == null || wsDropDown.getValue() == "-1")
-            ftiDropDown.setEnabled(false);
-        else ftiDropDown.setChoices(getFeatureTypesInfo(wsDropDown.getModelObject()));
-        ftiDropDown.setOutputMarkupId(true);
-        ftiDropDown.setNullValid(true);
-        form.add(ftiDropDown);
-        wsDropDown.add(
-                new OnChangeAjaxBehavior() {
-                    private static final long serialVersionUID = 732177308220189475L;
+            @Override
+            protected WebMarkupContainer newLink(String linkId, final int index) {
 
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        ftiDropDown.setChoices(getFeatureTypesInfo(wsDropDown.getConvertedInput()));
-                        ftiDropDown.modelChanged();
-                        target.add(ftiDropDown);
-                        ftiDropDown.setEnabled(true);
-                    }
-                });
+                AjaxSubmitLink link =
+                        new AjaxSubmitLink(linkId) {
+
+                            private static final long serialVersionUID = 4599409150448651749L;
+
+                            @Override
+                            public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                                TemplateInfo templateInfo=(TemplateInfo)form.getModelObject();
+                                if (!validateAndReport(templateInfo,rawTemplate)) return;
+                                saveTemplateInfo(templateInfo);
+                                setSelectedTab(index);
+                                target.add(tabbedPanel);
+                            }
+
+                            @Override
+                            protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
+                                if (form.hasError())
+                                    addFeedbackPanels(target);
+                            }
+                        };
+                link.setDefaultFormProcessing(false);
+                return link;
+            }
+        };
+        tabbedPanel.setMarkupId("template-info-tabbed-panel");
+        tabbedPanel.setOutputMarkupId(true);
+        form.add(tabbedPanel);
+
         this.rawTemplate = getStringTemplate(model.getObject());
         String mode;
         if (!isNew && model.getObject().getExtension().equals("json")) mode = "javascript";
@@ -152,31 +133,12 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
         if (mode.equals("javascript"))
             editor.setModeAndSubMode(mode, model.getObject().getExtension());
         editor.setOutputMarkupId(true);
-        templateExtension.add(
-                new OnChangeAjaxBehavior() {
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
-                        String mode = templateExtension.getConvertedInput();
-                        if (mode != null && (mode.equals("xml") || mode.equals("xhtml")))
-                            editor.setMode("xml");
-                        else editor.setModeAndSubMode("javascript", mode);
-                        ajaxRequestTarget.add(editor);
-                    }
-                });
-        templateExtension.setRequired(true);
-        form.add(templateExtension);
         form.add(editor);
         editor.setTextAreaMarkupId("editor");
         editor.setMarkupId("templateEditor");
         editor.setOutputMarkupId(true);
         form.add(editor);
         add(form);
-        fileUploadField = new FileUploadField("filename");
-        // Explicitly set model so this doesn't use the form model
-        fileUploadField.setDefaultModel(new Model<>(""));
-        form.add(fileUploadField);
-        uploadLink = uploadLink();
-        form.add(uploadLink);
         add(getSubmit());
         add(
                 new Link<TemplateInfoPage>("cancel") {
@@ -185,24 +147,6 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                         doReturn(TemplateInfoPage.class);
                     }
                 });
-    }
-
-    private List<String> getWorkspaces() {
-        Catalog catalog = (Catalog) GeoServerExtensions.bean("catalog");
-        return catalog.getWorkspaces().stream().map(w -> w.getName()).collect(Collectors.toList());
-    }
-
-    private List<String> getExtensions() {
-        return Arrays.asList("xml", "xhtml", "json");
-    }
-
-    private List<String> getFeatureTypesInfo(String workspaceName) {
-        Catalog catalog = (Catalog) GeoServerExtensions.bean("catalog");
-        NamespaceInfo namespaceInfo = catalog.getNamespaceByPrefix(workspaceName);
-        return catalog.getFeatureTypesByNamespace(namespaceInfo)
-                .stream()
-                .map(fti -> fti.getName())
-                .collect(Collectors.toList());
     }
 
     private String getStringTemplate(TemplateInfo templateInfo) {
@@ -236,6 +180,15 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
         AjaxSubmitLink submitLink =
                 new AjaxSubmitLink("save", form) {
                     @Override
+                    protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        super.onSubmit(target, form);
+                        TemplateInfo templateInfo = (TemplateInfo) form.getModelObject();
+                        String rawTemplate = getRawTemplate();
+                        if (!validateAndReport(templateInfo,rawTemplate)) return;
+                        saveTemplateInfo(templateInfo);
+                    }
+
+                    @Override
                     protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
                         if (form.hasError()) {
                             addFeedbackPanels(target);
@@ -247,6 +200,24 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
         return submitLink;
     }
 
+    void saveTemplateFile(TemplateInfo templateInfo){
+        File destDir = getTemplateFileManager().getTemplateLocation(templateInfo);
+        try {
+            File file =
+                    new File(
+                            destDir,
+                            templateInfo.getTemplateName()
+                                    + "."
+                                    + templateInfo.getExtension());
+            file.createNewFile();
+            try (FileOutputStream fos = new FileOutputStream(file, false)) {
+                fos.write(rawTemplate.getBytes());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void setRawTemplate(String rawTemplate) {
         this.rawTemplate = rawTemplate;
     }
@@ -255,137 +226,39 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
         return rawTemplate;
     }
 
-    AjaxSubmitLink uploadLink() {
-        return new ConfirmOverwriteSubmitLink("upload", this.form) {
 
-            private static final long serialVersionUID = 658341311654601761L;
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                FileUpload upload = fileUploadField.getFileUpload();
-                if (upload == null) {
-                    warn("No file selected.");
-                    return;
-                }
-                ByteArrayOutputStream bout = new ByteArrayOutputStream();
-                try {
-                    IOUtils.copy(upload.getInputStream(), bout);
-                    getTemplateConfPage().editor.reset();
-                    getTemplateConfPage()
-                            .setRawTemplate(
-                                    new InputStreamReader(
-                                            new ByteArrayInputStream(bout.toByteArray()), "UTF-8"));
-                    upload.getContentType();
-                } catch (IOException e) {
-                    throw new WicketRuntimeException(e);
-                } catch (Exception e) {
-                    getTemplateConfPage()
-                            .error(
-                                    "Errors occurred uploading the '"
-                                            + upload.getClientFileName()
-                                            + "' template");
-                    LOGGER.log(
-                            Level.WARNING,
-                            "Errors occurred uploading the '"
-                                    + upload.getClientFileName()
-                                    + "' template",
-                            e);
-                }
-
-                TemplateInfo templateInfo =
-                        getTemplateConfPage().getTemplateInfoModel().getObject();
-                // set it
-                String fileName = upload.getClientFileName();
-                if (templateInfo.getTemplateName() == null
-                        || "".equals(templateInfo.getTemplateName().trim())) {
-                    templateName.setModelValue(
-                            new String[] {ResponseUtils.stripExtension(fileName)});
-                }
-                int index = fileName.lastIndexOf(".");
-                String extension = fileName.substring(index + 1);
-                templateInfo.setExtension(extension);
-                if (!extension.equals("xml")) {
-                    editor.setModeAndSubMode("javascript", "json");
-                } else {
-                    editor.setMode(extension);
-                }
-                editor.modelChanged();
-                templateName.modelChanged();
-                templateExtension.modelChanged();
-                target.add(getTemplateConfPage());
-                target.add(editor);
-            }
-        };
-    }
-
-    class ConfirmOverwriteSubmitLink extends AjaxSubmitLink {
-
-        private static final long serialVersionUID = 2673499149884774636L;
-
-        public ConfirmOverwriteSubmitLink(String id) {
-            super(id);
-        }
-
-        public ConfirmOverwriteSubmitLink(String id, Form<?> form) {
-            super(id, form);
-        }
-
-        @Override
-        protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-            super.updateAjaxAttributes(attributes);
-            attributes
-                    .getAjaxCallListeners()
-                    .add(
-                            new AjaxCallListener() {
-                                /** serialVersionUID */
-                                private static final long serialVersionUID = 8637613472102572505L;
-
-                                @Override
-                                public CharSequence getPrecondition(Component component) {
-                                    CharSequence message =
-                                            new ParamResourceModel(
-                                                            "confirmOverwrite",
-                                                            getTemplateConfPage())
-                                                    .getString();
-                                    message = JavaScriptUtils.escapeQuotes(message);
-                                    return "var val = attrs.event.view.document.gsEditors ? "
-                                            + "attrs.event.view.document.gsEditors."
-                                            + getTemplateConfPage().editor.getTextAreaMarkupId()
-                                            + ".getValue() : "
-                                            + "attrs.event.view.document.getElementById(\""
-                                            + getTemplateConfPage().editor.getTextAreaMarkupId()
-                                            + "\").value; "
-                                            + "if(val != '' &&"
-                                            + "!confirm('"
-                                            + message
-                                            + "')) return false;";
-                                }
-                            });
-        }
-
-        @Override
-        public boolean getDefaultFormProcessing() {
-            return false;
-        }
-    }
-
-    TemplateConfigurationPage getTemplateConfPage() {
-        return this;
+    Form<TemplateInfo> getForm(){
+        return form;
     }
 
     public IModel<TemplateInfo> getTemplateInfoModel() {
         return templateInfoModel;
     }
 
-    private boolean validateAndReport(TemplateInfoValidator validator) {
+    private boolean validateAndReport(TemplateInfo info, String rawTemplate) {
         try {
-            validator.validate();
+            TemplateModelsValidator validator =
+                    new TemplateModelsValidator();
+            validator.validate(info,rawTemplate);
         } catch (GeoServerException e) {
             form.error(e.getMessage());
             return false;
         }
         return true;
     }
+
+    void saveTemplateInfo(TemplateInfo templateInfo){
+        String rawTemplate = getRawTemplate();
+        if (!validateAndReport(templateInfo,rawTemplate)) return;
+        saveTemplateFile(templateInfo);
+        TemplateInfoDao.get().saveOrUpdate(templateInfo);
+        getTemplateFileManager().deleteOldTemplateFile(templateInfo);
+    }
+
+    CodeMirrorEditor getEditor(){
+        return this.editor;
+    }
+
 
     static TemplateFileManager getTemplateFileManager() {
         return GeoServerExtensions.bean(TemplateFileManager.class);

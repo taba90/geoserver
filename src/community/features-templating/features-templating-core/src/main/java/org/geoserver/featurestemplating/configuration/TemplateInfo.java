@@ -46,7 +46,6 @@ public class TemplateInfo extends AbstractFeatureTemplateInfo {
     public boolean lenientEquals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
         TemplateInfo that = (TemplateInfo) o;
         return Objects.equals(description, that.description);
     }
@@ -58,6 +57,7 @@ public class TemplateInfo extends AbstractFeatureTemplateInfo {
 
     @Override
     public boolean equals(Object info) {
+        if (!super.equals(info)) return false;
         if (!lenientEquals(info)) return false;
         TemplateInfo templateInfo = (TemplateInfo) info;
         return Objects.equals(identifier, templateInfo.identifier);

@@ -4,7 +4,7 @@
 
 <beans>
 
-    <bean id="templateConfiguration" class="org.geoserver.featurestemplating.configuration.TemplateConfiguration">
+    <bean id="templateConfiguration" class="org.geoserver.featurestemplating.configuration.TemplateLoader">
         <constructor-arg ref="dataDirectory"/>
     </bean>
 

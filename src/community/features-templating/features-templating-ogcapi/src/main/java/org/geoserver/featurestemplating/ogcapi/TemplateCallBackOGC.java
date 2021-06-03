@@ -18,7 +18,7 @@ import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
-import org.geoserver.featurestemplating.configuration.TemplateConfiguration;
+import org.geoserver.featurestemplating.configuration.TemplateLoader;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
 import org.geoserver.featurestemplating.expressions.TemplateCQLManager;
 import org.geoserver.featurestemplating.request.TemplatePathVisitor;
@@ -59,7 +59,7 @@ public class TemplateCallBackOGC extends AbstractDispatcherCallback {
 
     private Catalog catalog;
 
-    private TemplateConfiguration configuration;
+    private TemplateLoader configuration;
 
     private GeoServer gs;
 
@@ -67,7 +67,7 @@ public class TemplateCallBackOGC extends AbstractDispatcherCallback {
 
     private static final FilterFactory2 FF = CommonFactoryFinder.getFilterFactory2();
 
-    public TemplateCallBackOGC(GeoServer gs, TemplateConfiguration configuration) {
+    public TemplateCallBackOGC(GeoServer gs, TemplateLoader configuration) {
         this.catalog = gs.getCatalog();
         this.configuration = configuration;
         this.gs = gs;

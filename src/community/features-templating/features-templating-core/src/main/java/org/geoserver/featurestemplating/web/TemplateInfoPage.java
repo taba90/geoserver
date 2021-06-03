@@ -2,17 +2,20 @@ package org.geoserver.featurestemplating.web;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxCallListener;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.core.util.string.JavaScriptUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.geoserver.featurestemplating.configuration.TemplateFileManager;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDao;
-import org.geoserver.featurestemplating.configuration.TemplateInfoDaoImpl;
 import org.geoserver.web.GeoServerSecuredPage;
 import org.geoserver.web.wicket.GeoServerDataProvider;
 import org.geoserver.web.wicket.GeoServerTablePanel;
+import org.geoserver.web.wicket.ParamResourceModel;
 import org.geoserver.web.wicket.SimpleAjaxLink;
 
 public class TemplateInfoPage extends GeoServerSecuredPage {
@@ -53,6 +56,29 @@ public class TemplateInfoPage extends GeoServerSecuredPage {
                                 target.add(tablePanel);
                                 target.add(TemplateInfoPage.this);
                             }
+
+                            @Override
+                            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                                super.updateAjaxAttributes(attributes);
+                                attributes
+                                        .getAjaxCallListeners()
+                                        .add(
+                                                new AjaxCallListener() {
+
+                                                    @Override
+                                                    public CharSequence getPrecondition(Component component) {
+                                                        CharSequence message =
+                                                                new ParamResourceModel(
+                                                                        "confirmRemove",
+                                                                        TemplateInfoPage.this)
+                                                                        .getString();
+                                                        message = JavaScriptUtils.escapeQuotes(message);
+                                                        return "return confirm('"
+                                                                + message
+                                                                + "');";
+                                                    }
+                                                });
+                            }
                         });
         tablePanel =
                 new GeoServerTablePanel<TemplateInfo>(
@@ -81,15 +107,6 @@ public class TemplateInfoPage extends GeoServerSecuredPage {
                         else if (property.equals(TemplateInfoProvider.FEATURE_TYPE_INFO)) {
                             return new Label(
                                     id, TemplateInfoProvider.FEATURE_TYPE_INFO.getModel(itemModel));
-                        } else if (property.equals(TemplateInfoProvider.PREVIEW_LINK)) {
-                            return new SimpleAjaxLink<TemplateInfo>(
-                                    id, itemModel, TemplateInfoProvider.NAME.getModel(itemModel)) {
-
-                                @Override
-                                protected void onClick(AjaxRequestTarget target) {
-                                    setResponsePage(new TemplatePreviewPage(getModelObject()));
-                                }
-                            };
                         }
                         return null;
                     }

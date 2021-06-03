@@ -87,11 +87,15 @@ public abstract class AbstractFeatureTemplateInfo
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+        return lenientEquals(o);
+    }
+
+    public boolean lenientEquals(Object o) {
         AbstractFeatureTemplateInfo that = (AbstractFeatureTemplateInfo) o;
-        return Objects.equals(templateName, that.templateName)
-                && Objects.equals(workspace, that.workspace)
-                && Objects.equals(featureType, that.featureType)
-                && Objects.equals(extension, that.extension);
+        return Objects.equals(templateName, that.templateName) &&
+                Objects.equals(workspace, that.workspace) &&
+                Objects.equals(featureType, that.featureType) &&
+                Objects.equals(extension, that.extension);
     }
 
     @Override

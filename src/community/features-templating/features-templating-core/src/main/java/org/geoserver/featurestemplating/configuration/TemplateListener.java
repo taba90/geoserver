@@ -2,5 +2,7 @@ package org.geoserver.featurestemplating.configuration;
 
 public interface TemplateListener {
 
-    void handleDeleteEvent(TemplateInfoRemoveEvent removeEvent);
+    void handleDeleteEvent(TemplateInfoEvent removeEvent);
+
+    void handleUpdateEvent(TemplateInfoEvent updateEvent);
 }

@@ -11,8 +11,9 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+
+import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServerDataDirectory;
-import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.resource.Resource;
 import org.geoserver.security.PropertyFileWatcher;
 
@@ -42,36 +43,24 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
 
     @Override
     public List<TemplateInfo> findAll() {
-        if (isModified() || templateDataSet.isEmpty()) {
-            loadTemplateInfo();
-        }
+        reloadIfNeeded();
         return new ArrayList<>(templateDataSet);
     }
 
     @Override
-    public TemplateInfo findByName(String templateName) {
-        if (isModified()) {
-            loadTemplateInfo();
-        }
-        Optional<TemplateInfo> info =
-                templateDataSet
-                        .stream()
-                        .filter(ti -> ti.getTemplateName().equals(templateName))
-                        .findFirst();
-        return info.get();
-    }
-
-    @Override
     public TemplateInfo saveOrUpdate(TemplateInfo templateData) {
-        if (isModified() || templateDataSet.isEmpty()) loadTemplateInfo();
-        templateDataSet.removeIf(ti->ti.getIdentifier().equals(templateData.getIdentifier()));
+        reloadIfNeeded();
+        boolean isUpdate=templateDataSet.removeIf(ti->ti.getIdentifier().equals(templateData.getIdentifier()));
         templateDataSet.add(templateData);
         storeProperties();
+        if (isUpdate)
+            fireTemplateUpdateEvent(templateData);
         return templateData;
     }
 
     @Override
     public void delete(TemplateInfo templateData) {
+        reloadIfNeeded();
         templateDataSet.remove(templateData);
         fireTemplateInfoRemoveEvent(templateData);
         storeProperties();
@@ -79,27 +68,50 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
 
     @Override
     public void deleteAll(List<TemplateInfo> templateInfos) {
+        reloadIfNeeded();
         templateDataSet.removeAll(templateInfos);
         storeProperties();
         for (TemplateInfo ti : templateInfos) fireTemplateInfoRemoveEvent(ti);
     }
 
     @Override
-    public void delete(String templateName) {
-        templateDataSet.removeIf(td -> td.getTemplateName().equals(templateName));
-        storeProperties();
+    public TemplateInfo findById(String id) {
+        reloadIfNeeded();
+        Optional<TemplateInfo> optional =
+                templateDataSet.stream().filter(ti -> ti.getIdentifier().equals(id)).findFirst();
+        if (optional.isPresent()) return optional.get();
+        else return null;
     }
 
     @Override
-    public boolean templateDataExists(TemplateInfo templateInfo) {
-        if (isModified()) loadTemplateInfo();
-        return templateDataSet.stream().anyMatch(td -> td.lenientEquals(templateInfo));
+    public List<TemplateInfo> findByFeatureTypeInfo(
+            FeatureTypeInfo featureTypeInfo) {
+        reloadIfNeeded();
+        String workspace =featureTypeInfo.getStore().getWorkspace().getName();
+        String name=featureTypeInfo.getNativeName();
+        return templateDataSet
+                .stream()
+                .filter(
+                        ti ->
+                                (ti.getWorkspace() == null && ti.getFeatureType() == null)
+                                        || ti.getFeatureType() == null
+                                                && ti.getWorkspace().equals(workspace)
+                                        || (ti.getWorkspace().equals(workspace)
+                                                && ti.getFeatureType().equals(name)))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void fireTemplateUpdateEvent(TemplateInfo templateInfo) {
+        for (TemplateListener listener:listeners){
+            listener.handleUpdateEvent(new TemplateInfoEvent(templateInfo));
+        }
     }
 
     @Override
     public void fireTemplateInfoRemoveEvent(TemplateInfo templateInfo) {
         for (TemplateListener listener : listeners) {
-            listener.handleDeleteEvent(new TemplateInfoRemoveEvent(templateInfo));
+            listener.handleDeleteEvent(new TemplateInfoEvent(templateInfo));
         }
     }
 
@@ -107,6 +119,7 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
     public void addTemplateListener(TemplateListener listener) {
         this.listeners.add(listener);
     }
+
 
     private TemplateInfo parseProperty(String key, String value) {
         TemplateInfo templateData = new TemplateInfo();
@@ -144,24 +157,12 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
 
     private void storeProperties() {
         synchronized (this) {
-            OutputStream os = null;
-            try {
-                // turn back the users into a users map
-                Properties p = toProperties();
-                // write out to the data dir
-                Resource propFile = dd.get(TEMPLATE_DIR, PROPERTY_FILE_NAME);
-                os = propFile.out();
+            Properties p = toProperties();
+            Resource propFile = dd.get(TEMPLATE_DIR, PROPERTY_FILE_NAME);
+            try(OutputStream os = propFile.out()){
                 p.store(os, null);
             } catch (Exception e) {
                 throw new RuntimeException("Could not write rules to " + PROPERTY_FILE_NAME);
-            } finally {
-                if (os != null) {
-                    try {
-                        os.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
             }
         }
     }
@@ -179,32 +180,14 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
                 this.templateDataSet.add(td);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
-    @Override
-    public TemplateInfo findById(String id) {
+    private void reloadIfNeeded(){
         if (isModified() || templateDataSet.isEmpty()) loadTemplateInfo();
-        Optional<TemplateInfo> optional =
-                templateDataSet.stream().filter(ti -> ti.getIdentifier().equals(id)).findFirst();
-        if (optional.isPresent()) return optional.get();
-        else return null;
     }
 
-    @Override
-    public List<TemplateInfo> findByWorkspaceAndFeatureTypeInfo(
-            String workspace, String featureTypeInfo) {
-        if (isModified() || templateDataSet.isEmpty()) loadTemplateInfo();
-        return templateDataSet
-                .stream()
-                .filter(
-                        ti ->
-                                (ti.getWorkspace() == null && ti.getFeatureType() == null)
-                                        || ti.getFeatureType() == null
-                                                && ti.getWorkspace().equals(workspace)
-                                        || (ti.getWorkspace().equals(workspace)
-                                                && ti.getFeatureType().equals(featureTypeInfo)))
-                .collect(Collectors.toList());
-    }
 }
+
+

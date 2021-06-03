@@ -64,7 +64,7 @@ public class TemplateFileManager {
                                 + memento.getTemplateName());
             }
             TemplateInfoMemento infoMemento = mementoMap.get(identifier);
-            if (!infoMemento.equals(info)) {
+            if (!infoMemento.lenientEquals(info)) {
                 boolean result = getTemplateResource(memento).delete();
                 if (!result) {
                     if (LOGGER.isLoggable(Level.WARNING))

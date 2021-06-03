@@ -23,8 +23,9 @@ public class TemplateRule implements Serializable {
 
     private String service;
 
-
     private String cqlFilter;
+
+    private boolean forceRule;
 
 
     public TemplateRule(){
@@ -137,6 +138,14 @@ public class TemplateRule implements Serializable {
 
     public void setRuleId(String ruleId) {
         this.ruleId = ruleId;
+    }
+
+    public boolean isForceRule() {
+        return forceRule;
+    }
+
+    public void setForceRule(boolean forceRule) {
+        this.forceRule = forceRule;
     }
 
     @Override

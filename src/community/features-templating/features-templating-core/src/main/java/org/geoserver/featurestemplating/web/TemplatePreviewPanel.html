@@ -3,7 +3,8 @@
     <title><wicket:message key="title">Template Preview</wicket:message></title>
 </head>
 <body>
-<wicket:extend>
+<wicket:panel>
+    <form name="previewForm" wicket:id="previewForm" id="previewForm">
     <ul>
         <li>
             <fieldset>
@@ -21,14 +22,24 @@
                         <select wicket:id="featureTypes" id="featureTypes" />
                     </li>
                     <li>
+                        <label for="featureId"><wicket:message key="featureId"></wicket:message></label>
+                        <input type="text" wicket:id="featureId" id="featureId" />
+                    </li>
+                    <li>
                         <label for="previewArea"><wicket:message key="previewArea"></wicket:message></label>
                         <div class="field" wicket:id="previewArea" id="previewArea"> </div>
+                        <div wicket:id="validateFeedback"></div>
                     </li>
                 </ul>
             </fieldset>
         </li>
     </ul>
-    <a href="#" class="form-button-save" wicket:id="previewLink" id="previewLink"><wicket:message key="previewLink">Preview</wicket:message></a>
-</wicket:extend>
+    </form>
+    <div class="button-group toolbar-sticky selfclear">
+    <a href="#" class="form-button-save" wicket:id="preview" id="preview"><wicket:message key="preview">Preview</wicket:message></a>
+    <a href="#" class="form-button-save" wicket:id="validate" id="validate"><wicket:message key="validate">Validate</wicket:message></a>
+    </div>
+
+</wicket:panel>
 </body>
 </html>

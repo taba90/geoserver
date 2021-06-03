@@ -28,8 +28,9 @@ public class TemplateRulesTabPanel extends PublishedEditTabPanel<LayerInfo> {
         super(id, model);
         LayerInfo li = model.getObject();
         ResourceInfo ri = li.getResource();
-        if (!(ri instanceof FeatureTypeInfo)) this.setEnabled(false);
-        else {
+        if (!(ri instanceof FeatureTypeInfo)) {
+            configurationPanel.setEnabled(false);
+        }
             TemplateInfoDao infoDao = TemplateInfoDao.get();
             FeatureTypeTemplateListener listener =
                     new FeatureTypeTemplateListener((FeatureTypeInfo) ri);
@@ -50,7 +51,6 @@ public class TemplateRulesTabPanel extends PublishedEditTabPanel<LayerInfo> {
             configurationPanel.setOutputMarkupId(true);
             tablePanel.setConfigurationPanel(configurationPanel);
             add(configurationPanel);
-        }
     }
 
     @Override

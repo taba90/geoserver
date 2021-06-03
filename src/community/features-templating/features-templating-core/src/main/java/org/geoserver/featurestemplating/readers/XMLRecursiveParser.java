@@ -235,7 +235,7 @@ public class XMLRecursiveParser extends RecursiveTemplateResourceParser implemen
             if (isNamespace(name)) {
                 namespaces.put(localPart(name), attribute.getValue());
             } else if (isSchemaLocation(name)) {
-                schemaLocation.put(localPart(attribute.getName()), attribute.getValue());
+                schemaLocation.put(strName(attribute.getName()), attribute.getValue());
             }
         }
         rootBuilder.addEncodingHint(NAMESPACES, namespaces);

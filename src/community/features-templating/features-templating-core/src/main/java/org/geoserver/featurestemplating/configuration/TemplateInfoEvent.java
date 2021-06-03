@@ -1,10 +1,10 @@
 package org.geoserver.featurestemplating.configuration;
 
-public class TemplateInfoRemoveEvent {
+public class TemplateInfoEvent {
 
     private TemplateInfo ti;
 
-    public TemplateInfoRemoveEvent(TemplateInfo templateInfo) {
+    public TemplateInfoEvent(TemplateInfo templateInfo) {
         this.ti = templateInfo;
     }
 

@@ -8,7 +8,10 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -34,12 +37,12 @@ import org.opengis.feature.type.FeatureType;
 import org.xml.sax.helpers.NamespaceSupport;
 
 /** Manage the cache and the retrieving for all templates files */
-public class TemplateConfiguration {
+public class TemplateLoader {
 
     private final LoadingCache<CacheKey, Template> templateCache;
     private GeoServerDataDirectory dataDirectory;
 
-    public TemplateConfiguration(GeoServerDataDirectory dd) {
+    public TemplateLoader(GeoServerDataDirectory dd) {
         this.dataDirectory = dd;
         templateCache =
                 CacheBuilder.newBuilder()
@@ -211,6 +214,7 @@ public class TemplateConfiguration {
     }
 
     private String getTemplateIdentifierByLayerRuleEvaluation(FeatureTypeInfo featureTypeInfo) {
+        List<TemplateRule> matching = new ArrayList<>();
         TemplateLayerConfig config =
                 featureTypeInfo
                         .getMetadata()
@@ -220,10 +224,43 @@ public class TemplateConfiguration {
             Set<TemplateRule> rules = config.getTemplateRules();
             Request request = Dispatcher.REQUEST.get();
             for (TemplateRule r : rules) {
-                if (r.applyRule(request)) return r.getTemplateIdentifier();
+                if (r.applyRule(request)) matching.add(r);
             }
         }
+        int size=matching.size();
+        if (size>0) {
+            if (size>1) {
+                Comparator<TemplateRule> comparator = new Comparator<TemplateRule>() {
+                    @Override
+                    public int compare(TemplateRule o1, TemplateRule o2) {
+                        if (o1.isForceRule())
+                            return -1;
+                        else if (o2.isForceRule())
+                            return 1;
+                        else {
+                            String cql1 = o1.getCqlFilter();
+                            String cql2 = o2.getCqlFilter();
+                            if (cql1 == null && cql2 == null)
+                                return 0;
+                            else if (cql1 != null && cql2 == null)
+                                return -1;
+                            else
+                                return 1;
+                        }
+                    }
+                };
+                matching.sort(comparator);
+            }
+            return matching.get(0).getTemplateIdentifier();
+        }
+
         return null;
+    }
+
+    public void cleanCache(FeatureTypeInfo fti, String templateIdentifier){
+        CacheKey key=new CacheKey(fti,templateIdentifier);
+        if(templateCache.getIfPresent(key)!=null)
+            this.templateCache.invalidate(key);
     }
 
     private TemplateFileManager getTemplateFileManager() {

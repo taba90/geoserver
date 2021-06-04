@@ -4,7 +4,36 @@
 
 <beans>
 
-    <bean id="templateConfiguration" class="org.geoserver.featurestemplating.configuration.TemplateConfiguration">
+    <bean id="templateConfiguration" class="org.geoserver.featurestemplating.configuration.TemplateLoader">
+        <constructor-arg ref="dataDirectory"/>
+    </bean>
+
+    <bean id="templateTabPanelInfo" class="org.geoserver.web.publish.LayerEditTabPanelInfo">
+        <property name="id" value="templateTabPanelInfo" />
+        <property name="titleKey" value="TemplateTabPanelInfo.title" />
+        <property name="descriptionKey" value="TemplateTabPanelInfo.shortDescription" />
+        <property name="componentClass"
+                  value="org.geoserver.featurestemplating.web.TemplateRulesTabPanel" />
+        <property name="order" value="999" />
+    </bean>
+
+    <bean id="templateConfPage" class="org.geoserver.web.MenuPageInfo">
+        <property name="id" value="templateConfPage"/>
+        <property name="titleKey" value="TemplateInfoPage.title"/>
+        <property name="descriptionKey" value="TemplateInfoPage.shortDescription"/>
+        <property name="componentClass" value="org.geoserver.featurestemplating.web.TemplateInfoPage"/>
+        <property name="category" ref="dataCategory" />
+        <property name="order" value="100" />
+        <property name="icon" value="img/templateIcon.png" />
+    </bean>
+
+    <bean id="templateLayerConfXMLPersister"
+          class="org.geoserver.featurestemplating.configuration.TemplateLayerConfigXStreamPersisterInitializer" />
+
+    <bean id="templateDao" class="org.geoserver.featurestemplating.configuration.TemplateInfoDaoImpl"/>
+
+    <bean id="templateFileManager" class="org.geoserver.featurestemplating.configuration.TemplateFileManager">
+        <constructor-arg ref="catalog"/>
         <constructor-arg ref="dataDirectory"/>
     </bean>
 

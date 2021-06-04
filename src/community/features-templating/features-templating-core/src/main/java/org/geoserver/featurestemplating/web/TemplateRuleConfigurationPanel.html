@@ -1,0 +1,33 @@
+<html xmlns:wicket="http://wicket.apache.org/">
+<body>
+<wicket:panel>
+<form name="theForm" wicket:id="theForm" id="theForm">
+    <ul>
+        <li>
+            <fieldset>
+                <div wicket:id="ruleFeedback" id="ruleFeedback"/>
+                <ul>
+                    <li>
+                        <label for="templateIdentifier"><wicket:message key="templateIdentifier"></wicket:message></label>
+                        <select id="templateIdentifier" wicket:id="templateIdentifier" />
+                    </li>
+                    <li>
+                        <label for="outputFormats"><wicket:message key="outputFormats"></wicket:message></label>
+                        <select wicket:id="outputFormats" id="outputFormats" />
+                    </li>
+                    <li>
+                        <label for="cqlFilter"><wicket:message key="cqlFilter"></wicket:message></label>
+                        <textarea wicket:id="cqlFilter" id="cqlFilter" style="width: 200px; height:100px;"/>
+                    </li>
+                </ul>
+            </fieldset>
+        </li>
+    </ul>
+    <div class="button-group toolbar-sticky selfclear">
+        <a href="#" class="form-button-save" wicket:id="save"><wicket:message key="save">Save</wicket:message></a>
+        <a href="#" class="form-button-cancel" wicket:id="cancel"><wicket:message key="cancel">Cancel</wicket:message></a>
+    </div>
+</form>
+</wicket:panel>
+</body>
+</html>

@@ -8,9 +8,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.eclipse.emf.common.util.URI;
@@ -20,6 +24,9 @@ import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 import org.geoserver.featurestemplating.builders.visitors.SimplifiedPropertyReplacer;
 import org.geoserver.featurestemplating.readers.TemplateReaderConfiguration;
 import org.geoserver.featurestemplating.validation.TemplateValidator;
+import org.geoserver.ows.Dispatcher;
+import org.geoserver.ows.Request;
+import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.resource.Resource;
 import org.geotools.data.complex.AppSchemaDataAccessRegistry;
 import org.geotools.data.complex.DataAccessRegistry;
@@ -30,12 +37,12 @@ import org.opengis.feature.type.FeatureType;
 import org.xml.sax.helpers.NamespaceSupport;
 
 /** Manage the cache and the retrieving for all templates files */
-public class TemplateConfiguration {
+public class TemplateLoader {
 
     private final LoadingCache<CacheKey, Template> templateCache;
     private GeoServerDataDirectory dataDirectory;
 
-    public TemplateConfiguration(GeoServerDataDirectory dd) {
+    public TemplateLoader(GeoServerDataDirectory dd) {
         this.dataDirectory = dd;
         templateCache =
                 CacheBuilder.newBuilder()
@@ -57,9 +64,17 @@ public class TemplateConfiguration {
                                                             + "Exception is: "
                                                             + e.getMessage());
                                         }
-                                        Resource resource =
-                                                getDataDirectory()
-                                                        .get(key.getResource(), key.getPath());
+                                        TemplateInfo templateInfo =
+                                                TemplateInfoDao.get().findById(key.getPath());
+                                        Resource resource;
+                                        if (templateInfo != null)
+                                            resource =
+                                                    getTemplateFileManager()
+                                                            .getTemplateResource(templateInfo);
+                                        else
+                                            resource =
+                                                    getDataDirectory()
+                                                            .get(key.getResource(), key.getPath());
                                         Template template =
                                                 new Template(
                                                         resource,
@@ -76,15 +91,17 @@ public class TemplateConfiguration {
     }
 
     /**
-     * Get the template related to the featureType. If template has benn modified updates the cache
-     * with the new JsonLdTemplate
+     * Get the template related to the featureType. If template has been modified updates the cache
+     * with the new Template
      */
     public RootBuilder getTemplate(FeatureTypeInfo typeInfo, String outputFormat)
             throws ExecutionException {
-        String fileName =
-                TemplateIdentifier.getTemplateIdentifierFromOutputFormat(outputFormat)
-                        .getFilename();
-        CacheKey key = new CacheKey(typeInfo, fileName);
+        String templateIdentifier = getTemplateIdentifierByLayerRuleEvaluation(typeInfo);
+        if (templateIdentifier == null)
+            templateIdentifier =
+                    TemplateIdentifier.getTemplateIdentifierFromOutputFormat(outputFormat)
+                            .getFilename();
+        CacheKey key = new CacheKey(typeInfo, templateIdentifier);
         Template template = templateCache.get(key);
         boolean updateCache = false;
         if (template.checkTemplate()) updateCache = true;
@@ -194,5 +211,59 @@ public class TemplateConfiguration {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String getTemplateIdentifierByLayerRuleEvaluation(FeatureTypeInfo featureTypeInfo) {
+        List<TemplateRule> matching = new ArrayList<>();
+        TemplateLayerConfig config =
+                featureTypeInfo
+                        .getMetadata()
+                        .get(TemplateLayerConfig.METADATA_KEY, TemplateLayerConfig.class);
+        if (config == null || config.getTemplateRules().isEmpty()) return null;
+        else {
+            Set<TemplateRule> rules = config.getTemplateRules();
+            Request request = Dispatcher.REQUEST.get();
+            for (TemplateRule r : rules) {
+                if (r.applyRule(request)) matching.add(r);
+            }
+        }
+        int size=matching.size();
+        if (size>0) {
+            if (size>1) {
+                Comparator<TemplateRule> comparator = new Comparator<TemplateRule>() {
+                    @Override
+                    public int compare(TemplateRule o1, TemplateRule o2) {
+                        if (o1.isForceRule())
+                            return -1;
+                        else if (o2.isForceRule())
+                            return 1;
+                        else {
+                            String cql1 = o1.getCqlFilter();
+                            String cql2 = o2.getCqlFilter();
+                            if (cql1 == null && cql2 == null)
+                                return 0;
+                            else if (cql1 != null && cql2 == null)
+                                return -1;
+                            else
+                                return 1;
+                        }
+                    }
+                };
+                matching.sort(comparator);
+            }
+            return matching.get(0).getTemplateIdentifier();
+        }
+
+        return null;
+    }
+
+    public void cleanCache(FeatureTypeInfo fti, String templateIdentifier){
+        CacheKey key=new CacheKey(fti,templateIdentifier);
+        if(templateCache.getIfPresent(key)!=null)
+            this.templateCache.invalidate(key);
+    }
+
+    private TemplateFileManager getTemplateFileManager() {
+        return GeoServerExtensions.bean(TemplateFileManager.class);
     }
 }

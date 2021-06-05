@@ -18,6 +18,10 @@ import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.Attribute;
 import org.opengis.feature.ComplexAttribute;
 
+import static org.geoserver.featurestemplating.builders.EncodingHints.IS_SINGLE_FEATURE;
+import static org.geoserver.featurestemplating.builders.EncodingHints.SKIP_IF_SINGLE_FEATURE;
+import static org.geoserver.featurestemplating.builders.EncodingHints.isSingleFeatureRequest;
+
 /** Decorator for a JsonGenerator that add some functionality mainly to write JsonNode */
 public abstract class CommonJSONWriter extends TemplateOutputWriter {
 
@@ -194,7 +198,10 @@ public abstract class CommonJSONWriter extends TemplateOutputWriter {
 
     @Override
     public void endTemplateOutput(EncodingHints encodingHints) throws IOException {
-        writeEndArray();
+        Boolean isSingleFeature =getEncodingHintIfPresent(encodingHints,IS_SINGLE_FEATURE,Boolean.class);
+        if (isSingleFeature==null || !isSingleFeature.booleanValue()) {
+            writeEndArray();
+        }
         writeEndObject();
     }
 
@@ -204,13 +211,13 @@ public abstract class CommonJSONWriter extends TemplateOutputWriter {
 
     @Override
     public void startObject(String name, EncodingHints encodingHints) throws IOException {
-        if (name != null) writeElementName(name, encodingHints);
-        writeStartObject();
+            if (name != null) writeElementName(name, encodingHints);
+            writeStartObject();
     }
 
     @Override
     public void endObject(String name, EncodingHints encodingHints) throws IOException {
-        writeEndObject();
+            writeEndObject();
     }
 
     @Override
@@ -243,5 +250,10 @@ public abstract class CommonJSONWriter extends TemplateOutputWriter {
     @Override
     public void close() throws IOException {
         generator.close();
+    }
+
+    protected boolean skipObjectWriting(EncodingHints encodingHints){
+        Boolean skipIfSingleFeature=getEncodingHintIfPresent(encodingHints,SKIP_IF_SINGLE_FEATURE,Boolean.class);
+        return skipIfSingleFeature!=null && skipIfSingleFeature.booleanValue() && isSingleFeatureRequest();
     }
 }

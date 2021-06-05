@@ -6,6 +6,7 @@
 package org.geoserver.featurestemplating.writers;
 
 import static org.geoserver.featurestemplating.builders.EncodingHints.CONTEXT;
+import static org.geoserver.featurestemplating.builders.EncodingHints.IS_SINGLE_FEATURE;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -44,10 +45,13 @@ public class JSONLDWriter extends CommonJSONWriter {
             else if (context.isObject()) writeObjectNode(contextName, context);
             else writeValueNode(contextName, context);
         }
-        generator.writeFieldName("type");
-        generator.writeString("FeatureCollection");
-        generator.writeFieldName("features");
-        writeStartArray();
+        Boolean isSingleFeature=getEncodingHintIfPresent(encodingHints,IS_SINGLE_FEATURE,Boolean.class);
+        if(isSingleFeature==null || !isSingleFeature.booleanValue()) {
+            generator.writeFieldName("type");
+            generator.writeString("FeatureCollection");
+            generator.writeFieldName("features");
+            writeStartArray();
+        }
     }
 
     @Override
@@ -73,5 +77,15 @@ public class JSONLDWriter extends CommonJSONWriter {
     @Override
     public void writeNumberReturned() throws IOException {
         // do nothing
+    }
+
+    @Override
+    public void startObject(String name, EncodingHints encodingHints) throws IOException {
+        if (!skipObjectWriting(encodingHints)) super.startObject(name, encodingHints);
+    }
+
+    @Override
+    public void endObject(String name, EncodingHints encodingHints) throws IOException {
+        if (!skipObjectWriting(encodingHints)) super.endObject(name, encodingHints);
     }
 }

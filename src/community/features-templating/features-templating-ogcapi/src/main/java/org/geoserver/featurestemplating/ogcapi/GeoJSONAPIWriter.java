@@ -8,6 +8,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+
+import org.geoserver.featurestemplating.builders.EncodingHints;
 import org.geoserver.featurestemplating.writers.GeoJSONWriter;
 import org.geoserver.ogcapi.APIRequestInfo;
 import org.geoserver.ogcapi.Link;
@@ -72,5 +74,15 @@ public class GeoJSONAPIWriter extends GeoJSONWriter {
             writeLink(href, linkType, format.toString(), linkTitle, null);
         }
         endArray(null, null);
+    }
+
+    @Override
+    public void startObject(String name, EncodingHints encodingHints) throws IOException {
+        if (!skipObjectWriting(encodingHints)) super.startObject(name, encodingHints);
+    }
+
+    @Override
+    public void endObject(String name, EncodingHints encodingHints) throws IOException {
+        if (!skipObjectWriting(encodingHints)) super.endObject(name, encodingHints);
     }
 }

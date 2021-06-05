@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
+import org.geoserver.featurestemplating.builders.EncodingHints;
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 import org.geoserver.featurestemplating.configuration.TemplateLoader;
@@ -26,6 +27,8 @@ import org.geoserver.wfs.request.GetFeatureRequest;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.Feature;
+
+import static org.geoserver.featurestemplating.builders.EncodingHints.isSingleFeatureRequest;
 
 /**
  * Encodes features in json-ld output format by means of a ${@link TemplateBuilder} tree obtained by
@@ -92,6 +95,8 @@ public class JSONLDGetFeatureResponse extends BaseTemplateGetFeatureResponse {
     private void write(
             FeatureCollectionResponse featureCollection, RootBuilder root, JSONLDWriter writer)
             throws IOException {
+        EncodingHints hints=root.getEncodingHints();
+                hints.put(EncodingHints.IS_SINGLE_FEATURE,isSingleFeatureRequest());
         writer.startTemplateOutput(root.getEncodingHints());
         iterateFeatureCollection(writer, featureCollection, root);
         writer.endTemplateOutput(root.getEncodingHints());

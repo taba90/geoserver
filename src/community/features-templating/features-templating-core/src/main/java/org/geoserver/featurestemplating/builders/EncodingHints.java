@@ -4,7 +4,11 @@
  */
 package org.geoserver.featurestemplating.builders;
 
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+
 import java.util.HashMap;
+import java.util.Optional;
 
 /**
  * This class represent a Map of encoding hints. An encoding hint is a value giving additional
@@ -25,6 +29,10 @@ public class EncodingHints extends HashMap<String, Object> {
 
     public static final String CHILDREN_EVALUATION = "CHILDREN_EVALUATION";
 
+    public static final String IS_SINGLE_FEATURE="IS_SINGLE_FEATURE";
+
+    public static final String SKIP_IF_SINGLE_FEATURE="SKIP_IF_SINGLE_FEATURE";
+
     /**
      * Check if the hint is present.
      *
@@ -44,5 +52,15 @@ public class EncodingHints extends HashMap<String, Object> {
      */
     public <T> T get(String key, Class<T> cast) {
         return cast.cast(get(key));
+    }
+
+    public static boolean isSingleFeatureRequest() {
+        return Optional.ofNullable(RequestContextHolder.getRequestAttributes())
+                .map(
+                        att ->
+                                (String)
+                                        att.getAttribute(
+                                                "OGCFeatures:ItemId",
+                                                RequestAttributes.SCOPE_REQUEST)).isPresent();
     }
 }

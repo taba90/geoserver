@@ -12,7 +12,12 @@ import org.geoserver.featurestemplating.builders.SourceBuilder;
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.visitors.TemplateVisitor;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
+import org.geotools.feature.type.FeatureTypeImpl;
+import org.opengis.feature.Feature;
+import org.opengis.feature.type.FeatureType;
 import org.xml.sax.helpers.NamespaceSupport;
+
+import static org.geoserver.featurestemplating.builders.EncodingHints.SKIP_IF_SINGLE_FEATURE;
 
 /**
  * Groups {@link StaticBuilder} and {@link DynamicValueBuilder}, invoke them and set, if found, the
@@ -32,6 +37,7 @@ public class CompositeBuilder extends SourceBuilder {
             throws IOException {
         context = evaluateSource(context);
         Object o = context.getCurrentObj();
+        addSkipObjectEncodingHint(o);
         if (o != null && evaluateFilter(context) && canWrite(context)) {
             evaluateChildren(writer, context);
         }
@@ -100,5 +106,13 @@ public class CompositeBuilder extends SourceBuilder {
     @Override
     protected void writeKey(TemplateOutputWriter writer) throws IOException {
         if (key != null && !key.equals("")) writer.writeElementName(key, getEncodingHints());
+    }
+
+    private void addSkipObjectEncodingHint(Object o){
+        if (o instanceof Feature) {
+            if (((Feature)o).getType() instanceof FeatureTypeImpl)
+                addEncodingHint(SKIP_IF_SINGLE_FEATURE, true);
+        }
+
     }
 }

@@ -6,6 +6,7 @@ import org.geoserver.ows.Request;
 import org.geotools.filter.FunctionExpressionImpl;
 import org.geotools.filter.capability.FunctionNameImpl;
 import org.opengis.filter.capability.FunctionName;
+import org.springframework.http.HttpHeaders;
 
 public class MimeTypeFunction extends FunctionExpressionImpl {
 
@@ -23,6 +24,10 @@ public class MimeTypeFunction extends FunctionExpressionImpl {
                     NAME.getName() + " function works with request object only");
         }
         Request request = (Request) object;
-        return request.getOutputFormat();
+        String outputFormat=request.getOutputFormat();
+        if (outputFormat==null){
+            outputFormat = request.getKvp() != null ? (String) request.getKvp().get("f") : null;
+        }
+        return outputFormat;
     }
 }

@@ -95,8 +95,6 @@ public class JSONLDGetFeatureResponse extends BaseTemplateGetFeatureResponse {
     private void write(
             FeatureCollectionResponse featureCollection, RootBuilder root, JSONLDWriter writer)
             throws IOException {
-        EncodingHints hints=root.getEncodingHints();
-                hints.put(EncodingHints.IS_SINGLE_FEATURE,isSingleFeatureRequest());
         writer.startTemplateOutput(root.getEncodingHints());
         iterateFeatureCollection(writer, featureCollection, root);
         writer.endTemplateOutput(root.getEncodingHints());

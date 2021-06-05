@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
+import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
 import org.geoserver.featurestemplating.writers.GeoJSONWriter;
 import org.geotools.data.DataTestCase;
 import org.junit.Test;
@@ -66,7 +67,7 @@ public class CompositeBuilderTest extends DataTestCase {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         GeoJSONWriter writer =
-                new GeoJSONWriter(new JsonFactory().createGenerator(baos, JsonEncoding.UTF8));
+                new GeoJSONWriter(new JsonFactory().createGenerator(baos, JsonEncoding.UTF8), TemplateIdentifier.JSON);
 
         writer.writeStartObject();
         composite.evaluate(writer, new TemplateBuilderContext(roadFeatures[0]));

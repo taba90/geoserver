@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import org.geoserver.featurestemplating.builders.EncodingHints;
+import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
 import org.geoserver.util.ISO8601Formatter;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -24,8 +25,8 @@ import org.locationtech.jts.geom.Geometry;
 /** Implements its superclass methods to write a valid GeoJSON output */
 public class GeoJSONWriter extends CommonJSONWriter {
 
-    public GeoJSONWriter(JsonGenerator generator) {
-        super(generator);
+    public GeoJSONWriter(JsonGenerator generator, TemplateIdentifier identifier) {
+        super(generator, identifier);
     }
 
     @Override

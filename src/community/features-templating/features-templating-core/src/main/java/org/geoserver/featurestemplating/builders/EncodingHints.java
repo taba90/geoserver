@@ -29,7 +29,7 @@ public class EncodingHints extends HashMap<String, Object> {
 
     public static final String CHILDREN_EVALUATION = "CHILDREN_EVALUATION";
 
-    public static final String IS_SINGLE_FEATURE="IS_SINGLE_FEATURE";
+    public static final String ISGEOJSON="ISGEOJSON";
 
     public static final String SKIP_IF_SINGLE_FEATURE="SKIP_IF_SINGLE_FEATURE";
 

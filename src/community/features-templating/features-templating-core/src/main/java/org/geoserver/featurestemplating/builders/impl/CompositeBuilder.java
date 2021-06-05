@@ -110,7 +110,7 @@ public class CompositeBuilder extends SourceBuilder {
 
     private void addSkipObjectEncodingHint(Object o){
         if (o instanceof Feature) {
-            if (((Feature)o).getType() instanceof FeatureTypeImpl)
+            if (((Feature)o).getDefaultGeometryProperty()!=null)
                 addEncodingHint(SKIP_IF_SINGLE_FEATURE, true);
         }
 

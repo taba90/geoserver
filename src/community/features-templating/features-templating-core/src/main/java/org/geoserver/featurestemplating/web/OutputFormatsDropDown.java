@@ -1,24 +1,26 @@
 package org.geoserver.featurestemplating.web;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Arrays;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
-import org.geoserver.featurestemplating.configuration.SupportedMimeType;
+import org.geoserver.featurestemplating.configuration.SupportedFormat;
 
-public class OutputFormatsDropDown extends DropDownChoice<String> {
+public class OutputFormatsDropDown extends DropDownChoice<SupportedFormat> {
 
-    public OutputFormatsDropDown(String id, IModel<String> model) {
+    public OutputFormatsDropDown(String id, IModel<SupportedFormat> model) {
         super(id);
-        List<String> mimeTypes = getSupportedOutputFormats();
-        this.setChoices(mimeTypes);
+        this.setChoices(Arrays.asList(SupportedFormat.values()));
         this.setModel(model);
+        this.setChoiceRenderer(getFormatChoiceRenderer());
     }
 
-    private List<String> getSupportedOutputFormats() {
-        return Stream.of(SupportedMimeType.values())
-                .map(smt -> smt.name())
-                .collect(Collectors.toList());
+    private EnumChoiceRenderer<SupportedFormat> getFormatChoiceRenderer() {
+        return new EnumChoiceRenderer<SupportedFormat>() {
+            @Override
+            public String getDisplayValue(SupportedFormat object) {
+                return object.getFormat();
+            }
+        };
     }
 }

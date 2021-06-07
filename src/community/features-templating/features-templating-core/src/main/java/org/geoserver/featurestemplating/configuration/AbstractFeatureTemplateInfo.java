@@ -92,10 +92,10 @@ public abstract class AbstractFeatureTemplateInfo
 
     public boolean lenientEquals(Object o) {
         AbstractFeatureTemplateInfo that = (AbstractFeatureTemplateInfo) o;
-        return Objects.equals(templateName, that.templateName) &&
-                Objects.equals(workspace, that.workspace) &&
-                Objects.equals(featureType, that.featureType) &&
-                Objects.equals(extension, that.extension);
+        return Objects.equals(templateName, that.templateName)
+                && Objects.equals(workspace, that.workspace)
+                && Objects.equals(featureType, that.featureType)
+                && Objects.equals(extension, that.extension);
     }
 
     @Override

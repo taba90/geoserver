@@ -1,5 +1,9 @@
 package org.geoserver.featurestemplating.web;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -17,14 +21,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.geoserver.platform.exception.GeoServerException;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
@@ -38,6 +34,8 @@ import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -46,7 +44,7 @@ import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.NamespaceInfo;
 import org.geoserver.catalog.WorkspaceInfo;
-import org.geoserver.featurestemplating.configuration.SupportedMimeType;
+import org.geoserver.featurestemplating.configuration.SupportedFormat;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
 import org.geoserver.featurestemplating.configuration.TemplateLayerConfig;
@@ -54,11 +52,11 @@ import org.geoserver.featurestemplating.configuration.TemplateRule;
 import org.geoserver.ows.URLMangler;
 import org.geoserver.ows.util.ResponseUtils;
 import org.geoserver.platform.GeoServerExtensions;
+import org.geoserver.platform.exception.GeoServerException;
 import org.geoserver.web.GeoServerApplication;
 import org.geoserver.web.wicket.CodeMirrorEditor;
 
 public class TemplatePreviewPanel extends Panel {
-
 
     private CodeMirrorEditor textArea;
 
@@ -76,52 +74,54 @@ public class TemplatePreviewPanel extends Panel {
 
     private TextField<String> featureIdField;
 
-    private IModel<TemplateInfo> templateInfo;
-
     private TemplateConfigurationPage page;
 
     private FeedbackPanel previewFeedback;
 
-    String  previewResult;
-
+    String previewResult;
 
     public TemplatePreviewPanel(String id, TemplateConfigurationPage page) {
         super(id);
-        this.page=page;
-        initUI(page.getTemplateInfoModel());
+        this.page = page;
+        initUI();
     }
 
-    private void initUI(IModel<TemplateInfo> infoModel) {
-        this.templateInfo= infoModel;
+    private void initUI() {
         Model<PreviewInfoModel> previewModel = new Model<>(new PreviewInfoModel());
 
-        previewInfoForm= new Form<>("previewForm",previewModel);
+        previewInfoForm = new Form<>("previewForm", previewModel);
         add(previewInfoForm);
         outputFormatsDropDown =
                 new OutputFormatsDropDown(
                         "outputFormats", new PropertyModel<>(previewModel, "outputFormat"));
-        outputFormatsDropDown.add(new OnChangeAjaxBehavior() {
-            @Override
-            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
-                if (SupportedMimeType.GML.name().equals(outputFormatsDropDown.getModelObject())){
-                    textArea.setMode("xml");
-                } else {
-                    textArea.setModeAndSubMode("javascript","json");
-                }
-                ajaxRequestTarget.add(textArea);
-            }
-        });
+        outputFormatsDropDown.add(
+                new OnChangeAjaxBehavior() {
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                        if (SupportedFormat.GML.equals(outputFormatsDropDown.getModelObject())) {
+                            textArea.setMode("xml");
+                        } else {
+                            textArea.setModeAndSubMode("javascript", "json");
+                        }
+                        ajaxRequestTarget.add(textArea);
+                    }
+                });
 
         previewInfoForm.add(outputFormatsDropDown);
+        IModel<TemplateInfo> templateInfo = page.getTemplateInfoModel();
         boolean hasFeatureType = templateInfo.getObject().getFeatureType() != null;
         boolean hasWorkspace = templateInfo.getObject().getWorkspace() != null;
         List<WorkspaceInfo> workspaces = getWorkspaces(getCatalog());
-        ChoiceRenderer<WorkspaceInfo> wsRenderer= new ChoiceRenderer<>("name","name");
+        ChoiceRenderer<WorkspaceInfo> wsRenderer = new ChoiceRenderer<>("name", "name");
         workspaceInfoDropDownChoice =
-                new DropDownChoice<>("workspaces", new PropertyModel<>(previewModel, "ws"), workspaces,wsRenderer);
-        WorkspaceInfo wi=null;
+                new DropDownChoice<>(
+                        "workspaces",
+                        new PropertyModel<>(previewModel, "ws"),
+                        workspaces,
+                        wsRenderer);
+        WorkspaceInfo wi = null;
         if (hasWorkspace) {
-            wi=setWorkspaceValue(infoModel.getObject().getWorkspace(),workspaces);
+            wi = setWorkspaceValue(templateInfo.getObject().getWorkspace(), workspaces);
         }
 
         workspaceInfoDropDownChoice.add(
@@ -142,15 +142,20 @@ public class TemplatePreviewPanel extends Panel {
         } else {
             featureTypes = Collections.emptyList();
         }
-        ChoiceRenderer<FeatureTypeInfo> ftiChoiceRenderer= new ChoiceRenderer<>("name","name");
+        ChoiceRenderer<FeatureTypeInfo> ftiChoiceRenderer = new ChoiceRenderer<>("name", "name");
         featureTypesDD =
                 new DropDownChoice<>(
-                        "featureTypes", new PropertyModel<>(previewModel, "featureType"), featureTypes, ftiChoiceRenderer);
+                        "featureTypes",
+                        new PropertyModel<>(previewModel, "featureType"),
+                        featureTypes,
+                        ftiChoiceRenderer);
         featureTypesDD.setOutputMarkupId(true);
         if (!hasWorkspace) featureTypesDD.setEnabled(false);
-        if (hasFeatureType) setFeatureTypeInfoValue(infoModel.getObject().getFeatureType());
+        if (hasFeatureType) setFeatureTypeInfoValue(templateInfo.getObject().getFeatureType());
         previewInfoForm.add(featureTypesDD);
-        textArea = new CodeMirrorEditor("previewArea", "xml", new PropertyModel<>(this,"previewResult"));
+        textArea =
+                new CodeMirrorEditor(
+                        "previewArea", "xml", new PropertyModel<>(this, "previewResult"));
         textArea.setOutputMarkupId(true);
         textArea.setTextAreaMarkupId("previewTextArea");
         String extension = templateInfo.getObject().getExtension();
@@ -160,7 +165,8 @@ public class TemplatePreviewPanel extends Panel {
         previewInfoForm.add(textArea);
         previewInfoForm.add(previewFeedback = new FeedbackPanel("validateFeedback"));
         previewFeedback.setOutputMarkupId(true);
-        featureIdField= new TextField<>("featureId",new PropertyModel<>(previewModel,"featureId"));
+        featureIdField =
+                new TextField<>("featureId", new PropertyModel<>(previewModel, "featureId"));
         previewInfoForm.add(featureIdField);
         add(getSubmit());
         add(getValidate());
@@ -171,7 +177,7 @@ public class TemplatePreviewPanel extends Panel {
     }
 
     private List<FeatureTypeInfo> getFeatureTypes(Catalog catalog, WorkspaceInfo ws) {
-        if (ws!=null) {
+        if (ws != null) {
             NamespaceInfo nsi = catalog.getNamespaceByPrefix(ws.getName());
             return catalog.getFeatureTypesByNamespace(nsi);
         }
@@ -179,9 +185,9 @@ public class TemplatePreviewPanel extends Panel {
     }
 
     private String buildWFSLink(PreviewInfoModel previewInfoModel) {
-        String outputFormat =previewInfoModel.getOutputFormat();
-        WorkspaceInfo ws=previewInfoModel.getWs();
-        FeatureTypeInfo featureType=previewInfoModel.getFeatureType();
+        SupportedFormat outputFormat = previewInfoModel.getOutputFormat();
+        WorkspaceInfo ws = previewInfoModel.getWs();
+        FeatureTypeInfo featureType = previewInfoModel.getFeatureType();
         boolean canBuildLink = outputFormat != null && ws != null && featureType != null;
         if (canBuildLink) {
             TemplateLayerConfig layerConfig =
@@ -189,6 +195,7 @@ public class TemplatePreviewPanel extends Panel {
                             .getMetadata()
                             .get(TemplateLayerConfig.METADATA_KEY, TemplateLayerConfig.class);
             TemplateRule rule = new TemplateRule();
+            IModel<TemplateInfo> templateInfo = page.getTemplateInfoModel();
             rule.setTemplateIdentifier(templateInfo.getObject().getIdentifier());
             rule.setTemplateName(templateInfo.getObject().getFullName());
             rule.setOutputFormat(outputFormat);
@@ -200,9 +207,9 @@ public class TemplatePreviewPanel extends Panel {
             layerConfig.addTemplateRule(rule);
             featureType.getMetadata().put(TemplateLayerConfig.METADATA_KEY, layerConfig);
             getCatalog().save(featureType);
-            String mime=getOutputFormat(outputFormat);
-            String typeName=ws.getName() +":"+featureType.getName();
-            return buildWfsLink(typeName,mime,previewInfoModel.getFeatureId(),ws);
+            String mime = getOutputFormat(outputFormat);
+            String typeName = ws.getName() + ":" + featureType.getName();
+            return buildWfsLink(typeName, mime, previewInfoModel.getFeatureId(), ws);
         } else {
             error("please fill all the field to preview the template response");
         }
@@ -216,13 +223,11 @@ public class TemplatePreviewPanel extends Panel {
         params.put("request", "GetFeature");
         params.put("typeNames", typeName);
         params.put("outputFormat", outputFormat);
-        if (featureId!=null)
-            params.put("featureID",featureId);
-        else
-            params.put("count", "1");
+        if (featureId != null) params.put("featureID", featureId);
+        else params.put("count", "1");
         params.put(PREVIEW_REQUEST_PARAM, "true");
         return ResponseUtils.buildURL(
-                getBaseURL(), getPath("ows", false,ws), params, URLMangler.URLType.SERVICE);
+                getBaseURL(), getPath("ows", false, ws), params, URLMangler.URLType.SERVICE);
     }
 
     private String getBaseURL() {
@@ -240,13 +245,13 @@ public class TemplatePreviewPanel extends Panel {
         }
     }
 
-    private String getOutputFormat(String outputFormatName) {
+    private String getOutputFormat(SupportedFormat outputFormatName) {
         String realOutputFormat = null;
-        if (outputFormatName.equals(SupportedMimeType.GEOJSON.name())) {
+        if (outputFormatName.equals(SupportedFormat.GEOJSON)) {
             realOutputFormat = TemplateIdentifier.JSON.getOutputFormat();
-        } else if (outputFormatName.equals(SupportedMimeType.JSONLD.name())) {
+        } else if (outputFormatName.equals(SupportedFormat.JSONLD)) {
             realOutputFormat = TemplateIdentifier.JSONLD.getOutputFormat();
-        } else if (outputFormatName.equals(SupportedMimeType.GML.name())) {
+        } else if (outputFormatName.equals(SupportedFormat.GML)) {
             realOutputFormat = "application/gml+xml; version=3.2";
         }
         return realOutputFormat;
@@ -272,15 +277,15 @@ public class TemplatePreviewPanel extends Panel {
                     protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         super.onSubmit(target, form);
                         textArea.clearInput();
+                        IModel<TemplateInfo> templateInfo = page.getTemplateInfoModel();
                         page.saveTemplateInfo(templateInfo.getObject());
-                        Form<PreviewInfoModel> previewForm=(Form<PreviewInfoModel>) form;
+                        Form<PreviewInfoModel> previewForm = (Form<PreviewInfoModel>) form;
 
-                        if(!validateAndReport(previewForm.getModelObject()))
-                            return;
-                        String updatedInput=page.getEditor().getInput();
+                        if (!validateAndReport(previewForm.getModelObject())) return;
+                        String updatedInput = page.getEditor().getInput();
                         page.getEditor().setModelObject(updatedInput);
                         String url = buildWFSLink(previewForm.getModelObject());
-                        previewResult=performWfsRequest(url);
+                        previewResult = performWfsRequest(url);
                         textArea.setModelObject(previewResult);
                         textArea.modelChanged();
                         target.add(textArea);
@@ -288,9 +293,8 @@ public class TemplatePreviewPanel extends Panel {
 
                     @Override
                     protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
-                        FeatureTypeInfo featureTypeInfo=featureTypesDD.getModelObject();
-                        if (featureTypeInfo!=null)
-                            removeTemplatePreviewRule(featureTypeInfo);
+                        FeatureTypeInfo featureTypeInfo = featureTypesDD.getModelObject();
+                        if (featureTypeInfo != null) removeTemplatePreviewRule(featureTypeInfo);
 
                         if (textArea.hasFeedbackMessage()) {
                             target.add(previewFeedback);
@@ -302,8 +306,7 @@ public class TemplatePreviewPanel extends Panel {
 
     private boolean validateAndReport(PreviewInfoModel info) {
         try {
-            TemplateModelsValidator validator =
-                    new TemplateModelsValidator();
+            TemplateModelsValidator validator = new TemplateModelsValidator();
             validator.validate(info);
         } catch (GeoServerException e) {
             textArea.error(e.getMessage());
@@ -319,39 +322,36 @@ public class TemplatePreviewPanel extends Panel {
                     @Override
                     protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         super.onSubmit(target, form);
-                        if (previewResult!=null){
-                            String outputFormat=outputFormatsDropDown.getModelObject();
-                            TemplateOutputValidator validator=new TemplateOutputValidator(outputFormat);
-                            boolean result=validator.validate(previewResult);
-                            String message=validator.getMessage();
-                            if (!result)
-                                textArea.error(message);
-                            else
-                                textArea.success(message);
+                        if (previewResult != null) {
+                            SupportedFormat outputFormat = outputFormatsDropDown.getModelObject();
+                            TemplateOutputValidator validator =
+                                    new TemplateOutputValidator(outputFormat);
+                            boolean result = validator.validate(previewResult);
+                            String message = validator.getMessage();
+                            if (!result) textArea.error(message);
+                            else textArea.success(message);
                         }
                     }
 
                     @Override
                     protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
-                        super.onAfterSubmit(target,form);
-                        if (textArea.hasFeedbackMessage())
-                            target.add(previewFeedback);
+                        super.onAfterSubmit(target, form);
+                        if (textArea.hasFeedbackMessage()) target.add(previewFeedback);
                     }
                 };
         return submitLink;
     }
 
-    private Catalog getCatalog(){
+    private Catalog getCatalog() {
         return (Catalog) GeoServerExtensions.bean("catalog");
     }
-
 
     public static class PreviewInfoModel implements Serializable {
         private WorkspaceInfo ws;
 
         private FeatureTypeInfo featureType;
 
-        private String outputFormat;
+        private SupportedFormat outputFormat;
 
         private String featureId;
 
@@ -371,11 +371,11 @@ public class TemplatePreviewPanel extends Panel {
             this.featureType = fti;
         }
 
-        public String getOutputFormat() {
+        public SupportedFormat getOutputFormat() {
             return outputFormat;
         }
 
-        public void setOutputFormat(String outputFormat) {
+        public void setOutputFormat(SupportedFormat outputFormat) {
             this.outputFormat = outputFormat;
         }
 
@@ -390,75 +390,80 @@ public class TemplatePreviewPanel extends Panel {
 
     private CloseableHttpClient buildHttpClient() {
         RequestConfig clientConfig =
-                RequestConfig.custom()
-                        .setConnectTimeout(60000)
-                        .setSocketTimeout(60000)
-                        .build();
+                RequestConfig.custom().setConnectTimeout(60000).setSocketTimeout(60000).build();
         return HttpClientBuilder.create().setDefaultRequestConfig(clientConfig).build();
     }
 
     private String performWfsRequest(String url) {
-        String result="";
-        try(CloseableHttpClient client=buildHttpClient()){
-            HttpGet get= new HttpGet(url);
+        String result = "";
+        try (CloseableHttpClient client = buildHttpClient()) {
+            HttpGet get = new HttpGet(url);
             try (CloseableHttpResponse httpResponse = client.execute(get)) {
                 HttpEntity entity = httpResponse.getEntity();
                 result = IOUtils.toString(entity.getContent(), Charset.forName("UTF-8"));
             }
-        }catch (Exception e){
-            result=e.getMessage();
+        } catch (Exception e) {
+            result = e.getMessage();
         }
-        String outputFormat=outputFormatsDropDown.getModelObject();
-        result=prettyPrintData(outputFormat,result);
+        SupportedFormat outputFormat = outputFormatsDropDown.getModelObject();
+        result = prettyPrintData(outputFormat, result);
         return result.trim();
     }
 
-    WorkspaceInfo setWorkspaceValue(String workspaceValue){
-        List<WorkspaceInfo> workspaces= (List<WorkspaceInfo>)workspaceInfoDropDownChoice.getChoices();
-        if (workspaces.isEmpty()) workspaces=getWorkspaces(getCatalog());
-        return setWorkspaceValue(workspaceValue,workspaces);
+    WorkspaceInfo setWorkspaceValue(String workspaceValue) {
+        List<WorkspaceInfo> workspaces =
+                (List<WorkspaceInfo>) workspaceInfoDropDownChoice.getChoices();
+        if (workspaces.isEmpty()) workspaces = getWorkspaces(getCatalog());
+        return setWorkspaceValue(workspaceValue, workspaces);
     }
 
-    WorkspaceInfo setWorkspaceValue (String workspaceValue, List<WorkspaceInfo> workspaces){
-        WorkspaceInfo result=null;
-        if (workspaceInfoDropDownChoice!=null && !workspaces.isEmpty()) {
-            Optional<WorkspaceInfo> selectedWs = workspaces
-                    .stream()
-                    .filter(ws -> ws.getName().equals(workspaceValue))
-                    .findFirst();
+    WorkspaceInfo setWorkspaceValue(String workspaceValue, List<WorkspaceInfo> workspaces) {
+        WorkspaceInfo result = null;
+        if (workspaceInfoDropDownChoice != null && !workspaces.isEmpty()) {
+            Optional<WorkspaceInfo> selectedWs =
+                    workspaces
+                            .stream()
+                            .filter(ws -> ws.getName().equals(workspaceValue))
+                            .findFirst();
             if (selectedWs.isPresent()) {
-                result=selectedWs.get();
+                result = selectedWs.get();
                 workspaceInfoDropDownChoice.setEnabled(false);
                 workspaceInfoDropDownChoice.setDefaultModelObject(result);
             }
-        }else if(workspaces.isEmpty()){
+        } else if (workspaces.isEmpty()) {
             workspaceInfoDropDownChoice.setDefaultModelObject(result);
         }
         return result;
     }
 
-    void setFeatureTypeInfoValue(String featureTypeInfoValue){
-        List<FeatureTypeInfo> featureTypeInfos=(List<FeatureTypeInfo>)featureTypesDD.getChoices();
-        if (featureTypeInfos.isEmpty()) featureTypeInfos=getFeatureTypes(getCatalog(),workspaceInfoDropDownChoice.getModelObject());
-        setFeatureTypeInfoValue(featureTypeInfoValue,featureTypeInfos);
+    void setFeatureTypeInfoValue(String featureTypeInfoValue) {
+        List<FeatureTypeInfo> featureTypeInfos =
+                (List<FeatureTypeInfo>) featureTypesDD.getChoices();
+        if (featureTypeInfos.isEmpty())
+            featureTypeInfos =
+                    getFeatureTypes(getCatalog(), workspaceInfoDropDownChoice.getModelObject());
+        setFeatureTypeInfoValue(featureTypeInfoValue, featureTypeInfos);
     }
 
-    void setFeatureTypeInfoValue(String featureTypeInfoValue, List<FeatureTypeInfo> featureTypeInfos){
-        if (featureTypesDD!=null && !featureTypeInfos.isEmpty()) {
-            Optional<FeatureTypeInfo> op=featureTypeInfos.stream()
-                    .filter(fti -> fti.getName().equals(featureTypeInfoValue))
-                    .findFirst();
+    void setFeatureTypeInfoValue(
+            String featureTypeInfoValue, List<FeatureTypeInfo> featureTypeInfos) {
+        if (featureTypesDD != null && !featureTypeInfos.isEmpty()) {
+            Optional<FeatureTypeInfo> op =
+                    featureTypeInfos
+                            .stream()
+                            .filter(fti -> fti.getName().equals(featureTypeInfoValue))
+                            .findFirst();
 
             if (op.isPresent()) {
                 featureTypesDD.setEnabled(false);
                 featureTypesDD.setDefaultModelObject(op.get());
             }
-        } else if(featureTypeInfos.isEmpty()){
+        } else if (featureTypeInfos.isEmpty()) {
             featureTypesDD.setDefaultModelObject(null);
         }
     }
 
-    private String prettyPrintXML(String input){
+    private String prettyPrintXML(String input) {
         Source xmlInput = new StreamSource(new StringReader(input));
         StringWriter stringWriter = new StringWriter();
         try {
@@ -475,25 +480,23 @@ public class TemplatePreviewPanel extends Panel {
         }
     }
 
-    private String prettyPrintJson(String input){
+    private String prettyPrintJson(String input) {
         try {
             ObjectMapper objectMapper = new ObjectMapper(new JsonFactory());
             Object json = objectMapper.readValue(input, Object.class);
             objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
-        }catch(JsonProcessingException e){
+        } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private String prettyPrintData(String outputFormat, String data){
+    private String prettyPrintData(SupportedFormat outputFormat, String data) {
         String prettyPrint;
-        String exceptionPrefix="<ows:";
-        if (outputFormat.equals(SupportedMimeType.GML.name()) || data.contains(exceptionPrefix))
-            prettyPrint=prettyPrintXML(data);
-        else
-            prettyPrint=prettyPrintJson(data);
+        String exceptionPrefix = "<ows:";
+        if (outputFormat.equals(SupportedFormat.GML) || data.contains(exceptionPrefix))
+            prettyPrint = prettyPrintXML(data);
+        else prettyPrint = prettyPrintJson(data);
         return prettyPrint;
     }
-
 }

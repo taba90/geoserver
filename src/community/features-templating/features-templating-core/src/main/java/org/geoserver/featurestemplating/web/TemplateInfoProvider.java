@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDao;
-import org.geoserver.featurestemplating.configuration.TemplateInfoDaoImpl;
 import org.geoserver.web.wicket.GeoServerDataProvider;
 
 public class TemplateInfoProvider extends GeoServerDataProvider<TemplateInfo> {

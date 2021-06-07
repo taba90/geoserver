@@ -8,7 +8,6 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -34,8 +33,6 @@ import org.geoserver.web.wicket.CodeMirrorEditor;
 
 public class TemplateConfigurationPage extends GeoServerSecuredPage {
 
-
-
     protected AjaxTabbedPanel<ITab> tabbedPanel;
 
     private boolean isNew;
@@ -50,7 +47,6 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
 
     String rawTemplate;
 
-
     public TemplateConfigurationPage(IModel<TemplateInfo> model, boolean isNew) {
         this.isNew = isNew;
         this.templateInfoModel = model;
@@ -59,66 +55,71 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
 
     private void initUI(IModel<TemplateInfo> model) {
         if (!isNew) getTemplateFileManager().addMemento(model.getObject());
-        form =
-                new Form<>("theForm", model);
+        form = new Form<>("theForm", model);
         List<ITab> tabs = new ArrayList<>();
-        PanelCachingTab previewTab= new PanelCachingTab(
-                new AbstractTab(new Model<>("Preview")) {
-                    @Override
-                    public Panel getPanel(String id) {
-                        previewPanel=new TemplatePreviewPanel(id,TemplateConfigurationPage.this);
-                        return previewPanel;
-                    }
-                }
-        );
-        PanelCachingTab dataTab= new PanelCachingTab(
-                new AbstractTab(new Model<>("Data")) {
-                    @Override
-                    public Panel getPanel(String id) {
-                        return new TemplateInfoDataPanel(id,TemplateConfigurationPage.this){
+        PanelCachingTab previewTab =
+                new PanelCachingTab(
+                        new AbstractTab(new Model<>("Preview")) {
                             @Override
-                            protected TemplatePreviewPanel getPreviewPanel() {
+                            public Panel getPanel(String id) {
+                                previewPanel =
+                                        new TemplatePreviewPanel(
+                                                id, TemplateConfigurationPage.this);
                                 return previewPanel;
                             }
-                        };
-                    }
-                }
-        );
+                        });
+        PanelCachingTab dataTab =
+                new PanelCachingTab(
+                        new AbstractTab(new Model<>("Data")) {
+                            @Override
+                            public Panel getPanel(String id) {
+                                return new TemplateInfoDataPanel(
+                                        id, TemplateConfigurationPage.this) {
+                                    @Override
+                                    protected TemplatePreviewPanel getPreviewPanel() {
+                                        return previewPanel;
+                                    }
+                                };
+                            }
+                        });
         tabs.add(dataTab);
         tabs.add(previewTab);
-        tabbedPanel=new AjaxTabbedPanel<ITab>("tabbedPanel", tabs) {
-            @Override
-            protected String getTabContainerCssClass() {
-                return "tab-row tab-row-compact";
-            }
+        tabbedPanel =
+                new AjaxTabbedPanel<ITab>("tabbedPanel", tabs) {
+                    @Override
+                    protected String getTabContainerCssClass() {
+                        return "tab-row tab-row-compact";
+                    }
 
-            @Override
-            protected WebMarkupContainer newLink(String linkId, final int index) {
+                    @Override
+                    protected WebMarkupContainer newLink(String linkId, final int index) {
 
-                AjaxSubmitLink link =
-                        new AjaxSubmitLink(linkId) {
+                        AjaxSubmitLink link =
+                                new AjaxSubmitLink(linkId) {
 
-                            private static final long serialVersionUID = 4599409150448651749L;
+                                    private static final long serialVersionUID =
+                                            4599409150448651749L;
 
-                            @Override
-                            public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                                TemplateInfo templateInfo=(TemplateInfo)form.getModelObject();
-                                if (!validateAndReport(templateInfo,rawTemplate)) return;
-                                saveTemplateInfo(templateInfo);
-                                setSelectedTab(index);
-                                target.add(tabbedPanel);
-                            }
+                                    @Override
+                                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                                        TemplateInfo templateInfo =
+                                                (TemplateInfo) form.getModelObject();
+                                        if (!validateAndReport(templateInfo, rawTemplate)) return;
+                                        saveTemplateInfo(templateInfo);
+                                        setSelectedTab(index);
+                                        target.add(tabbedPanel);
+                                    }
 
-                            @Override
-                            protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
-                                if (form.hasError())
-                                    addFeedbackPanels(target);
-                            }
-                        };
-                link.setDefaultFormProcessing(false);
-                return link;
-            }
-        };
+                                    @Override
+                                    protected void onAfterSubmit(
+                                            AjaxRequestTarget target, Form<?> form) {
+                                        if (form.hasError()) addFeedbackPanels(target);
+                                    }
+                                };
+                        link.setDefaultFormProcessing(false);
+                        return link;
+                    }
+                };
         tabbedPanel.setMarkupId("template-info-tabbed-panel");
         tabbedPanel.setOutputMarkupId(true);
         form.add(tabbedPanel);
@@ -184,7 +185,7 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                         super.onSubmit(target, form);
                         TemplateInfo templateInfo = (TemplateInfo) form.getModelObject();
                         String rawTemplate = getRawTemplate();
-                        if (!validateAndReport(templateInfo,rawTemplate)) return;
+                        if (!validateAndReport(templateInfo, rawTemplate)) return;
                         saveTemplateInfo(templateInfo);
                     }
 
@@ -200,17 +201,16 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
         return submitLink;
     }
 
-    void saveTemplateFile(TemplateInfo templateInfo){
+    void saveTemplateFile(TemplateInfo templateInfo) {
         File destDir = getTemplateFileManager().getTemplateLocation(templateInfo);
         try {
             File file =
                     new File(
                             destDir,
-                            templateInfo.getTemplateName()
-                                    + "."
-                                    + templateInfo.getExtension());
+                            templateInfo.getTemplateName() + "." + templateInfo.getExtension());
             file.createNewFile();
             try (FileOutputStream fos = new FileOutputStream(file, false)) {
+                String rawTemplate = getEditor().getModelObject();
                 fos.write(rawTemplate.getBytes());
             }
         } catch (IOException e) {
@@ -226,8 +226,7 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
         return rawTemplate;
     }
 
-
-    Form<TemplateInfo> getForm(){
+    Form<TemplateInfo> getForm() {
         return form;
     }
 
@@ -237,9 +236,8 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
 
     private boolean validateAndReport(TemplateInfo info, String rawTemplate) {
         try {
-            TemplateModelsValidator validator =
-                    new TemplateModelsValidator();
-            validator.validate(info,rawTemplate);
+            TemplateModelsValidator validator = new TemplateModelsValidator();
+            validator.validate(info, rawTemplate);
         } catch (GeoServerException e) {
             form.error(e.getMessage());
             return false;
@@ -247,18 +245,17 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
         return true;
     }
 
-    void saveTemplateInfo(TemplateInfo templateInfo){
+    void saveTemplateInfo(TemplateInfo templateInfo) {
         String rawTemplate = getRawTemplate();
-        if (!validateAndReport(templateInfo,rawTemplate)) return;
+        if (!validateAndReport(templateInfo, rawTemplate)) return;
         saveTemplateFile(templateInfo);
         TemplateInfoDao.get().saveOrUpdate(templateInfo);
         getTemplateFileManager().deleteOldTemplateFile(templateInfo);
     }
 
-    CodeMirrorEditor getEditor(){
+    CodeMirrorEditor getEditor() {
         return this.editor;
     }
-
 
     static TemplateFileManager getTemplateFileManager() {
         return GeoServerExtensions.bean(TemplateFileManager.class);

@@ -10,9 +10,11 @@ import org.geoserver.web.wicket.GeoServerDataProvider;
 import org.geoserver.web.wicket.LiveCollectionModel;
 
 public class TemplateRuleProvider extends GeoServerDataProvider<TemplateRule> {
+    public static final Property<TemplateRule> PRIORITY =
+            new BeanProperty<>("priority", "priority");
     public static final Property<TemplateRule> NAME = new BeanProperty<>("name", "templateName");
     public static final Property<TemplateRule> OUTPUT_FORMAT =
-            new BeanProperty<>("outputFormat", "outputFormat");
+            new BeanProperty<>("outputFormat", "outputFormat.format");
 
     public static final Property<TemplateRule> CQL_FILTER =
             new BeanProperty<>("cqlFilter", "cqlFilter");
@@ -25,7 +27,7 @@ public class TemplateRuleProvider extends GeoServerDataProvider<TemplateRule> {
 
     @Override
     protected List<Property<TemplateRule>> getProperties() {
-        return Arrays.asList(NAME, OUTPUT_FORMAT, CQL_FILTER);
+        return Arrays.asList(PRIORITY,NAME, OUTPUT_FORMAT, CQL_FILTER);
     }
 
     @Override

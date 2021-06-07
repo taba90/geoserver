@@ -1,5 +1,15 @@
 package org.geoserver.featurestemplating.web;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.WicketRuntimeException;
@@ -27,21 +37,9 @@ import org.geoserver.web.wicket.CodeMirrorEditor;
 import org.geoserver.web.wicket.ParamResourceModel;
 import org.geotools.util.logging.Logging;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
 public abstract class TemplateInfoDataPanel extends Panel {
 
     static final Logger LOGGER = Logging.getLogger(TemplateInfoDataPanel.class);
-
 
     private TemplateConfigurationPage page;
 
@@ -61,12 +59,12 @@ public abstract class TemplateInfoDataPanel extends Panel {
 
     public TemplateInfoDataPanel(String id, TemplateConfigurationPage page) {
         super(id);
-        this.page=page;
-        this.model=page.getTemplateInfoModel();
+        this.page = page;
+        this.model = page.getTemplateInfoModel();
         initUI();
     }
 
-    private void initUI(){
+    private void initUI() {
         templateName = new TextField<>("templateName", new PropertyModel<>(model, "templateName"));
         add(templateName);
         templateExtension =
@@ -95,14 +93,13 @@ public abstract class TemplateInfoDataPanel extends Panel {
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
-                        String workspace=wsDropDown.getConvertedInput();
+                        String workspace = wsDropDown.getConvertedInput();
                         ftiDropDown.setChoices(getFeatureTypesInfo(workspace));
                         ftiDropDown.modelChanged();
                         target.add(ftiDropDown);
                         ftiDropDown.setEnabled(true);
-                        TemplatePreviewPanel previewPanel=getPreviewPanel();
-                        if (previewPanel!=null)
-                            previewPanel.setWorkspaceValue(workspace);
+                        TemplatePreviewPanel previewPanel = getPreviewPanel();
+                        if (previewPanel != null) previewPanel.setWorkspaceValue(workspace);
                     }
                 });
         add(wsDropDown);
@@ -115,17 +112,18 @@ public abstract class TemplateInfoDataPanel extends Panel {
         if (wsDropDown.getValue() == null || wsDropDown.getValue() == "-1")
             ftiDropDown.setEnabled(false);
         else ftiDropDown.setChoices(getFeatureTypesInfo(wsDropDown.getModelObject()));
-        ftiDropDown.add(new OnChangeAjaxBehavior(){
+        ftiDropDown.add(
+                new OnChangeAjaxBehavior() {
 
-            private static final long serialVersionUID = 3510850205685746576L;
+                    private static final long serialVersionUID = 3510850205685746576L;
 
-            @Override
-            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
-                TemplatePreviewPanel previewPanel=getPreviewPanel();
-                if (previewPanel!=null)
-                    previewPanel.setFeatureTypeInfoValue(ftiDropDown.getConvertedInput());
-            }
-        });
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                        TemplatePreviewPanel previewPanel = getPreviewPanel();
+                        if (previewPanel != null)
+                            previewPanel.setFeatureTypeInfoValue(ftiDropDown.getConvertedInput());
+                    }
+                });
         ftiDropDown.setOutputMarkupId(true);
         ftiDropDown.setNullValid(true);
         add(ftiDropDown);
@@ -173,19 +171,17 @@ public abstract class TemplateInfoDataPanel extends Panel {
                 try {
                     IOUtils.copy(upload.getInputStream(), bout);
                     page.getEditor().reset();
-                    page
-                            .setRawTemplate(
-                                    new InputStreamReader(
-                                            new ByteArrayInputStream(bout.toByteArray()), "UTF-8"));
+                    page.setRawTemplate(
+                            new InputStreamReader(
+                                    new ByteArrayInputStream(bout.toByteArray()), "UTF-8"));
                     upload.getContentType();
                 } catch (IOException e) {
                     throw new WicketRuntimeException(e);
                 } catch (Exception e) {
-                    page
-                            .error(
-                                    "Errors occurred uploading the '"
-                                            + upload.getClientFileName()
-                                            + "' template");
+                    page.error(
+                            "Errors occurred uploading the '"
+                                    + upload.getClientFileName()
+                                    + "' template");
                     LOGGER.log(
                             Level.WARNING,
                             "Errors occurred uploading the '"
@@ -205,7 +201,7 @@ public abstract class TemplateInfoDataPanel extends Panel {
                 int index = fileName.lastIndexOf(".");
                 String extension = fileName.substring(index + 1);
                 templateInfo.setExtension(extension);
-                CodeMirrorEditor editor=page.getEditor();
+                CodeMirrorEditor editor = page.getEditor();
                 if (!extension.equals("xml")) {
                     editor.setModeAndSubMode("javascript", "json");
                 } else {
@@ -246,8 +242,8 @@ public abstract class TemplateInfoDataPanel extends Panel {
                                 public CharSequence getPrecondition(Component component) {
                                     CharSequence message =
                                             new ParamResourceModel(
-                                                    "confirmOverwrite",
-                                                    TemplateInfoDataPanel.this)
+                                                            "confirmOverwrite",
+                                                            TemplateInfoDataPanel.this)
                                                     .getString();
                                     message = JavaScriptUtils.escapeQuotes(message);
                                     return "var val = attrs.event.view.document.gsEditors ? "
@@ -272,5 +268,4 @@ public abstract class TemplateInfoDataPanel extends Panel {
     }
 
     protected abstract TemplatePreviewPanel getPreviewPanel();
-
 }

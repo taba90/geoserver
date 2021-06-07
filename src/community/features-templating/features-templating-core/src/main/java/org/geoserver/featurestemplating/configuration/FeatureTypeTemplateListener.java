@@ -18,7 +18,7 @@ public class FeatureTypeTemplateListener implements TemplateListener {
     public void handleDeleteEvent(TemplateInfoEvent removeEvent) {
         TemplateLayerConfig layerConfig =
                 fti.getMetadata().get(TemplateLayerConfig.METADATA_KEY, TemplateLayerConfig.class);
-        TemplateInfo ti= removeEvent.getSource();
+        TemplateInfo ti = removeEvent.getSource();
         if (layerConfig != null) {
             Set<TemplateRule> rules = layerConfig.getTemplateRules();
             if (!rules.isEmpty()) {
@@ -41,29 +41,32 @@ public class FeatureTypeTemplateListener implements TemplateListener {
         if (layerConfig != null) {
             Set<TemplateRule> rules = layerConfig.getTemplateRules();
             if (!rules.isEmpty()) {
-                TemplateInfo info=updateEvent.getSource();
-                Optional<TemplateRule> rule=rules.stream().filter(r->r.getTemplateIdentifier().equals(info.getIdentifier())).findFirst();
-                if (rule.isPresent()){
-                    TemplateRule r=rule.get();
+                TemplateInfo info = updateEvent.getSource();
+                Optional<TemplateRule> rule =
+                        rules.stream()
+                                .filter(r -> r.getTemplateIdentifier().equals(info.getIdentifier()))
+                                .findFirst();
+                if (rule.isPresent()) {
+                    TemplateRule r = rule.get();
                     if (!r.getTemplateName().equals(info.getFullName()))
-                    r.setTemplateName(info.getFullName());
-                    rules.removeIf(tr->tr.getTemplateIdentifier().equals(info.getIdentifier()));
+                        r.setTemplateName(info.getFullName());
+                    rules.removeIf(tr -> tr.getTemplateIdentifier().equals(info.getIdentifier()));
                     rules.add(r);
                     layerConfig.setTemplateRules(rules);
-                    fti.getMetadata().put(TemplateLayerConfig.METADATA_KEY,layerConfig);
+                    fti.getMetadata().put(TemplateLayerConfig.METADATA_KEY, layerConfig);
                     saveFeatureTypeInfo();
                 }
             }
         }
     }
 
-    private void saveFeatureTypeInfo(){
+    private void saveFeatureTypeInfo() {
         Catalog catalog = (Catalog) GeoServerExtensions.bean("catalog");
         catalog.save(fti);
     }
 
-    private void updateCache(TemplateInfo info){
-        TemplateLoader loader=GeoServerExtensions.bean(TemplateLoader.class);
-        loader.cleanCache(fti,info.getIdentifier());
+    private void updateCache(TemplateInfo info) {
+        TemplateLoader loader = GeoServerExtensions.bean(TemplateLoader.class);
+        loader.cleanCache(fti, info.getIdentifier());
     }
 }

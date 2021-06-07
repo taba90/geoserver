@@ -1,19 +1,20 @@
 package org.geoserver.featurestemplating.configuration;
 
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
-
 import org.geoserver.ows.Request;
 import org.geoserver.util.XCQL;
 import org.geotools.filter.text.cql2.CQLException;
-import org.springframework.http.HttpHeaders;
 
 @XmlRootElement(name = "rules")
 public class TemplateRule implements Serializable {
 
     private String ruleId;
+
+    private Integer priority;
 
     private String templateIdentifier;
 
@@ -27,9 +28,9 @@ public class TemplateRule implements Serializable {
 
     private boolean forceRule;
 
-
-    public TemplateRule(){
-        this.ruleId= UUID.randomUUID().toString();
+    public TemplateRule() {
+        this.priority=0;
+        this.ruleId = UUID.randomUUID().toString();
     }
 
     public String getTemplateName() {
@@ -56,12 +57,13 @@ public class TemplateRule implements Serializable {
         this.templateName = templateName;
     }
 
-    public String getOutputFormat() {
-        return outputFormat;
+    public SupportedFormat getOutputFormat() {
+        if (outputFormat != null) return SupportedFormat.valueOf(outputFormat);
+        return null;
     }
 
-    public void setOutputFormat(String outputFormat) {
-        this.outputFormat = outputFormat;
+    public void setOutputFormat(SupportedFormat outputFormat) {
+        this.outputFormat = outputFormat.name();
     }
 
     public String getService() {
@@ -89,13 +91,15 @@ public class TemplateRule implements Serializable {
     }
 
     private boolean matchOutputFormat(String outputFormat) {
-        TemplateIdentifier identifier=TemplateIdentifier.getTemplateIdentifierFromOutputFormat(outputFormat);
-        if (identifier==null) return false;
+        TemplateIdentifier identifier =
+                TemplateIdentifier.getTemplateIdentifierFromOutputFormat(outputFormat);
+        if (identifier == null) return false;
         String nameIdentifier = identifier.name();
-        if (this.outputFormat.equals(SupportedMimeType.GML.name()))
+        if (this.outputFormat.equals(SupportedFormat.GML.name()))
             return nameIdentifier.startsWith(this.outputFormat);
-        else if (this.outputFormat.equals(SupportedMimeType.GEOJSON.name()))
-            return nameIdentifier.equals(TemplateIdentifier.GEOJSON.name()) || nameIdentifier.equals(TemplateIdentifier.JSON.name());
+        else if (this.outputFormat.equals(SupportedFormat.GEOJSON.name()))
+            return nameIdentifier.equals(TemplateIdentifier.GEOJSON.name())
+                    || nameIdentifier.equals(TemplateIdentifier.JSON.name());
         else return nameIdentifier.equals(this.outputFormat);
     }
 
@@ -146,27 +150,48 @@ public class TemplateRule implements Serializable {
         this.forceRule = forceRule;
     }
 
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TemplateRule that = (TemplateRule) o;
-        return ruleId == that.ruleId
-                && Objects.equals(templateIdentifier, that.templateIdentifier)
+        return Objects.equals(templateIdentifier, that.templateIdentifier)
                 && Objects.equals(templateName, that.templateName)
                 && Objects.equals(outputFormat, that.outputFormat)
                 && Objects.equals(service, that.service)
-                && Objects.equals(cqlFilter, that.cqlFilter);
+                && Objects.equals(cqlFilter, that.cqlFilter)
+                && Objects.equals(priority,that.priority);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-                ruleId,
-                templateIdentifier,
-                templateName,
-                outputFormat,
-                service,
-                cqlFilter);
+                templateIdentifier, templateName, outputFormat, service, cqlFilter,priority);
+    }
+
+    public static class TemplateRuleComparator implements Comparator<TemplateRule> {
+
+        @Override
+        public int compare(TemplateRule o1, TemplateRule o2) {
+            int result;
+            if (o1.isForceRule()) result = -1;
+            else if (o2.isForceRule()) result = 1;
+            else {
+                int p1 = o1.getPriority();
+                int p2 = o2.getPriority();
+                if (p1 < p2) result = -1;
+                else if (p2 < p1) result = 1;
+                else result = 0;
+            }
+            return result;
+        }
     }
 }

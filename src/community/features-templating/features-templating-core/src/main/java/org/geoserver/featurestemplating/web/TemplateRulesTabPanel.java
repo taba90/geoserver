@@ -12,10 +12,8 @@ import org.geoserver.catalog.MetadataMap;
 import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.featurestemplating.configuration.FeatureTypeTemplateListener;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDao;
-import org.geoserver.featurestemplating.configuration.TemplateInfoDaoImpl;
 import org.geoserver.featurestemplating.configuration.TemplateRule;
 import org.geoserver.web.publish.PublishedEditTabPanel;
-import org.opengis.feature.type.Name;
 
 public class TemplateRulesTabPanel extends PublishedEditTabPanel<LayerInfo> {
 
@@ -31,26 +29,25 @@ public class TemplateRulesTabPanel extends PublishedEditTabPanel<LayerInfo> {
         if (!(ri instanceof FeatureTypeInfo)) {
             configurationPanel.setEnabled(false);
         }
-            TemplateInfoDao infoDao = TemplateInfoDao.get();
-            FeatureTypeTemplateListener listener =
-                    new FeatureTypeTemplateListener((FeatureTypeInfo) ri);
-            infoDao.addTemplateListener(listener);
-            PropertyModel<ResourceInfo> resource = new PropertyModel<>(model, "resource");
-            PropertyModel<MetadataMap> metadata = new PropertyModel<>(resource, "metadata");
-            TemplateRulesTablePanel tablePanel =
-                    new TemplateRulesTablePanel("rulesTable", metadata);
-            tablePanel.setOutputMarkupId(true);
-            add(tablePanel);
-            configurationPanel =
-                    new TemplateRuleConfigurationPanel(
-                            "ruleConfiguration",
-                            new CompoundPropertyModel<>(new TemplateRule()),
-                            false,
-                            li);
-            configurationPanel.setTemplateRuleTablePanel(tablePanel);
-            configurationPanel.setOutputMarkupId(true);
-            tablePanel.setConfigurationPanel(configurationPanel);
-            add(configurationPanel);
+        TemplateInfoDao infoDao = TemplateInfoDao.get();
+        FeatureTypeTemplateListener listener =
+                new FeatureTypeTemplateListener((FeatureTypeInfo) ri);
+        infoDao.addTemplateListener(listener);
+        PropertyModel<ResourceInfo> resource = new PropertyModel<>(model, "resource");
+        PropertyModel<MetadataMap> metadata = new PropertyModel<>(resource, "metadata");
+        TemplateRulesTablePanel tablePanel = new TemplateRulesTablePanel("rulesTable", metadata);
+        tablePanel.setOutputMarkupId(true);
+        add(tablePanel);
+        configurationPanel =
+                new TemplateRuleConfigurationPanel(
+                        "ruleConfiguration",
+                        new CompoundPropertyModel<>(new TemplateRule()),
+                        false,
+                        li);
+        configurationPanel.setTemplateRuleTablePanel(tablePanel);
+        configurationPanel.setOutputMarkupId(true);
+        tablePanel.setConfigurationPanel(configurationPanel);
+        add(configurationPanel);
     }
 
     @Override

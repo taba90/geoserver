@@ -1,5 +1,7 @@
 package org.geoserver.featurestemplating.web;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -8,6 +10,7 @@ import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.NumberTextField;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -15,7 +18,6 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.ResourceInfo;
-import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDao;
 import org.geoserver.featurestemplating.configuration.TemplateRule;
@@ -25,13 +27,18 @@ public class TemplateRuleConfigurationPanel extends Panel {
     CompoundPropertyModel<TemplateRule> templateRuleModel;
     TemplateRulesTablePanel tablePanel;
     Form<TemplateRule> theForm;
+    NumberTextField<Integer> priorityField;
     DropDownChoice<TemplateInfo> templateInfoDropDownChoice;
-    DropDownChoice<String> mimeTypeDropDown;
+    OutputFormatsDropDown mimeTypeDropDown;
     TextArea<String> cqlFilterArea;
     FeedbackPanel ruleFeedbackPanel;
     LayerInfo layer;
+
     public TemplateRuleConfigurationPanel(
-            String id, CompoundPropertyModel<TemplateRule> model, boolean isUpdate, LayerInfo layer) {
+            String id,
+            CompoundPropertyModel<TemplateRule> model,
+            boolean isUpdate,
+            LayerInfo layer) {
         super(id, model);
         this.layer = layer;
         this.templateRuleModel = model;
@@ -41,11 +48,12 @@ public class TemplateRuleConfigurationPanel extends Panel {
     private void initUI(CompoundPropertyModel<TemplateRule> model, boolean isUpdate) {
         this.theForm = new Form<>("theForm", model);
         theForm.setOutputMarkupId(true);
-        theForm.add(ruleFeedbackPanel =new FeedbackPanel("ruleFeedback"));
+        theForm.add(ruleFeedbackPanel = new FeedbackPanel("ruleFeedback"));
         ruleFeedbackPanel.setOutputMarkupId(true);
         add(theForm);
 
-
+        priorityField = new NumberTextField<Integer>("priority", model.bind("priority"));
+        theForm.add(priorityField);
         ChoiceRenderer<TemplateInfo> templateInfoChoicheRenderer =
                 new ChoiceRenderer<>("fullName", "identifier");
         templateInfoDropDownChoice =
@@ -57,12 +65,11 @@ public class TemplateRuleConfigurationPanel extends Panel {
         templateInfoDropDownChoice.setOutputMarkupId(true);
         theForm.add(templateInfoDropDownChoice);
 
-        mimeTypeDropDown =
-                new OutputFormatsDropDown("outputFormats", model.bind("outputFormat"));
+        mimeTypeDropDown = new OutputFormatsDropDown("outputFormats", model.bind("outputFormat"));
         mimeTypeDropDown.setOutputMarkupId(true);
         theForm.add(mimeTypeDropDown);
 
-        cqlFilterArea=new TextArea<>("cqlFilter", model.bind("cqlFilter"));
+        cqlFilterArea = new TextArea<>("cqlFilter", model.bind("cqlFilter"));
         cqlFilterArea.setOutputMarkupId(true);
         theForm.add(cqlFilterArea);
         AjaxSubmitLink submitLink =
@@ -71,8 +78,7 @@ public class TemplateRuleConfigurationPanel extends Panel {
                     protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         super.onSubmit(target, form);
                         TemplateRule rule = theForm.getModelObject();
-                        if (!validateAndReport(rule))
-                            return;
+                        if (!validateAndReport(rule)) return;
                         updateModelRules(rule);
                         target.add(tablePanel);
                         target.add(tablePanel.getTable());
@@ -81,8 +87,7 @@ public class TemplateRuleConfigurationPanel extends Panel {
 
                     @Override
                     protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
-                        if (theForm.hasError())
-                            target.add(ruleFeedbackPanel);
+                        if (theForm.hasError()) target.add(ruleFeedbackPanel);
                     }
                 };
         theForm.add(submitLink);
@@ -96,21 +101,21 @@ public class TemplateRuleConfigurationPanel extends Panel {
                 });
     }
 
-    private boolean validateAndReport(TemplateRule rule){
-        boolean result=true;
+    private boolean validateAndReport(TemplateRule rule) {
+        boolean result = true;
         try {
             TemplateModelsValidator validator = new TemplateModelsValidator();
             validator.validate(rule);
-        } catch(TemplateConfigurationException e){
+        } catch (TemplateConfigurationException e) {
             theForm.error(e.getMessage());
-            result=false;
+            result = false;
         }
         return result;
     }
 
     protected List<TemplateInfo> getTemplateInfoList() {
-        ResourceInfo resourceInfo=layer.getResource();
-        return TemplateInfoDao.get().findByFeatureTypeInfo((FeatureTypeInfo)resourceInfo);
+        ResourceInfo resourceInfo = layer.getResource();
+        return TemplateInfoDao.get().findByFeatureTypeInfo((FeatureTypeInfo) resourceInfo);
     }
 
     void setTemplateRuleTablePanel(TemplateRulesTablePanel panel) {
@@ -118,15 +123,37 @@ public class TemplateRuleConfigurationPanel extends Panel {
     }
 
     private void updateModelRules(TemplateRule rule) {
-        Set<TemplateRule> rules = new HashSet<>(tablePanel.getModel().getObject());
-        rules.removeIf(r->r.getRuleId().equals(rule.getRuleId()));
-        rules.add(rule);
-        tablePanel.getModel().setObject(rules);
+        List<TemplateRule> rules = new ArrayList<>(tablePanel.getModel().getObject());
+        Collections.sort(rules, new TemplateRule.TemplateRuleComparator());
+        rules.removeIf(r -> r.getRuleId().equals(rule.getRuleId()));
+        tablePanel.getModel().setObject(updatePriorities(rules, rule));
         tablePanel.modelChanged();
         tablePanel.getTable().modelChanged();
     }
 
-    private void clearForm(AjaxRequestTarget target){
+    private Set<TemplateRule> updatePriorities(List<TemplateRule> rules, TemplateRule newRule) {
+        Set<TemplateRule> set = new HashSet<>(rules.size());
+        int updatedPriority = newRule.getPriority();
+        boolean newRuleAdded = false;
+        for (TemplateRule rule : rules) {
+            int priority = rule.getPriority();
+            if (priority == updatedPriority) {
+                if (!newRuleAdded) {
+                    set.add(newRule);
+                    newRuleAdded = true;
+                }
+                priority++;
+                rule.setPriority(priority);
+                updatedPriority = priority;
+            }
+            set.add(rule);
+        }
+        if (set.isEmpty())
+            set.add(newRule);
+        return set;
+    }
+
+    private void clearForm(AjaxRequestTarget target) {
         theForm.clearInput();
         theForm.setModelObject(new TemplateRule());
         theForm.modelChanged();

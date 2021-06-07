@@ -3,6 +3,7 @@ package org.geoserver.featurestemplating.web;
 import static org.geoserver.featurestemplating.web.TemplateRuleProvider.CQL_FILTER;
 import static org.geoserver.featurestemplating.web.TemplateRuleProvider.NAME;
 import static org.geoserver.featurestemplating.web.TemplateRuleProvider.OUTPUT_FORMAT;
+import static org.geoserver.featurestemplating.web.TemplateRuleProvider.PRIORITY;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -18,21 +19,17 @@ import org.geoserver.featurestemplating.configuration.TemplateLayerConfig;
 import org.geoserver.featurestemplating.configuration.TemplateRule;
 import org.geoserver.web.util.MapModel;
 import org.geoserver.web.wicket.GeoServerDataProvider;
-import org.geoserver.web.wicket.GeoServerDialog;
 import org.geoserver.web.wicket.GeoServerTablePanel;
 import org.geoserver.web.wicket.LiveCollectionModel;
 import org.geoserver.web.wicket.SimpleAjaxLink;
 
 public class TemplateRulesTablePanel extends Panel {
 
-    private static final String HEADER_PANEL = "headerPanel";
-
     private GeoServerTablePanel<TemplateRule> table;
 
     private AjaxLink<Object> remove;
 
     private TemplateRuleConfigurationPanel configurationPanel;
-    GeoServerDialog dialog;
 
     private LiveCollectionModel<TemplateRule, Set<TemplateRule>> model;
 
@@ -81,6 +78,9 @@ public class TemplateRulesTablePanel extends Panel {
                 String id,
                 IModel<TemplateRule> itemModel,
                 GeoServerDataProvider.Property<TemplateRule> property) {
+            if (property.equals(PRIORITY)) {
+                return new Label(id, PRIORITY.getModel(itemModel));
+            }
             if (property.equals(NAME))
                 return new SimpleAjaxLink<TemplateRule>(id, itemModel, NAME.getModel(itemModel)) {
 

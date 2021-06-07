@@ -1,13 +1,14 @@
 package org.geoserver.featurestemplating.web;
 
+import org.geoserver.featurestemplating.configuration.SupportedFormat;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
 import org.geoserver.featurestemplating.configuration.TemplateRule;
 import org.geoserver.featurestemplating.expressions.MimeTypeFunction;
 
-
 public class TemplateModelsValidator {
 
-    public void validate(TemplateInfo info,  String rawTemplate) throws TemplateConfigurationException {
+    public void validate(TemplateInfo info, String rawTemplate)
+            throws TemplateConfigurationException {
         String templateName = info.getTemplateName();
         TemplateConfigurationException e = null;
         if (templateName == null || templateName.equals("")) {
@@ -23,10 +24,11 @@ public class TemplateModelsValidator {
         if (e != null) throw e;
     }
 
-    public void validate(TemplatePreviewPanel.PreviewInfoModel info) throws TemplateConfigurationException {
-        String outputFormat = info.getOutputFormat();
+    public void validate(TemplatePreviewPanel.PreviewInfoModel info)
+            throws TemplateConfigurationException {
+        SupportedFormat outputFormat = info.getOutputFormat();
         TemplateConfigurationException e = null;
-        if (outputFormat == null || outputFormat.equals("")) {
+        if (outputFormat == null) {
             e = new TemplateConfigurationException();
             e.setId(TemplateConfigurationException.MISSING_PREVIEW_OUTPUT_FORMAT);
         } else if (info.getFeatureType() == null) {
@@ -40,16 +42,16 @@ public class TemplateModelsValidator {
     }
 
     public void validate(TemplateRule rule) throws TemplateConfigurationException {
-        String templateName=rule.getTemplateName();
-        String outputFormat=rule.getOutputFormat();
-        String cqlFilter=rule.getCqlFilter();
+        String templateName = rule.getTemplateName();
+        SupportedFormat outputFormat = rule.getOutputFormat();
+        String cqlFilter = rule.getCqlFilter();
         TemplateConfigurationException e = null;
-        if (outputFormat == null || outputFormat.equals("")) {
-            if (cqlFilter==null|| !cqlFilter.contains(MimeTypeFunction.NAME.getName())) {
+        if (outputFormat == null) {
+            if (cqlFilter == null || !cqlFilter.contains(MimeTypeFunction.NAME.getName())) {
                 e = new TemplateConfigurationException();
                 e.setId(TemplateConfigurationException.MISSING_RULE_OUTPUT_FORMAT);
             }
-        } else if (templateName==null || templateName.trim().equals("")) {
+        } else if (templateName == null || templateName.trim().equals("")) {
             e = new TemplateConfigurationException();
             e.setId(TemplateConfigurationException.MISSING_RULE_TEMPLATE_NAME);
         }

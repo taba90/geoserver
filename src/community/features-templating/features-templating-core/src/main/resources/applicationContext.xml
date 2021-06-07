@@ -20,7 +20,7 @@
     <bean id="templateConfPage" class="org.geoserver.web.MenuPageInfo">
         <property name="id" value="templateConfPage"/>
         <property name="titleKey" value="TemplateInfoPage.title"/>
-        <property name="descriptionKey" value="TemplateInfoPage.shortDescription"/>
+        <property name="descriptionKey" value="TemplateInfoPage.description"/>
         <property name="componentClass" value="org.geoserver.featurestemplating.web.TemplateInfoPage"/>
         <property name="category" ref="dataCategory" />
         <property name="order" value="100" />

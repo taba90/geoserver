@@ -66,16 +66,18 @@ public class TemplateInfoPage extends GeoServerSecuredPage {
                                                 new AjaxCallListener() {
 
                                                     @Override
-                                                    public CharSequence getPrecondition(Component component) {
+                                                    public CharSequence getPrecondition(
+                                                            Component component) {
                                                         CharSequence message =
                                                                 new ParamResourceModel(
-                                                                        "confirmRemove",
-                                                                        TemplateInfoPage.this)
+                                                                                "confirmRemove",
+                                                                                TemplateInfoPage
+                                                                                        .this)
                                                                         .getString();
-                                                        message = JavaScriptUtils.escapeQuotes(message);
-                                                        return "return confirm('"
-                                                                + message
-                                                                + "');";
+                                                        message =
+                                                                JavaScriptUtils.escapeQuotes(
+                                                                        message);
+                                                        return "return confirm('" + message + "');";
                                                     }
                                                 });
                             }

@@ -11,7 +11,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.platform.resource.Resource;
@@ -50,11 +49,12 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
     @Override
     public TemplateInfo saveOrUpdate(TemplateInfo templateData) {
         reloadIfNeeded();
-        boolean isUpdate=templateDataSet.removeIf(ti->ti.getIdentifier().equals(templateData.getIdentifier()));
+        boolean isUpdate =
+                templateDataSet.removeIf(
+                        ti -> ti.getIdentifier().equals(templateData.getIdentifier()));
         templateDataSet.add(templateData);
         storeProperties();
-        if (isUpdate)
-            fireTemplateUpdateEvent(templateData);
+        if (isUpdate) fireTemplateUpdateEvent(templateData);
         return templateData;
     }
 
@@ -84,11 +84,10 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
     }
 
     @Override
-    public List<TemplateInfo> findByFeatureTypeInfo(
-            FeatureTypeInfo featureTypeInfo) {
+    public List<TemplateInfo> findByFeatureTypeInfo(FeatureTypeInfo featureTypeInfo) {
         reloadIfNeeded();
-        String workspace =featureTypeInfo.getStore().getWorkspace().getName();
-        String name=featureTypeInfo.getNativeName();
+        String workspace = featureTypeInfo.getStore().getWorkspace().getName();
+        String name = featureTypeInfo.getNativeName();
         return templateDataSet
                 .stream()
                 .filter(
@@ -103,7 +102,7 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
 
     @Override
     public void fireTemplateUpdateEvent(TemplateInfo templateInfo) {
-        for (TemplateListener listener:listeners){
+        for (TemplateListener listener : listeners) {
             listener.handleUpdateEvent(new TemplateInfoEvent(templateInfo));
         }
     }
@@ -119,7 +118,6 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
     public void addTemplateListener(TemplateListener listener) {
         this.listeners.add(listener);
     }
-
 
     private TemplateInfo parseProperty(String key, String value) {
         TemplateInfo templateData = new TemplateInfo();
@@ -159,7 +157,7 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
         synchronized (this) {
             Properties p = toProperties();
             Resource propFile = dd.get(TEMPLATE_DIR, PROPERTY_FILE_NAME);
-            try(OutputStream os = propFile.out()){
+            try (OutputStream os = propFile.out()) {
                 p.store(os, null);
             } catch (Exception e) {
                 throw new RuntimeException("Could not write rules to " + PROPERTY_FILE_NAME);
@@ -184,10 +182,7 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
         }
     }
 
-    private void reloadIfNeeded(){
+    private void reloadIfNeeded() {
         if (isModified() || templateDataSet.isEmpty()) loadTemplateInfo();
     }
-
 }
-
-

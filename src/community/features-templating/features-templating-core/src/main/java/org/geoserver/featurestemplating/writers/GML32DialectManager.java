@@ -37,4 +37,9 @@ class GML32DialectManager extends GMLDialectManager {
     String getGmlNsUri() {
         return "http://www.opengis.net/gml/3.2";
     }
+
+    @Override
+    void startFeatureMember() throws XMLStreamException {
+        streamWriter.writeStartElement(GML_PREFIX,"member",getWfsNsUri());
+    }
 }

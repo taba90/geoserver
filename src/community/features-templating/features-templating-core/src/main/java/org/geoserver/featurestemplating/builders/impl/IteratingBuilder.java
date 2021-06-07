@@ -20,8 +20,6 @@ import org.xml.sax.helpers.NamespaceSupport;
  */
 public class IteratingBuilder extends SourceBuilder {
 
-    protected boolean rootCollection;
-
     public IteratingBuilder(String key, NamespaceSupport namespaces) {
         super(key, namespaces);
     }
@@ -29,7 +27,7 @@ public class IteratingBuilder extends SourceBuilder {
     @Override
     public void evaluate(TemplateOutputWriter writer, TemplateBuilderContext context)
             throws IOException {
-        if (!rootCollection) {
+        if (!managed) {
             context = evaluateSource(context);
             if (context.getCurrentObj() != null) {
                 evaluateNonFeaturesField(writer, context);
@@ -84,11 +82,11 @@ public class IteratingBuilder extends SourceBuilder {
             if (evaluateFilter(childContext)) {
                 String key = getKey();
                 // repeat the key attribute according to the hint
-                if (iterateKey && !rootCollection) writer.startArray(key, encodingHints);
+                if (iterateKey && !managed) writer.startArray(key, encodingHints);
                 for (TemplateBuilder child : children) {
                     child.evaluate(writer, childContext);
                 }
-                if (iterateKey && !rootCollection) writer.endArray(key, encodingHints);
+                if (iterateKey && !managed) writer.endArray(key, encodingHints);
             }
         }
     }
@@ -134,14 +132,6 @@ public class IteratingBuilder extends SourceBuilder {
         childContext.setParent(context.getParent());
         if (evaluateFilter(childContext)) return true;
         return false;
-    }
-
-    public boolean isRootCollection() {
-        return rootCollection;
-    }
-
-    public void setRootCollection(boolean rootCollection) {
-        this.rootCollection = rootCollection;
     }
 
     private boolean isIterateKey() {

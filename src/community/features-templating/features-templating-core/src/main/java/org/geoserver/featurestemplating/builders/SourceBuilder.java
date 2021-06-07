@@ -18,6 +18,8 @@ public abstract class SourceBuilder extends AbstractTemplateBuilder {
 
     private Expression source;
 
+    protected boolean managed;
+
     public SourceBuilder(String key, NamespaceSupport namespaces) {
         super(key, namespaces);
         this.children = new LinkedList<>();
@@ -92,5 +94,13 @@ public abstract class SourceBuilder extends AbstractTemplateBuilder {
             this.source =
                     new AttributeExpressionImpl(sourceExpr.evaluate(null).toString(), namespaces);
         else this.source = sourceExpr;
+    }
+
+    public boolean isManaged() {
+        return managed;
+    }
+
+    public void setManaged(boolean managed) {
+        this.managed = managed;
     }
 }

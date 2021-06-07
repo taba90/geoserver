@@ -52,11 +52,11 @@ public class CompositeBuilder extends SourceBuilder {
      */
     protected void evaluateChildren(TemplateOutputWriter writer, TemplateBuilderContext context)
             throws IOException {
-        writer.startObject(getKey(), encodingHints);
+        if(!managed) writer.startObject(getKey(), encodingHints);
         for (TemplateBuilder jb : children) {
             jb.evaluate(writer, context);
         }
-        writer.endObject(getKey(), encodingHints);
+        if(!managed) writer.endObject(getKey(), encodingHints);
     }
 
     /**
@@ -115,4 +115,5 @@ public class CompositeBuilder extends SourceBuilder {
         }
 
     }
+
 }

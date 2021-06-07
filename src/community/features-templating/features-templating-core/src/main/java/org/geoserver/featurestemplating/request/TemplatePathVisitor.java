@@ -177,15 +177,15 @@ public class TemplatePathVisitor extends DuplicatingFilterVisitor {
         List<TemplateBuilder> children = parent.getChildren();
         int length = pathElements.size();
         if (children != null) {
-            for (TemplateBuilder jb : children) {
-                String key = ((AbstractTemplateBuilder) jb).getKey();
-                if (keyMatched(jb, key, pathElements)) {
+            for (TemplateBuilder tb : children) {
+                String key = ((AbstractTemplateBuilder) tb).getKey();
+                if (matchBuilder(tb, key, pathElements)) {
                     boolean isLastEl = currentEl == length;
-                    if (isLastEl || jb instanceof StaticBuilder) {
-                        return jb;
-                    } else if (jb instanceof SourceBuilder) {
-                        pickSourceAndFilter((SourceBuilder) jb);
-                        TemplateBuilder result = findBuilder(jb, pathElements);
+                    if (isLastEl || tb instanceof StaticBuilder) {
+                        return tb;
+                    } else if (tb instanceof SourceBuilder) {
+                        pickSourceAndFilter((SourceBuilder) tb);
+                        TemplateBuilder result = findBuilder(tb, pathElements);
                         if (result != null) {
                             return result;
                         }
@@ -259,5 +259,13 @@ public class TemplatePathVisitor extends DuplicatingFilterVisitor {
 
     public List<Filter> getFilters() {
         return filters;
+    }
+
+    private boolean matchBuilder(TemplateBuilder jb, String key, List<String> pathElements){
+        boolean result=keyMatched(jb, key, pathElements);
+        if (!result && (jb instanceof SourceBuilder && ((SourceBuilder)jb).isManaged()))
+            result=true;
+
+        return result;
     }
 }

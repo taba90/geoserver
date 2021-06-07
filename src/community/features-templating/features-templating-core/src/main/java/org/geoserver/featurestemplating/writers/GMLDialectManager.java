@@ -219,4 +219,10 @@ abstract class GMLDialectManager {
     Map<String, String> getNamespaces() {
         return this.namespaces;
     }
+
+    abstract void startFeatureMember() throws XMLStreamException;
+
+    void endFeatureMember() throws XMLStreamException{
+        streamWriter.writeEndElement();
+    }
 }

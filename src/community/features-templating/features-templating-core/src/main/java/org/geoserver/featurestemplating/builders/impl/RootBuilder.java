@@ -59,7 +59,7 @@ public class RootBuilder implements TemplateBuilder {
         vendorOptions.put(vendorOption[0], cqlManager.getExpressionFromString());
     }
 
-    public void addVendorOption(String name, String value) {
+    public void addVendorOption(String name, Object value) {
         vendorOptions.put(name, value);
     }
 

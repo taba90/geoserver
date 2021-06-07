@@ -10,6 +10,7 @@ import static org.geoserver.featurestemplating.builders.EncodingHints.SCHEMA_LOC
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -27,6 +28,7 @@ import org.geoserver.platform.ServiceException;
 import org.geoserver.wfs.request.FeatureCollectionResponse;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.opengis.feature.Feature;
 
 /** A template response able to write a GML output format according to gml version. */
 public class GMLTemplateResponse extends BaseTemplateGetFeatureResponse {
@@ -55,6 +57,8 @@ public class GMLTemplateResponse extends BaseTemplateGetFeatureResponse {
             throw new ServiceException(e);
         }
     }
+
+
 
     @Override
     protected void writeAdditionalFieldsInternal(
@@ -86,10 +90,11 @@ public class GMLTemplateResponse extends BaseTemplateGetFeatureResponse {
         for (FeatureCollection collection : collectionList) {
             FeatureTypeInfo fti = helper.getFeatureTypeInfo(collection);
             RootBuilder root = configuration.getTemplate(fti, outputFormat);
-            Map<String, String> namespaces =
-                    (Map<String, String>) root.getEncodingHints().get(NAMESPACES);
-            Map<String, String> schemaLocation =
-                    (Map<String, String>) root.getEncodingHints().get(SCHEMA_LOCATION);
+            Map<String, String> namespaces = root.getVendorOptions().get(NAMESPACES,Map.class,new HashMap());
+            Map<String,String> namespaces2=(Map<String, String>) root.getEncodingHints().get(NAMESPACES);
+            if(namespaces2!=null) namespaces.putAll(namespaces2);
+            String schemaLocation = (String) root.getVendorOptions().get(SCHEMA_LOCATION);
+            if (schemaLocation==null) schemaLocation= (String)root.getEncodingHints().get(SCHEMA_LOCATION);
             if (namespaces != null) writer.addNamespaces(namespaces);
             if (schemaLocation != null) writer.addSchemaLocations(schemaLocation);
         }
@@ -107,5 +112,17 @@ public class GMLTemplateResponse extends BaseTemplateGetFeatureResponse {
             }
         }
         return TemplateIdentifier.GML32.getOutputFormat();
+    }
+
+    @Override
+    protected void beforeEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature) throws IOException {
+        super.beforeEvaluation(writer, root, feature);
+        ((GMLTemplateWriter) writer).startFeatureMember();
+    }
+
+    @Override
+    protected void afterEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature) throws IOException {
+        super.afterEvaluation(writer, root, feature);
+        ((GMLTemplateWriter)writer).endFeatureMember();
     }
 }

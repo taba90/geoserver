@@ -33,6 +33,14 @@ public class EncodingHints extends HashMap<String, Object> {
 
     public static final String SKIP_IF_SINGLE_FEATURE="SKIP_IF_SINGLE_FEATURE";
 
+    public EncodingHints () {
+        super();
+    }
+
+    public EncodingHints (EncodingHints encodingHints) {
+        super(encodingHints);
+    }
+
     /**
      * Check if the hint is present.
      *

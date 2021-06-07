@@ -7,6 +7,7 @@ package org.geoserver.featurestemplating.writers;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import javax.xml.stream.XMLStreamException;
@@ -22,6 +23,10 @@ import org.locationtech.jts.geom.Geometry;
 public class GMLTemplateWriter extends XMLTemplateWriter {
 
     private GMLDialectManager versionManager;
+
+    private static final Map.Entry<String, String> XLINK_NS= new HashMap.SimpleEntry("xlink","http://www.w3.org/1999/xlink");
+    private static final Map.Entry<String, String> XS_NS= new HashMap.SimpleEntry("xs","http://www.w3.org/2001/XMLSchema");
+    private static final Map.Entry<String, String> XSI_NS= new HashMap.SimpleEntry("xsi","http://www.w3.org/2001/XMLSchema-instance");
 
     public GMLTemplateWriter(XMLStreamWriter streamWriter, String outputFormat) {
         super(streamWriter);
@@ -50,10 +55,8 @@ public class GMLTemplateWriter extends XMLTemplateWriter {
             for (String k : nsKeys) {
                 streamWriter.writeNamespace(k, namespaces.get(k));
             }
-            Set<String> xsiKeys = schemaLocations.keySet();
-            for (String k : xsiKeys) {
-                streamWriter.writeAttribute(k, schemaLocations.get(k));
-            }
+            if (schemaLocations!=null)
+                streamWriter.writeAttribute("xsi:schemaLocation",schemaLocations);
         } catch (XMLStreamException e) {
             throw new IOException(e);
         }
@@ -124,6 +127,9 @@ public class GMLTemplateWriter extends XMLTemplateWriter {
     @Override
     public void addNamespaces(Map<String, String> namespaces) {
         super.addNamespaces(namespaces);
+        this.namespaces.put(XLINK_NS.getKey(),XLINK_NS.getValue());
+        this.namespaces.put(XS_NS.getKey(),XS_NS.getValue());
+        this.namespaces.put(XSI_NS.getKey(),XSI_NS.getValue());
         this.namespaces.putAll(versionManager.getNamespaces());
     }
 
@@ -131,5 +137,21 @@ public class GMLTemplateWriter extends XMLTemplateWriter {
     public void setAxisOrder(CRS.AxisOrder axisOrder) {
         super.setAxisOrder(axisOrder);
         this.versionManager.setAxisOrder(axisOrder);
+    }
+
+    public void startFeatureMember() throws IOException{
+        try {
+            this.versionManager.startFeatureMember();
+        } catch (XMLStreamException e){
+            throw new IOException(e);
+        }
+    }
+
+    public void endFeatureMember() throws IOException{
+        try {
+            this.versionManager.endFeatureMember();
+        } catch (XMLStreamException e){
+            throw new IOException(e);
+        }
     }
 }

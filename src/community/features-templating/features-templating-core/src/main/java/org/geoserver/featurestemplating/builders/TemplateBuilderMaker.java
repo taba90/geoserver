@@ -40,7 +40,7 @@ public class TemplateBuilderMaker {
 
     private boolean flatOutput;
 
-    private boolean rootCollection;
+    private boolean managed=false;
 
     private EncodingHints encondingHints;
 
@@ -188,12 +188,12 @@ public class TemplateBuilderMaker {
      * Set a boolean to tell the TemplateBuilderMaker if the IteratingBuilder being created should
      * be considered as the first IteratingBuilder of the builder tree.
      *
-     * @param root true if the IteratingBuilder being created is the root IteratingBuilder of the
+     * @param managed true if the IteratingBuilder being created is the root IteratingBuilder of the
      *     builder tree.
      * @return this TemplateBuilderMaker.
      */
-    public TemplateBuilderMaker rootCollection(boolean root) {
-        rootCollection = root;
+    public TemplateBuilderMaker managedBuilder(boolean managed) {
+        this.managed = managed;
         return this;
     }
 
@@ -257,7 +257,7 @@ public class TemplateBuilderMaker {
         this.vendorOptions = new VendorOptions();
         this.filter = null;
         this.isCollection = false;
-        this.rootCollection = false;
+        this.managed = false;
         this.name = null;
         this.source = null;
         this.textContent = null;
@@ -288,8 +288,8 @@ public class TemplateBuilderMaker {
         if (filter != null) iteratingBuilder.setFilter(filter);
         if (!encondingHints.isEmpty()) iteratingBuilder.getEncodingHints().putAll(encondingHints);
         if (name != null && rootCollectionName != null && rootCollectionName.equals(name))
-            rootCollection = true;
-        iteratingBuilder.setRootCollection(rootCollection);
+            managed = true;
+        iteratingBuilder.setManaged(managed);
         return iteratingBuilder;
     }
 
@@ -301,7 +301,7 @@ public class TemplateBuilderMaker {
         if (source != null) compositeBuilder.setSource(source);
         if (filter != null) compositeBuilder.setFilter(filter);
         if (!encondingHints.isEmpty()) compositeBuilder.getEncodingHints().putAll(encondingHints);
-
+        compositeBuilder.setManaged(managed);
         return compositeBuilder;
     }
 

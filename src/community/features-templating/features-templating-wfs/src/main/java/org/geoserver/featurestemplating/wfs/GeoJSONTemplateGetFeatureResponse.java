@@ -4,28 +4,25 @@
  */
 package org.geoserver.featurestemplating.wfs;
 
+import static org.geoserver.featurestemplating.builders.EncodingHints.ISGEOJSON;
+import static org.geoserver.featurestemplating.builders.EncodingHints.isSingleFeatureRequest;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
 import org.geoserver.featurestemplating.builders.EncodingHints;
 import org.geoserver.featurestemplating.builders.VendorOptions;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
-import org.geoserver.featurestemplating.configuration.TemplateLoader;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
+import org.geoserver.featurestemplating.configuration.TemplateLoader;
 import org.geoserver.featurestemplating.writers.GeoJSONWriter;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
 import org.geoserver.platform.Operation;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wfs.request.FeatureCollectionResponse;
 import org.geotools.geometry.jts.ReferencedEnvelope;
-
-import static org.geoserver.featurestemplating.builders.EncodingHints.ISGEOJSON;
-import static org.geoserver.featurestemplating.builders.EncodingHints.isSingleFeatureRequest;
 
 /** Write a valid GeoJSON output from a template */
 public class GeoJSONTemplateGetFeatureResponse extends BaseTemplateGetFeatureResponse {
@@ -43,9 +40,9 @@ public class GeoJSONTemplateGetFeatureResponse extends BaseTemplateGetFeatureRes
             throws ServiceException {
 
         try (GeoJSONWriter writer = getOutputWriter(output)) {
-            EncodingHints encodingHints=new EncodingHints();
-            boolean isGeoJSON=identifier.equals(TemplateIdentifier.GEOJSON);
-            encodingHints.put(ISGEOJSON,isGeoJSON);
+            EncodingHints encodingHints = new EncodingHints();
+            boolean isGeoJSON = identifier.equals(TemplateIdentifier.GEOJSON);
+            encodingHints.put(ISGEOJSON, isGeoJSON);
             writer.startTemplateOutput(encodingHints);
             iterateFeatureCollection(writer, featureCollection);
             if (!isSingleFeatureRequest() || !isGeoJSON) writer.endArray(null, null);

@@ -4,20 +4,20 @@
  */
 package org.geoserver.featurestemplating.wfs;
 
-import java.io.*;
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import static org.geoserver.featurestemplating.builders.EncodingHints.CONTEXT;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.io.*;
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Map;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
 import org.geoserver.featurestemplating.builders.EncodingHints;
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
-import org.geoserver.featurestemplating.configuration.TemplateLoader;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
+import org.geoserver.featurestemplating.configuration.TemplateLoader;
 import org.geoserver.featurestemplating.validation.JSONLDContextValidation;
 import org.geoserver.featurestemplating.writers.JSONLDWriter;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
@@ -30,9 +30,6 @@ import org.geoserver.wfs.request.GetFeatureRequest;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.Feature;
-
-import static org.geoserver.featurestemplating.builders.EncodingHints.CONTEXT;
-import static org.geoserver.featurestemplating.builders.EncodingHints.isSingleFeatureRequest;
 
 /**
  * Encodes features in json-ld output format by means of a ${@link TemplateBuilder} tree obtained by
@@ -99,10 +96,10 @@ public class JSONLDGetFeatureResponse extends BaseTemplateGetFeatureResponse {
     private void write(
             FeatureCollectionResponse featureCollection, RootBuilder root, JSONLDWriter writer)
             throws IOException {
-        EncodingHints encondingHints=new EncodingHints(root.getEncodingHints());
-        if (encondingHints.get(CONTEXT)==null){
-            JsonNode context=root.getVendorOptions().get(CONTEXT, JsonNode.class);
-            if (context!=null) encondingHints.put(CONTEXT,context);
+        EncodingHints encondingHints = new EncodingHints(root.getEncodingHints());
+        if (encondingHints.get(CONTEXT) == null) {
+            JsonNode context = root.getVendorOptions().get(CONTEXT, JsonNode.class);
+            if (context != null) encondingHints.put(CONTEXT, context);
         }
         writer.startTemplateOutput(encondingHints);
         iterateFeatureCollection(writer, featureCollection, root);

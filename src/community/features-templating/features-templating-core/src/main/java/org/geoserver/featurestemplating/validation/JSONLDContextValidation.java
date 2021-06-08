@@ -66,8 +66,7 @@ public class JSONLDContextValidation {
         }
     }
 
-
-    public void validate(Object json){
+    public void validate(Object json) {
         Map<String, Object> jsonMap = (Map<String, Object>) json;
         JsonLdOptions options = new JsonLdOptions();
         Object context = jsonMap.get("@context");

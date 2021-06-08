@@ -15,9 +15,8 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.Optional;
 import org.geoserver.config.GeoServer;
-import org.geoserver.featurestemplating.builders.EncodingHints;
-import org.geoserver.featurestemplating.configuration.TemplateLoader;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
+import org.geoserver.featurestemplating.configuration.TemplateLoader;
 import org.geoserver.featurestemplating.writers.GeoJSONWriter;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
 import org.geoserver.platform.Operation;
@@ -39,7 +38,8 @@ class GeoJSONTemplateGetFeatureResponse
 
     @Override
     protected GeoJSONWriter getOutputWriter(OutputStream output) throws IOException {
-        return new GeoJSONAPIWriter(new JsonFactory().createGenerator(output, JsonEncoding.UTF8),identifier);
+        return new GeoJSONAPIWriter(
+                new JsonFactory().createGenerator(output, JsonEncoding.UTF8), identifier);
     }
 
     @Override
@@ -56,7 +56,7 @@ class GeoJSONTemplateGetFeatureResponse
                     writer, featureCollection, getFeature, featureCount, bounds);
             return;
         }
-        if(!isSingleFeatureRequest()) {
+        if (!isSingleFeatureRequest()) {
             writer.writeNumberReturned();
             writer.writeTimeStamp();
         }

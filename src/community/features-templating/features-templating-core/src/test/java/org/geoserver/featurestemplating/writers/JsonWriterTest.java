@@ -66,7 +66,9 @@ public class JsonWriterTest {
     public void testStaticArray() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         GeoJSONWriter writer =
-                new GeoJSONWriter(new JsonFactory().createGenerator(baos, JsonEncoding.UTF8), TemplateIdentifier.JSON);
+                new GeoJSONWriter(
+                        new JsonFactory().createGenerator(baos, JsonEncoding.UTF8),
+                        TemplateIdentifier.JSON);
         writer.startArray(null, null);
         writer.writeStaticContent(null, "abc", new EncodingHints());
         writer.writeStaticContent(null, 5, new EncodingHints());

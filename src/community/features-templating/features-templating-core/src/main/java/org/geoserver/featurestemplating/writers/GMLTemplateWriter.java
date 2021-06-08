@@ -18,15 +18,19 @@ import org.geoserver.util.ISO8601Formatter;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Geometry;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /** A writer able to generate a GML output. */
 public class GMLTemplateWriter extends XMLTemplateWriter {
 
     private GMLDialectManager versionManager;
 
-    private static final Map.Entry<String, String> XLINK_NS= new HashMap.SimpleEntry("xlink","http://www.w3.org/1999/xlink");
-    private static final Map.Entry<String, String> XS_NS= new HashMap.SimpleEntry("xs","http://www.w3.org/2001/XMLSchema");
-    private static final Map.Entry<String, String> XSI_NS= new HashMap.SimpleEntry("xsi","http://www.w3.org/2001/XMLSchema-instance");
+    private static final Map.Entry<String, String> XLINK_NS =
+            new HashMap.SimpleEntry("xlink", "http://www.w3.org/1999/xlink");
+    private static final Map.Entry<String, String> XS_NS =
+            new HashMap.SimpleEntry("xs", "http://www.w3.org/2001/XMLSchema");
+    private static final Map.Entry<String, String> XSI_NS =
+            new HashMap.SimpleEntry("xsi", "http://www.w3.org/2001/XMLSchema-instance");
 
     public GMLTemplateWriter(XMLStreamWriter streamWriter, String outputFormat) {
         super(streamWriter);
@@ -55,8 +59,8 @@ public class GMLTemplateWriter extends XMLTemplateWriter {
             for (String k : nsKeys) {
                 streamWriter.writeNamespace(k, namespaces.get(k));
             }
-            if (schemaLocations!=null)
-                streamWriter.writeAttribute("xsi:schemaLocation",schemaLocations);
+            if (schemaLocations != null)
+                streamWriter.writeAttribute("xsi:schemaLocation", schemaLocations);
         } catch (XMLStreamException e) {
             throw new IOException(e);
         }
@@ -127,10 +131,16 @@ public class GMLTemplateWriter extends XMLTemplateWriter {
     @Override
     public void addNamespaces(Map<String, String> namespaces) {
         super.addNamespaces(namespaces);
-        this.namespaces.put(XLINK_NS.getKey(),XLINK_NS.getValue());
-        this.namespaces.put(XS_NS.getKey(),XS_NS.getValue());
-        this.namespaces.put(XSI_NS.getKey(),XSI_NS.getValue());
+        this.namespaces.put(XLINK_NS.getKey(), XLINK_NS.getValue());
+        this.namespaces.put(XS_NS.getKey(), XS_NS.getValue());
+        this.namespaces.put(XSI_NS.getKey(), XSI_NS.getValue());
         this.namespaces.putAll(versionManager.getNamespaces());
+    }
+
+    @Override
+    public void setCrs(CoordinateReferenceSystem crs) {
+        super.setCrs(crs);
+        versionManager.setCrs(crs);
     }
 
     @Override
@@ -139,19 +149,23 @@ public class GMLTemplateWriter extends XMLTemplateWriter {
         this.versionManager.setAxisOrder(axisOrder);
     }
 
-    public void startFeatureMember() throws IOException{
+    public void startFeatureMember() throws IOException {
         try {
             this.versionManager.startFeatureMember();
-        } catch (XMLStreamException e){
+        } catch (XMLStreamException e) {
             throw new IOException(e);
         }
     }
 
-    public void endFeatureMember() throws IOException{
+    public void endFeatureMember() throws IOException {
         try {
             this.versionManager.endFeatureMember();
-        } catch (XMLStreamException e){
+        } catch (XMLStreamException e) {
             throw new IOException(e);
         }
+    }
+
+    public void setTypeName(String typeName) {
+        versionManager.setTypeName(typeName);
     }
 }

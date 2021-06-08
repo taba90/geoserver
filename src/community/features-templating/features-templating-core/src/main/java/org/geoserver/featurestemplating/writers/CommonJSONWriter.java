@@ -4,6 +4,9 @@
  */
 package org.geoserver.featurestemplating.writers;
 
+import static org.geoserver.featurestemplating.builders.EncodingHints.SKIP_IF_SINGLE_FEATURE;
+import static org.geoserver.featurestemplating.builders.EncodingHints.isSingleFeatureRequest;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import java.io.IOException;
@@ -19,9 +22,6 @@ import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.Attribute;
 import org.opengis.feature.ComplexAttribute;
 
-import static org.geoserver.featurestemplating.builders.EncodingHints.SKIP_IF_SINGLE_FEATURE;
-import static org.geoserver.featurestemplating.builders.EncodingHints.isSingleFeatureRequest;
-
 /** Decorator for a JsonGenerator that add some functionality mainly to write JsonNode */
 public abstract class CommonJSONWriter extends TemplateOutputWriter {
 
@@ -30,9 +30,11 @@ public abstract class CommonJSONWriter extends TemplateOutputWriter {
 
     private TemplateIdentifier identifier;
 
-    public CommonJSONWriter(com.fasterxml.jackson.core.JsonGenerator generator, TemplateIdentifier templateIdentifier) {
+    public CommonJSONWriter(
+            com.fasterxml.jackson.core.JsonGenerator generator,
+            TemplateIdentifier templateIdentifier) {
         this.generator = generator;
-        this.identifier=templateIdentifier;
+        this.identifier = templateIdentifier;
     }
 
     @Override
@@ -213,13 +215,13 @@ public abstract class CommonJSONWriter extends TemplateOutputWriter {
 
     @Override
     public void startObject(String name, EncodingHints encodingHints) throws IOException {
-            if (name != null) writeElementName(name, encodingHints);
-            writeStartObject();
+        if (name != null) writeElementName(name, encodingHints);
+        writeStartObject();
     }
 
     @Override
     public void endObject(String name, EncodingHints encodingHints) throws IOException {
-            writeEndObject();
+        writeEndObject();
     }
 
     @Override
@@ -254,8 +256,13 @@ public abstract class CommonJSONWriter extends TemplateOutputWriter {
         generator.close();
     }
 
-    protected boolean skipObjectWriting(EncodingHints encodingHints){
-        Boolean skipIfSingleFeature=getEncodingHintIfPresent(encodingHints,SKIP_IF_SINGLE_FEATURE,Boolean.class);
-        return skipIfSingleFeature!=null && skipIfSingleFeature.booleanValue() && isSingleFeatureRequest() && (identifier.equals(TemplateIdentifier.GEOJSON) || identifier.equals(TemplateIdentifier.JSONLD));
+    protected boolean skipObjectWriting(EncodingHints encodingHints) {
+        Boolean skipIfSingleFeature =
+                getEncodingHintIfPresent(encodingHints, SKIP_IF_SINGLE_FEATURE, Boolean.class);
+        return skipIfSingleFeature != null
+                && skipIfSingleFeature.booleanValue()
+                && isSingleFeatureRequest()
+                && (identifier.equals(TemplateIdentifier.GEOJSON)
+                        || identifier.equals(TemplateIdentifier.JSONLD));
     }
 }

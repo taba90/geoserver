@@ -40,7 +40,7 @@ public class TemplateBuilderMaker {
 
     private boolean flatOutput;
 
-    private boolean managed=false;
+    private boolean managed = false;
 
     private EncodingHints encondingHints;
 

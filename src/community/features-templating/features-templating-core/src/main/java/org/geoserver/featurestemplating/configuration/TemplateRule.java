@@ -29,7 +29,7 @@ public class TemplateRule implements Serializable {
     private boolean forceRule;
 
     public TemplateRule() {
-        this.priority=0;
+        this.priority = 0;
         this.ruleId = UUID.randomUUID().toString();
     }
 
@@ -168,13 +168,13 @@ public class TemplateRule implements Serializable {
                 && Objects.equals(outputFormat, that.outputFormat)
                 && Objects.equals(service, that.service)
                 && Objects.equals(cqlFilter, that.cqlFilter)
-                && Objects.equals(priority,that.priority);
+                && Objects.equals(priority, that.priority);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-                templateIdentifier, templateName, outputFormat, service, cqlFilter,priority);
+                templateIdentifier, templateName, outputFormat, service, cqlFilter, priority);
     }
 
     public static class TemplateRuleComparator implements Comparator<TemplateRule> {

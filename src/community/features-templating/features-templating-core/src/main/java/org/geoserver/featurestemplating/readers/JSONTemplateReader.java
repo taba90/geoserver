@@ -4,6 +4,9 @@
  */
 package org.geoserver.featurestemplating.readers;
 
+import static org.geoserver.featurestemplating.builders.VendorOptions.FLAT_OUTPUT;
+import static org.geoserver.featurestemplating.builders.VendorOptions.SEPARATOR;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Iterator;
 import java.util.Map;
@@ -12,16 +15,10 @@ import org.geoserver.featurestemplating.builders.SourceBuilder;
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.TemplateBuilderMaker;
 import org.geoserver.featurestemplating.builders.VendorOptions;
-import org.geoserver.featurestemplating.builders.impl.CompositeBuilder;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
-import org.geoserver.featurestemplating.configuration.Template;
 import org.geoserver.featurestemplating.expressions.TemplateCQLManager;
 import org.geotools.filter.LiteralExpressionImpl;
-import org.locationtech.jts.index.bintree.Root;
 import org.opengis.filter.expression.Expression;
-
-import static org.geoserver.featurestemplating.builders.VendorOptions.FLAT_OUTPUT;
-import static org.geoserver.featurestemplating.builders.VendorOptions.SEPARATOR;
 
 /** Produce the builder tree starting from the evaluation of json-ld template file * */
 public class JSONTemplateReader implements TemplateReader {
@@ -104,12 +101,12 @@ public class JSONTemplateReader implements TemplateReader {
                                 || entryName.equalsIgnoreCase("features");
                 if (entryName.equals(SOURCEKEY)) {
                     String source = valueNode.asText();
-                    currentBuilder=createCompositeIfNeeded(currentBuilder, maker);
+                    currentBuilder = createCompositeIfNeeded(currentBuilder, maker);
                     if (currentBuilder instanceof SourceBuilder) {
                         ((SourceBuilder) currentBuilder).setSource(source);
                     }
                 } else if (entryName.equals(FILTERKEY)) {
-                    currentBuilder=createCompositeIfNeeded(currentBuilder, maker);
+                    currentBuilder = createCompositeIfNeeded(currentBuilder, maker);
                     setFilterToBuilder(currentBuilder, node);
                 } else if (entryName.equals(CONTEXTKEY)) {
                     RootBuilder rootBuilder = (RootBuilder) currentBuilder;
@@ -121,12 +118,12 @@ public class JSONTemplateReader implements TemplateReader {
                 } else if (!strValueNode.contains(EXPRSTART)
                         && !strValueNode.contains(FILTERKEY)
                         && !jumpField) {
-                    currentBuilder=createCompositeIfNeeded(currentBuilder, maker);
+                    currentBuilder = createCompositeIfNeeded(currentBuilder, maker);
                     maker.name(entryName).jsonNode(valueNode);
                     currentBuilder.addChild(maker.build());
                 } else {
                     if (valueNode.isObject()) {
-                        currentBuilder=createCompositeIfNeeded(currentBuilder, maker);
+                        currentBuilder = createCompositeIfNeeded(currentBuilder, maker);
                         maker.name(entryName);
                         TemplateBuilder compositeBuilder = maker.build();
                         currentBuilder.addChild(compositeBuilder);
@@ -205,37 +202,43 @@ public class JSONTemplateReader implements TemplateReader {
     }
 
     private void setVendorOptions(JsonNode node, RootBuilder builder, TemplateBuilderMaker maker) {
-        if (!node.isObject()){
+        if (!node.isObject()) {
             throw new RuntimeException("VendorOptions should be defined as a JSON object");
         }
         if (node.has(FLAT_OUTPUT)) {
-            TemplateCQLManager cqlManager = new TemplateCQLManager(node.get(FLAT_OUTPUT).toString(), null);
+            TemplateCQLManager cqlManager =
+                    new TemplateCQLManager(node.get(FLAT_OUTPUT).asText(), null);
             builder.addVendorOption(FLAT_OUTPUT, cqlManager.getExpressionFromString());
         }
         if (node.has(VendorOptions.SEPARATOR)) {
-            TemplateCQLManager cqlManager = new TemplateCQLManager(node.get(SEPARATOR).toString(), null);
+            TemplateCQLManager cqlManager =
+                    new TemplateCQLManager(node.get(SEPARATOR).asText(), null);
             builder.addVendorOption(VendorOptions.SEPARATOR, cqlManager.getExpressionFromString());
         }
 
-        if (node.has(CONTEXTKEY)){
-            builder.addVendorOption(CONTEXTKEY,node.get(CONTEXTKEY));
+        if (node.has(CONTEXTKEY)) {
+            builder.addVendorOption(CONTEXTKEY, node.get(CONTEXTKEY));
         }
         Expression flatOutput =
                 builder.getVendorOptions()
                         .get(FLAT_OUTPUT, Expression.class, new LiteralExpressionImpl(false));
-        boolean bFlatOutput=flatOutput.evaluate(null, Boolean.class).booleanValue();
-        Expression expression = builder.getVendorOptions().get(VendorOptions.SEPARATOR, Expression.class,new LiteralExpressionImpl("_"));
+        boolean bFlatOutput = flatOutput.evaluate(null, Boolean.class).booleanValue();
+        Expression expression =
+                builder.getVendorOptions()
+                        .get(
+                                VendorOptions.SEPARATOR,
+                                Expression.class,
+                                new LiteralExpressionImpl("_"));
         maker.flatOutput(bFlatOutput).separator(expression.evaluate(null, String.class));
     }
 
-    private TemplateBuilder createCompositeIfNeeded(TemplateBuilder currentParent, TemplateBuilderMaker maker){
+    private TemplateBuilder createCompositeIfNeeded(
+            TemplateBuilder currentParent, TemplateBuilderMaker maker) {
         TemplateBuilder builder;
         if (currentParent instanceof RootBuilder) {
             builder = maker.build();
             currentParent.addChild(builder);
-        }
-        else
-            builder=currentParent;
+        } else builder = currentParent;
         return builder;
     }
 }

@@ -261,10 +261,10 @@ public class TemplatePathVisitor extends DuplicatingFilterVisitor {
         return filters;
     }
 
-    private boolean matchBuilder(TemplateBuilder jb, String key, List<String> pathElements){
-        boolean result=keyMatched(jb, key, pathElements);
-        if (!result && (jb instanceof SourceBuilder && ((SourceBuilder)jb).isManaged()))
-            result=true;
+    private boolean matchBuilder(TemplateBuilder jb, String key, List<String> pathElements) {
+        boolean result = keyMatched(jb, key, pathElements);
+        if (!result && (jb instanceof SourceBuilder && ((SourceBuilder) jb).isManaged()))
+            result = true;
 
         return result;
     }

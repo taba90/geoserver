@@ -9,7 +9,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -230,7 +229,8 @@ public class TemplateLoader {
         int size = matching.size();
         if (size > 0) {
             if (size > 1) {
-                TemplateRule.TemplateRuleComparator comparator=new TemplateRule.TemplateRuleComparator();
+                TemplateRule.TemplateRuleComparator comparator =
+                        new TemplateRule.TemplateRuleComparator();
                 matching.sort(comparator);
             }
             return matching.get(0).getTemplateIdentifier();

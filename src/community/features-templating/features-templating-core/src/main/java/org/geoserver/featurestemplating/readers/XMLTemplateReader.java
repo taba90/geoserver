@@ -5,7 +5,6 @@
 package org.geoserver.featurestemplating.readers;
 
 import java.io.IOException;
-
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 import org.geoserver.platform.resource.Resource;
 import org.xml.sax.helpers.NamespaceSupport;

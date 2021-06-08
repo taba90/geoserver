@@ -8,14 +8,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 import org.geoserver.featurestemplating.builders.impl.TemplateBuilderContext;
-import org.geoserver.featurestemplating.configuration.TemplateLoader;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
+import org.geoserver.featurestemplating.configuration.TemplateLoader;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
 import org.geoserver.platform.Operation;
 import org.geoserver.platform.ServiceException;
@@ -29,8 +28,6 @@ import org.opengis.feature.Feature;
 import org.opengis.feature.Property;
 import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 
 /**
  * An abstract template response to be extended from the output specific implementation, defining
@@ -114,7 +111,7 @@ public abstract class BaseTemplateGetFeatureResponse extends WFSGetFeatureOutput
                 beforeEvaluation(writer, rootBuilder, feature);
                 TemplateBuilderContext context = new TemplateBuilderContext(feature);
                 rootBuilder.evaluate(writer, context);
-                afterEvaluation(writer,rootBuilder,feature);
+                afterEvaluation(writer, rootBuilder, feature);
             }
         } finally {
             iterator.close();
@@ -137,8 +134,8 @@ public abstract class BaseTemplateGetFeatureResponse extends WFSGetFeatureOutput
      * @param root the current RootBuilder
      * @param feature the feature being evaluated by the builders' tree
      */
-    protected void beforeEvaluation (
-            TemplateOutputWriter writer, RootBuilder root, Feature feature) throws IOException {
+    protected void beforeEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature)
+            throws IOException {
         writer.incrementNumberReturned();
         if (!hasGeometry) {
             GeometryDescriptor descriptor = feature.getType().getGeometryDescriptor();
@@ -155,9 +152,8 @@ public abstract class BaseTemplateGetFeatureResponse extends WFSGetFeatureOutput
         }
     }
 
-    protected void afterEvaluation(
-            TemplateOutputWriter writer, RootBuilder root, Feature feature) throws IOException {
-    }
+    protected void afterEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature)
+            throws IOException {}
 
     /**
      * Method that trigger the encoding of a FeatureCollection additional infos like numberReturned,

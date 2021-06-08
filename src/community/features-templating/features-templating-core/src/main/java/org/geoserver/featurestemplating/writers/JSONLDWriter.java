@@ -46,7 +46,7 @@ public class JSONLDWriter extends CommonJSONWriter {
             else if (context.isObject()) writeObjectNode(contextName, context);
             else writeValueNode(contextName, context);
         }
-        if(!isSingleFeatureRequest()) {
+        if (!isSingleFeatureRequest()) {
             generator.writeFieldName("type");
             generator.writeString("FeatureCollection");
             generator.writeFieldName("features");

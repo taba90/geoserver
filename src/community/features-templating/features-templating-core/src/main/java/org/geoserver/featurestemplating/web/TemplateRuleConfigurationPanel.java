@@ -77,6 +77,8 @@ public class TemplateRuleConfigurationPanel extends Panel {
                     @Override
                     protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         super.onSubmit(target, form);
+                        cleanFeedbackPanel();
+                        target.add(ruleFeedbackPanel);
                         TemplateRule rule = theForm.getModelObject();
                         if (!validateAndReport(rule)) return;
                         updateModelRules(rule);
@@ -148,8 +150,7 @@ public class TemplateRuleConfigurationPanel extends Panel {
             }
             set.add(rule);
         }
-        if (set.isEmpty())
-            set.add(newRule);
+        if (set.isEmpty()) set.add(newRule);
         return set;
     }
 
@@ -164,5 +165,9 @@ public class TemplateRuleConfigurationPanel extends Panel {
         target.add(templateInfoDropDownChoice);
         target.add(mimeTypeDropDown);
         target.add(cqlFilterArea);
+    }
+
+    private void cleanFeedbackPanel() {
+        ruleFeedbackPanel.getFeedbackMessages().clear();
     }
 }

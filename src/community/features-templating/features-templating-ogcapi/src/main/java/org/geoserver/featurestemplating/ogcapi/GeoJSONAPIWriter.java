@@ -4,11 +4,13 @@
  */
 package org.geoserver.featurestemplating.ogcapi;
 
+import static org.geoserver.featurestemplating.builders.EncodingHints.ISGEOJSON;
+import static org.geoserver.featurestemplating.builders.EncodingHints.isSingleFeatureRequest;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-
 import org.geoserver.featurestemplating.builders.EncodingHints;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
 import org.geoserver.featurestemplating.writers.GeoJSONWriter;
@@ -20,9 +22,6 @@ import org.geoserver.ows.URLMangler;
 import org.geoserver.ows.util.ResponseUtils;
 import org.springframework.http.MediaType;
 
-import static org.geoserver.featurestemplating.builders.EncodingHints.ISGEOJSON;
-import static org.geoserver.featurestemplating.builders.EncodingHints.isSingleFeatureRequest;
-
 public class GeoJSONAPIWriter extends GeoJSONWriter {
 
     public GeoJSONAPIWriter(JsonGenerator generator, TemplateIdentifier identifier) {
@@ -31,9 +30,9 @@ public class GeoJSONAPIWriter extends GeoJSONWriter {
 
     @Override
     public void startTemplateOutput(EncodingHints encodingHints) throws IOException {
-        Boolean isGeoJSON=getEncodingHintIfPresent(encodingHints,ISGEOJSON,Boolean.class);
-        if (isSingleFeatureRequest() && isGeoJSON!=null && isGeoJSON.booleanValue())
-            startObject(null,encodingHints);
+        Boolean isGeoJSON = getEncodingHintIfPresent(encodingHints, ISGEOJSON, Boolean.class);
+        if (isSingleFeatureRequest() && isGeoJSON != null && isGeoJSON.booleanValue())
+            startObject(null, encodingHints);
         else super.startTemplateOutput(encodingHints);
     }
 

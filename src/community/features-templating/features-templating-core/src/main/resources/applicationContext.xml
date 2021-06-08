@@ -8,7 +8,7 @@
         <constructor-arg ref="dataDirectory"/>
     </bean>
 
-    <bean id="templateTabPanelInfo" class="org.geoserver.web.publish.LayerEditTabPanelInfo">
+    <bean id="templateTabPanelInfo" class="org.geoserver.featurestemplating.web.FeatureTypeTabPanelInfo">
         <property name="id" value="templateTabPanelInfo" />
         <property name="titleKey" value="TemplateTabPanelInfo.title" />
         <property name="descriptionKey" value="TemplateTabPanelInfo.shortDescription" />

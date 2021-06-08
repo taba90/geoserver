@@ -9,6 +9,7 @@ import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.impl.CompositeBuilder;
 import org.geoserver.featurestemplating.builders.impl.TemplateBuilderContext;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
+import org.opengis.feature.Feature;
 import org.xml.sax.helpers.NamespaceSupport;
 
 /**
@@ -27,8 +28,12 @@ public class FlatCompositeBuilder extends CompositeBuilder implements FlatBuilde
     @Override
     protected void evaluateChildren(TemplateOutputWriter writer, TemplateBuilderContext context)
             throws IOException {
+        Object o = context.getCurrentObj();
+        addSkipObjectEncodingHint(o);
         String key = getKey();
-        if (key != null && key.equals(AttributeNameHelper.PROPERTIES_KEY)) {
+        boolean isFeatureTypeBuilder = isFeatureTypeBuilder(o);
+        if (isFeatureTypeBuilder
+                || (key != null && key.equals(AttributeNameHelper.PROPERTIES_KEY))) {
             writer.startObject(key, encodingHints);
         }
         for (TemplateBuilder jb : children) {
@@ -36,8 +41,15 @@ public class FlatCompositeBuilder extends CompositeBuilder implements FlatBuilde
                     .setParentKey(attributeNameHelper.getCompleteCompositeAttributeName());
             jb.evaluate(writer, context);
         }
-        if (key != null && key.equals(AttributeNameHelper.PROPERTIES_KEY))
+        if (isFeatureTypeBuilder(o)
+                || (key != null && key.equals(AttributeNameHelper.PROPERTIES_KEY)))
             writer.endObject(key, encodingHints);
+    }
+
+    private boolean isFeatureTypeBuilder(Object o) {
+        boolean result = false;
+        if (((Feature) o).getDefaultGeometryProperty() != null) result = true;
+        return result;
     }
 
     @Override

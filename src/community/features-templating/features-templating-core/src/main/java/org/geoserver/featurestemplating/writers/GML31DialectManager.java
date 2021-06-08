@@ -42,6 +42,13 @@ class GML31DialectManager extends GMLDialectManager {
 
     @Override
     void startFeatureMember() throws XMLStreamException {
-        streamWriter.writeStartElement(GML_PREFIX,"featureMember",getGmlNsUri());
+        streamWriter.writeStartElement(GML_PREFIX, "featureMember", getGmlNsUri());
+    }
+
+    @Override
+    void writeGeometryAttributes(int geomIndex) throws XMLStreamException {
+        super.writeGeometryAttributes(geomIndex);
+        streamWriter.writeAttribute(
+                "srsDimension", String.valueOf(crs.getCoordinateSystem().getDimension()));
     }
 }

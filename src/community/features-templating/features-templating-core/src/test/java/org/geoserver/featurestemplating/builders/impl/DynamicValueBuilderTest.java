@@ -150,7 +150,9 @@ public class DynamicValueBuilderTest extends DataTestCase {
     private JSONObject encodeDynamic(String expression, Feature feature) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         GeoJSONWriter writer =
-                new GeoJSONWriter(new JsonFactory().createGenerator(baos, JsonEncoding.UTF8), TemplateIdentifier.JSON);
+                new GeoJSONWriter(
+                        new JsonFactory().createGenerator(baos, JsonEncoding.UTF8),
+                        TemplateIdentifier.JSON);
 
         DynamicValueBuilder builder =
                 new DynamicValueBuilder("key", expression, new NamespaceSupport());

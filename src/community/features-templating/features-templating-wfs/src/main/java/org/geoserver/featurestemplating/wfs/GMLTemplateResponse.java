@@ -18,8 +18,8 @@ import net.opengis.wfs.GetFeatureType;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
-import org.geoserver.featurestemplating.configuration.TemplateLoader;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
+import org.geoserver.featurestemplating.configuration.TemplateLoader;
 import org.geoserver.featurestemplating.writers.GMLTemplateWriter;
 import org.geoserver.featurestemplating.writers.TemplateOutputWriter;
 import org.geoserver.featurestemplating.writers.XMLTemplateWriter;
@@ -40,7 +40,10 @@ public class GMLTemplateResponse extends BaseTemplateGetFeatureResponse {
 
     @Override
     protected void beforeFeatureIteration(
-            TemplateOutputWriter writer, RootBuilder root, FeatureTypeInfo typeInfo) {}
+            TemplateOutputWriter writer, RootBuilder root, FeatureTypeInfo typeInfo) {
+        String typeName = typeInfo.getName();
+        ((GMLTemplateWriter) writer).setTypeName(typeName);
+    }
 
     @Override
     protected void write(
@@ -57,8 +60,6 @@ public class GMLTemplateResponse extends BaseTemplateGetFeatureResponse {
             throw new ServiceException(e);
         }
     }
-
-
 
     @Override
     protected void writeAdditionalFieldsInternal(
@@ -90,11 +91,14 @@ public class GMLTemplateResponse extends BaseTemplateGetFeatureResponse {
         for (FeatureCollection collection : collectionList) {
             FeatureTypeInfo fti = helper.getFeatureTypeInfo(collection);
             RootBuilder root = configuration.getTemplate(fti, outputFormat);
-            Map<String, String> namespaces = root.getVendorOptions().get(NAMESPACES,Map.class,new HashMap());
-            Map<String,String> namespaces2=(Map<String, String>) root.getEncodingHints().get(NAMESPACES);
-            if(namespaces2!=null) namespaces.putAll(namespaces2);
+            Map<String, String> namespaces =
+                    root.getVendorOptions().get(NAMESPACES, Map.class, new HashMap());
+            Map<String, String> namespaces2 =
+                    (Map<String, String>) root.getEncodingHints().get(NAMESPACES);
+            if (namespaces2 != null) namespaces.putAll(namespaces2);
             String schemaLocation = (String) root.getVendorOptions().get(SCHEMA_LOCATION);
-            if (schemaLocation==null) schemaLocation= (String)root.getEncodingHints().get(SCHEMA_LOCATION);
+            if (schemaLocation == null)
+                schemaLocation = (String) root.getEncodingHints().get(SCHEMA_LOCATION);
             if (namespaces != null) writer.addNamespaces(namespaces);
             if (schemaLocation != null) writer.addSchemaLocations(schemaLocation);
         }
@@ -115,14 +119,16 @@ public class GMLTemplateResponse extends BaseTemplateGetFeatureResponse {
     }
 
     @Override
-    protected void beforeEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature) throws IOException {
+    protected void beforeEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature)
+            throws IOException {
         super.beforeEvaluation(writer, root, feature);
         ((GMLTemplateWriter) writer).startFeatureMember();
     }
 
     @Override
-    protected void afterEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature) throws IOException {
+    protected void afterEvaluation(TemplateOutputWriter writer, RootBuilder root, Feature feature)
+            throws IOException {
         super.afterEvaluation(writer, root, feature);
-        ((GMLTemplateWriter)writer).endFeatureMember();
+        ((GMLTemplateWriter) writer).endFeatureMember();
     }
 }

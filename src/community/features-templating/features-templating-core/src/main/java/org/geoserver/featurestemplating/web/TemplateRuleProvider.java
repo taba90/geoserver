@@ -27,7 +27,7 @@ public class TemplateRuleProvider extends GeoServerDataProvider<TemplateRule> {
 
     @Override
     protected List<Property<TemplateRule>> getProperties() {
-        return Arrays.asList(PRIORITY,NAME, OUTPUT_FORMAT, CQL_FILTER);
+        return Arrays.asList(PRIORITY, NAME, OUTPUT_FORMAT, CQL_FILTER);
     }
 
     @Override

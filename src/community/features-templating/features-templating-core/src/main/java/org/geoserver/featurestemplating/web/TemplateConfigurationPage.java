@@ -102,6 +102,7 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
 
                                     @Override
                                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+
                                         TemplateInfo templateInfo =
                                                 (TemplateInfo) form.getModelObject();
                                         if (!validateAndReport(templateInfo, rawTemplate)) return;
@@ -183,6 +184,9 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                     @Override
                     protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         super.onSubmit(target, form);
+                        clearFeedbackMessages();
+                        target.add(topFeedbackPanel);
+                        target.add(bottomFeedbackPanel);
                         TemplateInfo templateInfo = (TemplateInfo) form.getModelObject();
                         String rawTemplate = getRawTemplate();
                         if (!validateAndReport(templateInfo, rawTemplate)) return;
@@ -210,7 +214,7 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                             templateInfo.getTemplateName() + "." + templateInfo.getExtension());
             file.createNewFile();
             try (FileOutputStream fos = new FileOutputStream(file, false)) {
-                String rawTemplate = getEditor().getModelObject();
+                String rawTemplate = getEditor().getInput();
                 fos.write(rawTemplate.getBytes());
             }
         } catch (IOException e) {
@@ -246,7 +250,7 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
     }
 
     void saveTemplateInfo(TemplateInfo templateInfo) {
-        String rawTemplate = getRawTemplate();
+        String rawTemplate = editor.getInput();
         if (!validateAndReport(templateInfo, rawTemplate)) return;
         saveTemplateFile(templateInfo);
         TemplateInfoDao.get().saveOrUpdate(templateInfo);
@@ -259,5 +263,10 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
 
     static TemplateFileManager getTemplateFileManager() {
         return GeoServerExtensions.bean(TemplateFileManager.class);
+    }
+
+    private void clearFeedbackMessages() {
+        this.topFeedbackPanel.getFeedbackMessages().clear();
+        this.bottomFeedbackPanel.getFeedbackMessages().clear();
     }
 }

@@ -4,11 +4,10 @@
  */
 package org.geoserver.featurestemplating.builders;
 
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-
 import java.util.HashMap;
 import java.util.Optional;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 /**
  * This class represent a Map of encoding hints. An encoding hint is a value giving additional
@@ -29,15 +28,15 @@ public class EncodingHints extends HashMap<String, Object> {
 
     public static final String CHILDREN_EVALUATION = "CHILDREN_EVALUATION";
 
-    public static final String ISGEOJSON="ISGEOJSON";
+    public static final String ISGEOJSON = "ISGEOJSON";
 
-    public static final String SKIP_IF_SINGLE_FEATURE="SKIP_IF_SINGLE_FEATURE";
+    public static final String SKIP_IF_SINGLE_FEATURE = "SKIP_IF_SINGLE_FEATURE";
 
-    public EncodingHints () {
+    public EncodingHints() {
         super();
     }
 
-    public EncodingHints (EncodingHints encodingHints) {
+    public EncodingHints(EncodingHints encodingHints) {
         super(encodingHints);
     }
 
@@ -69,6 +68,7 @@ public class EncodingHints extends HashMap<String, Object> {
                                 (String)
                                         att.getAttribute(
                                                 "OGCFeatures:ItemId",
-                                                RequestAttributes.SCOPE_REQUEST)).isPresent();
+                                                RequestAttributes.SCOPE_REQUEST))
+                .isPresent();
     }
 }

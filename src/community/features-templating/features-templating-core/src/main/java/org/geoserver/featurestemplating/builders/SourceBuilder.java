@@ -4,11 +4,14 @@
  */
 package org.geoserver.featurestemplating.builders;
 
+import static org.geoserver.featurestemplating.builders.EncodingHints.SKIP_IF_SINGLE_FEATURE;
+
 import java.util.LinkedList;
 import java.util.Optional;
 import org.geoserver.featurestemplating.builders.impl.TemplateBuilderContext;
 import org.geoserver.featurestemplating.expressions.TemplateCQLManager;
 import org.geotools.filter.AttributeExpressionImpl;
+import org.opengis.feature.Feature;
 import org.opengis.filter.expression.Expression;
 import org.opengis.filter.expression.Literal;
 import org.xml.sax.helpers.NamespaceSupport;
@@ -102,5 +105,12 @@ public abstract class SourceBuilder extends AbstractTemplateBuilder {
 
     public void setManaged(boolean managed) {
         this.managed = managed;
+    }
+
+    protected void addSkipObjectEncodingHint(Object o) {
+        if (o instanceof Feature) {
+            if (((Feature) o).getDefaultGeometryProperty() != null)
+                addEncodingHint(SKIP_IF_SINGLE_FEATURE, true);
+        }
     }
 }

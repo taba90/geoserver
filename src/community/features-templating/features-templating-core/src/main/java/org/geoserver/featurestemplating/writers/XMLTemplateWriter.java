@@ -195,10 +195,8 @@ public abstract class XMLTemplateWriter extends TemplateOutputWriter {
     }
 
     public void addSchemaLocations(String schemaLocation) {
-        if (schemaLocations!=null)
-            schemaLocations+=" ".concat(schemaLocation);
-        else
-            this.schemaLocations=schemaLocation;
+        if (schemaLocations != null) schemaLocations += " ".concat(schemaLocation);
+        else this.schemaLocations = schemaLocation;
     }
 
     private boolean isEncodeAsAttribute(EncodingHints encodingHints) {

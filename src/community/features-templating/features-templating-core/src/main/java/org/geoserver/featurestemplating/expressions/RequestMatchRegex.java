@@ -2,23 +2,21 @@ package org.geoserver.featurestemplating.expressions;
 
 import static org.geotools.filter.capability.FunctionNameImpl.parameter;
 
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import javax.servlet.http.HttpServletRequest;
 import org.geoserver.ows.Request;
 import org.geotools.filter.FunctionExpressionImpl;
 import org.geotools.filter.capability.FunctionNameImpl;
 import org.opengis.filter.capability.FunctionName;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-
-import javax.servlet.http.HttpServletRequest;
 
 public class RequestMatchRegex extends FunctionExpressionImpl {
 
     public static FunctionName NAME =
-            new FunctionNameImpl("requestMatchRegex", parameter("result", Boolean.class),parameter("regex", String.class));
+            new FunctionNameImpl(
+                    "requestMatchRegex",
+                    parameter("result", Boolean.class),
+                    parameter("regex", String.class));
 
     public RequestMatchRegex() {
         super(NAME);
@@ -31,10 +29,10 @@ public class RequestMatchRegex extends FunctionExpressionImpl {
                     NAME.getName() + " function works with request object only");
         }
         Request request = (Request) object;
-        String regex=getParameters().get(0).evaluate(null, String.class);
-        Pattern pattern=Pattern.compile(regex);
-        String url=getFullURL(request.getHttpRequest());
-        Matcher matcher=pattern.matcher(url);
+        String regex = getParameters().get(0).evaluate(null, String.class);
+        Pattern pattern = Pattern.compile(regex);
+        String url = getFullURL(request.getHttpRequest());
+        Matcher matcher = pattern.matcher(url);
         return matcher.matches();
     }
 
@@ -48,5 +46,4 @@ public class RequestMatchRegex extends FunctionExpressionImpl {
             return requestURL.append('?').append(queryString).toString();
         }
     }
-
 }

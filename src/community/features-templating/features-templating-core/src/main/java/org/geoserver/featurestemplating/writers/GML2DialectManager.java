@@ -72,6 +72,6 @@ class GML2DialectManager extends GMLDialectManager {
 
     @Override
     void startFeatureMember() throws XMLStreamException {
-        streamWriter.writeStartElement(GML_PREFIX,"featureMember",getGmlNsUri());
+        streamWriter.writeStartElement(GML_PREFIX, "featureMember", getGmlNsUri());
     }
 }

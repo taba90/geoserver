@@ -15,10 +15,8 @@ import java.io.InputStream;
 import java.util.Iterator;
 import org.geoserver.platform.resource.Resource;
 
-import static org.geoserver.featurestemplating.readers.RecursiveTemplateResourceParser.MAX_RECURSION_DEPTH;
-
 /** Parses a JSON structure, processing eventual includes and expanding them */
-public class RecursiveJSONParser extends RecursiveTemplateResourceParser{
+public class RecursiveJSONParser extends RecursiveTemplateResourceParser {
 
     private static final String INCLUDE_KEY = "$include";
     private static final String INCLUDE_FLAT_KEY = "$includeFlat";
@@ -73,7 +71,7 @@ public class RecursiveJSONParser extends RecursiveTemplateResourceParser{
                                     + INCLUDE_FLAT_KEY
                                     + " key must be the path of the file being included");
                 }
-                Resource resource=getResource(this.resource, node.asText());
+                Resource resource = getResource(this.resource, node.asText());
                 JsonNode processed = new RecursiveJSONParser(this, resource).parse();
                 Iterator<String> fields = processed.fieldNames();
                 while (fields.hasNext()) {
@@ -145,7 +143,7 @@ public class RecursiveJSONParser extends RecursiveTemplateResourceParser{
     private JsonNode processInlineDirective(String value, String directive) throws IOException {
         if (value.startsWith(directive + "{") && value.endsWith("}")) {
             String path = value.substring(directive.length() + 1, value.length() - 1);
-            Resource resource=getResource(this.resource,path);
+            Resource resource = getResource(this.resource, path);
             return new RecursiveJSONParser(this, resource).parse();
         }
         return null;

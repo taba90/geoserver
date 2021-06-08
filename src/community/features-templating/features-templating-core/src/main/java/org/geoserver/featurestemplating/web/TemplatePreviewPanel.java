@@ -74,6 +74,8 @@ public class TemplatePreviewPanel extends Panel {
 
     private TextField<String> featureIdField;
 
+    private TextField<String> cqlFilterField;
+
     private TemplateConfigurationPage page;
 
     private FeedbackPanel previewFeedback;
@@ -168,6 +170,9 @@ public class TemplatePreviewPanel extends Panel {
         featureIdField =
                 new TextField<>("featureId", new PropertyModel<>(previewModel, "featureId"));
         previewInfoForm.add(featureIdField);
+        cqlFilterField =
+                new TextField<>("cqlFilterField", new PropertyModel<>(previewModel, "cqlFilter"));
+        previewInfoForm.add(cqlFilterField);
         add(getSubmit());
         add(getValidate());
     }
@@ -209,14 +214,24 @@ public class TemplatePreviewPanel extends Panel {
             getCatalog().save(featureType);
             String mime = getOutputFormat(outputFormat);
             String typeName = ws.getName() + ":" + featureType.getName();
-            return buildWfsLink(typeName, mime, previewInfoModel.getFeatureId(), ws);
+            return buildWfsLink(
+                    typeName,
+                    mime,
+                    previewInfoModel.getFeatureId(),
+                    previewInfoModel.getCqlFilter(),
+                    ws);
         } else {
             error("please fill all the field to preview the template response");
         }
         return null;
     }
 
-    String buildWfsLink(String typeName, String outputFormat, String featureId, WorkspaceInfo ws) {
+    String buildWfsLink(
+            String typeName,
+            String outputFormat,
+            String featureId,
+            String cqlFilter,
+            WorkspaceInfo ws) {
         Map<String, String> params = new LinkedHashMap<>();
         params.put("service", "WFS");
         params.put("version", "2.0.0");
@@ -224,6 +239,7 @@ public class TemplatePreviewPanel extends Panel {
         params.put("typeNames", typeName);
         params.put("outputFormat", outputFormat);
         if (featureId != null) params.put("featureID", featureId);
+        if (cqlFilter != null) params.put("cql_filter", cqlFilter);
         else params.put("count", "1");
         params.put(PREVIEW_REQUEST_PARAM, "true");
         return ResponseUtils.buildURL(
@@ -276,14 +292,14 @@ public class TemplatePreviewPanel extends Panel {
                     @Override
                     protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         super.onSubmit(target, form);
+                        clearFeedbackMessages();
+                        target.add(previewFeedback);
                         textArea.clearInput();
                         IModel<TemplateInfo> templateInfo = page.getTemplateInfoModel();
                         page.saveTemplateInfo(templateInfo.getObject());
                         Form<PreviewInfoModel> previewForm = (Form<PreviewInfoModel>) form;
 
                         if (!validateAndReport(previewForm.getModelObject())) return;
-                        String updatedInput = page.getEditor().getInput();
-                        page.getEditor().setModelObject(updatedInput);
                         String url = buildWFSLink(previewForm.getModelObject());
                         previewResult = performWfsRequest(url);
                         textArea.setModelObject(previewResult);
@@ -344,48 +360,6 @@ public class TemplatePreviewPanel extends Panel {
 
     private Catalog getCatalog() {
         return (Catalog) GeoServerExtensions.bean("catalog");
-    }
-
-    public static class PreviewInfoModel implements Serializable {
-        private WorkspaceInfo ws;
-
-        private FeatureTypeInfo featureType;
-
-        private SupportedFormat outputFormat;
-
-        private String featureId;
-
-        public WorkspaceInfo getWs() {
-            return ws;
-        }
-
-        public void setWs(WorkspaceInfo ws) {
-            this.ws = ws;
-        }
-
-        public FeatureTypeInfo getFeatureType() {
-            return featureType;
-        }
-
-        public void setFeatureType(FeatureTypeInfo fti) {
-            this.featureType = fti;
-        }
-
-        public SupportedFormat getOutputFormat() {
-            return outputFormat;
-        }
-
-        public void setOutputFormat(SupportedFormat outputFormat) {
-            this.outputFormat = outputFormat;
-        }
-
-        public String getFeatureId() {
-            return featureId;
-        }
-
-        public void setFeatureId(String featureId) {
-            this.featureId = featureId;
-        }
     }
 
     private CloseableHttpClient buildHttpClient() {
@@ -498,5 +472,61 @@ public class TemplatePreviewPanel extends Panel {
             prettyPrint = prettyPrintXML(data);
         else prettyPrint = prettyPrintJson(data);
         return prettyPrint;
+    }
+
+    public static class PreviewInfoModel implements Serializable {
+        private WorkspaceInfo ws;
+
+        private FeatureTypeInfo featureType;
+
+        private SupportedFormat outputFormat;
+
+        private String featureId;
+
+        private String cqlFilter;
+
+        public WorkspaceInfo getWs() {
+            return ws;
+        }
+
+        public void setWs(WorkspaceInfo ws) {
+            this.ws = ws;
+        }
+
+        public FeatureTypeInfo getFeatureType() {
+            return featureType;
+        }
+
+        public void setFeatureType(FeatureTypeInfo fti) {
+            this.featureType = fti;
+        }
+
+        public SupportedFormat getOutputFormat() {
+            return outputFormat;
+        }
+
+        public void setOutputFormat(SupportedFormat outputFormat) {
+            this.outputFormat = outputFormat;
+        }
+
+        public String getFeatureId() {
+            return featureId;
+        }
+
+        public void setFeatureId(String featureId) {
+            this.featureId = featureId;
+        }
+
+        public String getCqlFilter() {
+            return cqlFilter;
+        }
+
+        public void setCqlFilter(String cqlFilter) {
+            this.cqlFilter = cqlFilter;
+        }
+    }
+
+    private void clearFeedbackMessages() {
+        previewFeedback.getFeedbackMessages().clear();
     }
 }

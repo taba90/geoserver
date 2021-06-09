@@ -37,4 +37,8 @@
         <constructor-arg ref="dataDirectory"/>
     </bean>
 
+    <bean id="validationSchemaCache" class="org.geoserver.featurestemplating.configuration.ValidationSchemaCache">
+        <constructor-arg ref="dataDirectory"/>
+    </bean>
+
 </beans>

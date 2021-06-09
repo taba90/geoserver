@@ -41,15 +41,12 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
 
     private Form<TemplateInfo> form;
 
-    private IModel<TemplateInfo> templateInfoModel;
-
     private TemplatePreviewPanel previewPanel;
 
     String rawTemplate;
 
     public TemplateConfigurationPage(IModel<TemplateInfo> model, boolean isNew) {
         this.isNew = isNew;
-        this.templateInfoModel = model;
         initUI(model);
     }
 
@@ -102,10 +99,11 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
 
                                     @Override
                                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-
                                         TemplateInfo templateInfo =
-                                                (TemplateInfo) form.getModelObject();
-                                        if (!validateAndReport(templateInfo, rawTemplate)) return;
+                                                TemplateConfigurationPage.this.form
+                                                        .getModelObject();
+                                        if (!validateAndReport(templateInfo, editor.getInput()))
+                                            return;
                                         saveTemplateInfo(templateInfo);
                                         setSelectedTab(index);
                                         target.add(tabbedPanel);
@@ -188,7 +186,7 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                         target.add(topFeedbackPanel);
                         target.add(bottomFeedbackPanel);
                         TemplateInfo templateInfo = (TemplateInfo) form.getModelObject();
-                        String rawTemplate = getRawTemplate();
+                        String rawTemplate = editor.getInput();
                         if (!validateAndReport(templateInfo, rawTemplate)) return;
                         saveTemplateInfo(templateInfo);
                     }
@@ -235,7 +233,7 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
     }
 
     public IModel<TemplateInfo> getTemplateInfoModel() {
-        return templateInfoModel;
+        return form.getModel();
     }
 
     private boolean validateAndReport(TemplateInfo info, String rawTemplate) {

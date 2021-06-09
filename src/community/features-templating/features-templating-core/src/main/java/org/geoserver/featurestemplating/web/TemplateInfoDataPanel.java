@@ -45,7 +45,7 @@ public abstract class TemplateInfoDataPanel extends Panel {
 
     private IModel<TemplateInfo> model;
 
-    private TextField templateName;
+    private TextField<String> templateName;
 
     private DropDownChoice<String> wsDropDown;
 
@@ -66,6 +66,14 @@ public abstract class TemplateInfoDataPanel extends Panel {
 
     private void initUI() {
         templateName = new TextField<>("templateName", new PropertyModel<>(model, "templateName"));
+        templateName.add(
+                new OnChangeAjaxBehavior() {
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                        templateName.modelChanged();
+                    }
+                });
+        templateName.setOutputMarkupId(true);
         add(templateName);
         templateExtension =
                 new DropDownChoice<>(

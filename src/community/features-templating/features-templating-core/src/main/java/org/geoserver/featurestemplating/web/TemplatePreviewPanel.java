@@ -105,6 +105,10 @@ public class TemplatePreviewPanel extends Panel {
                         } else {
                             textArea.setModeAndSubMode("javascript", "json");
                         }
+                        if (previewFeedback.hasFeedbackMessage()) {
+                            clearFeedbackMessages();
+                            ajaxRequestTarget.add(previewFeedback);
+                        }
                         ajaxRequestTarget.add(textArea);
                     }
                 });
@@ -135,6 +139,10 @@ public class TemplatePreviewPanel extends Panel {
                         featureTypesDD.setChoices(getFeatureTypes(getCatalog(), wi));
                         featureTypesDD.setEnabled(true);
                         ajaxRequestTarget.add(featureTypesDD);
+                        if (previewFeedback.hasFeedbackMessage()) {
+                            clearFeedbackMessages();
+                            ajaxRequestTarget.add(previewFeedback);
+                        }
                     }
                 });
         previewInfoForm.add(workspaceInfoDropDownChoice);
@@ -345,7 +353,7 @@ public class TemplatePreviewPanel extends Panel {
                             boolean result = validator.validate(previewResult);
                             String message = validator.getMessage();
                             if (!result) textArea.error(message);
-                            else textArea.success(message);
+                            else textArea.info(message);
                         }
                     }
 

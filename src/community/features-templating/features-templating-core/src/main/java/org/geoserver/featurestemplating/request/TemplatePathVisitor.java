@@ -14,6 +14,7 @@ import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.impl.CompositeBuilder;
 import org.geoserver.featurestemplating.builders.impl.DynamicValueBuilder;
 import org.geoserver.featurestemplating.builders.impl.IteratingBuilder;
+import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 import org.geoserver.featurestemplating.builders.impl.StaticBuilder;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.filter.AttributeExpressionImpl;
@@ -24,6 +25,7 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.expression.Expression;
 import org.opengis.filter.expression.PropertyName;
+import org.opengis.metadata.lineage.Source;
 
 /**
  * This visitor search for a Filter in {@link TemplateBuilder} tree using the path provided as a
@@ -179,7 +181,7 @@ public class TemplatePathVisitor extends DuplicatingFilterVisitor {
         if (children != null) {
             for (TemplateBuilder tb : children) {
                 String key = ((AbstractTemplateBuilder) tb).getKey();
-                if (matchBuilder(tb, key, pathElements)) {
+                if (matchBuilder(tb, key, pathElements, parent)) {
                     boolean isLastEl = currentEl == length;
                     if (isLastEl || tb instanceof StaticBuilder) {
                         return tb;
@@ -261,11 +263,19 @@ public class TemplatePathVisitor extends DuplicatingFilterVisitor {
         return filters;
     }
 
-    private boolean matchBuilder(TemplateBuilder jb, String key, List<String> pathElements) {
-        boolean result = keyMatched(jb, key, pathElements);
-        if (!result && (jb instanceof SourceBuilder && ((SourceBuilder) jb).isManaged()))
-            result = true;
-
+    private boolean matchBuilder(
+            TemplateBuilder current,
+            String key,
+            List<String> pathElements,
+            TemplateBuilder parent) {
+        boolean result = keyMatched(current, key, pathElements);
+        if (!result) {
+            if (parent instanceof RootBuilder) result = true;
+            else if (parent instanceof SourceBuilder && ((SourceBuilder) parent).isManaged())
+                result = true;
+            else if (current instanceof Source && ((SourceBuilder) current).isManaged())
+                result = true;
+        }
         return result;
     }
 }

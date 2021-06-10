@@ -9,6 +9,7 @@ import static org.geoserver.featurestemplating.builders.VendorOptions.SEPARATOR;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import org.geoserver.featurestemplating.builders.AbstractTemplateBuilder;
 import org.geoserver.featurestemplating.builders.SourceBuilder;
@@ -17,6 +18,7 @@ import org.geoserver.featurestemplating.builders.TemplateBuilderMaker;
 import org.geoserver.featurestemplating.builders.VendorOptions;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 import org.geoserver.featurestemplating.expressions.TemplateCQLManager;
+import org.geoserver.platform.FileWatcher;
 import org.geotools.filter.LiteralExpressionImpl;
 import org.opengis.filter.expression.Expression;
 
@@ -39,9 +41,12 @@ public class JSONTemplateReader implements TemplateReader {
 
     private TemplateReaderConfiguration configuration;
 
-    public JSONTemplateReader(JsonNode template, TemplateReaderConfiguration configuration) {
+    private List<FileWatcher<Object>> watchers;
+
+    public JSONTemplateReader(JsonNode template, TemplateReaderConfiguration configuration, List<FileWatcher<Object>> watchers) {
         this.template = template;
         this.configuration = configuration;
+        this.watchers=watchers;
     }
 
     /**

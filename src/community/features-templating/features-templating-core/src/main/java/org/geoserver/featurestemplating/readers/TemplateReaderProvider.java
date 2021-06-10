@@ -32,7 +32,7 @@ public class TemplateReaderProvider {
         TemplateReader reader;
         if (resourceExtension.equalsIgnoreCase(SupportedExtension.JSON.name())) {
             RecursiveJSONParser parser = new RecursiveJSONParser(resource);
-            reader = new JSONTemplateReader(parser.parse(), configuration);
+            reader = new JSONTemplateReader(parser.parse(), configuration, parser.getWatchers());
         } else if (resourceExtension.equalsIgnoreCase(SupportedExtension.XHTML.name())
                 || resourceExtension.equalsIgnoreCase(SupportedExtension.XML.name())) {
             reader = new XMLTemplateReader(resource, configuration.getNamespaces());

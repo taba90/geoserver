@@ -3,6 +3,8 @@ package org.geoserver.featurestemplating.readers;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.geoserver.platform.FileWatcher;
 import org.geoserver.platform.resource.Resource;
 
 public class RecursiveTemplateResourceParser {
@@ -10,6 +12,8 @@ public class RecursiveTemplateResourceParser {
     protected RecursiveTemplateResourceParser parent;
 
     protected Resource resource;
+
+    private List<FileWatcher<Object>>  watchers;
 
     protected static final int MAX_RECURSION_DEPTH =
             Integer.parseInt(System.getProperty("GEOSERVER_FT_MAX_DEPTH", "50"));
@@ -19,13 +23,16 @@ public class RecursiveTemplateResourceParser {
         this.resource = resource;
         validateResource(resource);
         this.parent = parent;
+        this.watchers=parent.getWatchers();
         validateDepth();
+        addFileWatcher(resource);
     }
 
     public RecursiveTemplateResourceParser(Resource resource) {
         this.resource = resource;
         validateResource(resource);
         this.parent = null;
+        addFileWatcher(resource);
     }
 
     protected void validateResource(Resource resource) {
@@ -85,5 +92,14 @@ public class RecursiveTemplateResourceParser {
                             + depth
                             + "), inclusion chain is: "
                             + getInclusionChain());
+    }
+
+    private void addFileWatcher(Resource resource){
+        if (this.watchers==null) this.watchers=new ArrayList<>();
+        this.watchers.add(new FileWatcher<>(resource));
+    }
+
+    public List<FileWatcher<Object>> getWatchers(){
+        return watchers;
     }
 }

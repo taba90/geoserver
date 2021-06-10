@@ -23,6 +23,7 @@ public class XMLTemplateReader implements TemplateReader {
         try (XMLRecursiveReader recursiveParser =
                 new XMLRecursiveReader(resource, namespaceSupport)) {
             recursiveParser.iterateReader(rootBuilder);
+            rootBuilder.setWatchers(recursiveParser.getWatchers());
         }
     }
 

@@ -30,9 +30,9 @@ public class CompositeBuilder extends SourceBuilder {
     @Override
     public void evaluate(TemplateOutputWriter writer, TemplateBuilderContext context)
             throws IOException {
+        addSkipObjectEncodingHint(context);
         context = evaluateSource(context);
         Object o = context.getCurrentObj();
-        addSkipObjectEncodingHint(o);
         if (o != null && evaluateFilter(context) && canWrite(context)) {
             evaluateChildren(writer, context);
         }

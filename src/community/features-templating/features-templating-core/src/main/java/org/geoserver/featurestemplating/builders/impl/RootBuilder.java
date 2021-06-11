@@ -4,11 +4,8 @@
  */
 package org.geoserver.featurestemplating.builders.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
-
-import com.github.jsonldjava.utils.Obj;
 import org.geoserver.featurestemplating.builders.EncodingHints;
 import org.geoserver.featurestemplating.builders.TemplateBuilder;
 import org.geoserver.featurestemplating.builders.VendorOptions;
@@ -80,12 +77,10 @@ public class RootBuilder implements TemplateBuilder {
                 vendorOptions.get(VendorOptions.FLAT_OUTPUT, Boolean.class, false).booleanValue();
         if (isCachedFlattened && !isFlatOutput) return true;
         else if (!isCachedFlattened && isFlatOutput) return true;
-        else if (watchers!=null && !watchers.isEmpty()){
-            for (FileWatcher<Object> watcher:watchers){
-                if (watcher.isModified())
-                    return true;
+        else if (watchers != null && !watchers.isEmpty()) {
+            for (FileWatcher<Object> watcher : watchers) {
+                if (watcher.isModified()) return true;
             }
-
         }
         return false;
     }
@@ -111,7 +106,7 @@ public class RootBuilder implements TemplateBuilder {
         return visitor.visit(this, value);
     }
 
-    public void setWatchers(List<FileWatcher<Object>> watchers){
-        this.watchers=watchers;
+    public void setWatchers(List<FileWatcher<Object>> watchers) {
+        this.watchers = watchers;
     }
 }

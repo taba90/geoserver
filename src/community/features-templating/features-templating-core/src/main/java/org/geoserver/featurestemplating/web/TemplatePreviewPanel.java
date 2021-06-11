@@ -95,7 +95,9 @@ public class TemplatePreviewPanel extends Panel {
         add(previewInfoForm);
         outputFormatsDropDown =
                 new OutputFormatsDropDown(
-                        "outputFormats", new PropertyModel<>(previewModel, "outputFormat"));
+                        "outputFormats",
+                        new PropertyModel<>(previewModel, "outputFormat"),
+                        page.getForm().getModelObject().getExtension());
         outputFormatsDropDown.add(
                 new OnChangeAjaxBehavior() {
                     @Override
@@ -425,6 +427,11 @@ public class TemplatePreviewPanel extends Panel {
             featureTypeInfos =
                     getFeatureTypes(getCatalog(), workspaceInfoDropDownChoice.getModelObject());
         setFeatureTypeInfoValue(featureTypeInfoValue, featureTypeInfos);
+    }
+
+    void setOutputFormatsDropDownValues(String extension) {
+        if (this.outputFormatsDropDown != null)
+            this.outputFormatsDropDown.setChoices(SupportedFormat.getByExtension(extension));
     }
 
     void setFeatureTypeInfoValue(

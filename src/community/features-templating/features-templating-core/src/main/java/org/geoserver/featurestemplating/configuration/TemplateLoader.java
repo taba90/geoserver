@@ -200,7 +200,7 @@ public class TemplateLoader {
 
                 DataAccessRegistry registry = AppSchemaDataAccessRegistry.getInstance();
                 FeatureTypeMapping featureTypeMapping =
-                        registry.mappingByElement(featureTypeInfo.getQualifiedName());
+                        registry.mappingByElement(featureTypeInfo.getQualifiedNativeName());
                 if (featureTypeMapping != null) {
                     SimplifiedPropertyReplacer visitor =
                             new SimplifiedPropertyReplacer(featureTypeMapping);

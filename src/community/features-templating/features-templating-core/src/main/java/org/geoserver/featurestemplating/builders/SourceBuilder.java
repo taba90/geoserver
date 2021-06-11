@@ -107,9 +107,11 @@ public abstract class SourceBuilder extends AbstractTemplateBuilder {
         this.managed = managed;
     }
 
-    protected void addSkipObjectEncodingHint(Object o) {
+    protected void addSkipObjectEncodingHint(TemplateBuilderContext context) {
+        Object o = context.getCurrentObj();
         if (o instanceof Feature) {
-            if (((Feature) o).getDefaultGeometryProperty() != null)
+            Feature f = (Feature) o;
+            if (getStrSource() != null && source.evaluate(f.getType()) == null)
                 addEncodingHint(SKIP_IF_SINGLE_FEATURE, true);
         }
     }

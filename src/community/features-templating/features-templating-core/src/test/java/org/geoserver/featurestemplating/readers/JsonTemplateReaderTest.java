@@ -113,7 +113,9 @@ public class JsonTemplateReaderTest {
                 new ObjectMapper(new JsonFactory().enable(JsonParser.Feature.ALLOW_COMMENTS));
         JSONTemplateReader templateReader =
                 new JSONTemplateReader(
-                        mapper.readTree(is), new TemplateReaderConfiguration(namespaceSuport), Collections.emptyList());
+                        mapper.readTree(is),
+                        new TemplateReaderConfiguration(namespaceSuport),
+                        Collections.emptyList());
         return templateReader.getRootBuilder();
     }
 

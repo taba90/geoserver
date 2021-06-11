@@ -38,7 +38,7 @@ public class FlatIteratingBuilder extends IteratingBuilder implements FlatBuilde
             }
         } else {
             if (evaluateFilter(context)) {
-                addSkipObjectEncodingHint(context.getCurrentObj());
+                addSkipObjectEncodingHint(context);
                 for (TemplateBuilder child : children) {
                     AbstractTemplateBuilder abstractChild = (AbstractTemplateBuilder) child;
                     if (child instanceof FlatCompositeBuilder)

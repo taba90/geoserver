@@ -15,6 +15,14 @@ public class OutputFormatsDropDown extends DropDownChoice<SupportedFormat> {
         this.setChoiceRenderer(getFormatChoiceRenderer());
     }
 
+    public OutputFormatsDropDown(
+            String id, IModel<SupportedFormat> model, String templateExtension) {
+        super(id);
+        this.setChoices(SupportedFormat.getByExtension(templateExtension));
+        this.setModel(model);
+        this.setChoiceRenderer(getFormatChoiceRenderer());
+    }
+
     private EnumChoiceRenderer<SupportedFormat> getFormatChoiceRenderer() {
         return new EnumChoiceRenderer<SupportedFormat>() {
             @Override

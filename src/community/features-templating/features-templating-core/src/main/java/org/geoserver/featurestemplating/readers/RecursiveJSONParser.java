@@ -12,11 +12,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-
-import org.geoserver.featurestemplating.configuration.TemplateWatcher;
 import org.geoserver.platform.resource.Resource;
 
 /** Parses a JSON structure, processing eventual includes and expanding them */
@@ -33,7 +29,7 @@ public class RecursiveJSONParser extends RecursiveTemplateResourceParser {
     }
 
     private RecursiveJSONParser(RecursiveJSONParser parent, Resource resource) {
-        super(resource,parent);
+        super(resource, parent);
         this.mapper = parent.mapper;
     }
 

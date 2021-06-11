@@ -29,7 +29,7 @@ public class FlatCompositeBuilder extends CompositeBuilder implements FlatBuilde
     protected void evaluateChildren(TemplateOutputWriter writer, TemplateBuilderContext context)
             throws IOException {
         Object o = context.getCurrentObj();
-        addSkipObjectEncodingHint(o);
+        addSkipObjectEncodingHint(context);
         String key = getKey();
         boolean isFeatureTypeBuilder = isFeatureTypeBuilder(o);
         if (isFeatureTypeBuilder

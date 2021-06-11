@@ -11,8 +11,19 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import org.geoserver.catalog.Catalog;
+import org.geoserver.catalog.CatalogException;
+import org.geoserver.catalog.CatalogInfo;
 import org.geoserver.catalog.FeatureTypeInfo;
+import org.geoserver.catalog.WorkspaceInfo;
+import org.geoserver.catalog.event.CatalogAddEvent;
+import org.geoserver.catalog.event.CatalogBeforeAddEvent;
+import org.geoserver.catalog.event.CatalogListener;
+import org.geoserver.catalog.event.CatalogModifyEvent;
+import org.geoserver.catalog.event.CatalogPostModifyEvent;
+import org.geoserver.catalog.event.CatalogRemoveEvent;
 import org.geoserver.config.GeoServerDataDirectory;
+import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.resource.Resource;
 import org.geoserver.security.PropertyFileWatcher;
 
@@ -38,6 +49,8 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
         this.fileWatcher = new PropertyFileWatcher(prop);
         this.templateDataSet = new TreeSet<>();
         this.listeners = new HashSet<>();
+        Catalog catalog = (Catalog) GeoServerExtensions.bean("catalog");
+        catalog.addListener(new CatalogListenerTemplateInfo());
     }
 
     @Override
@@ -87,7 +100,7 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
     public List<TemplateInfo> findByFeatureTypeInfo(FeatureTypeInfo featureTypeInfo) {
         reloadIfNeeded();
         String workspace = featureTypeInfo.getStore().getWorkspace().getName();
-        String name = featureTypeInfo.getNativeName();
+        String name = featureTypeInfo.getName();
         return templateDataSet
                 .stream()
                 .filter(
@@ -153,7 +166,7 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
         return properties;
     }
 
-    private void storeProperties() {
+    public void storeProperties() {
         synchronized (this) {
             Properties p = toProperties();
             Resource propFile = dd.get(TEMPLATE_DIR, PROPERTY_FILE_NAME);
@@ -184,5 +197,82 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
 
     private void reloadIfNeeded() {
         if (isModified() || templateDataSet.isEmpty()) loadTemplateInfo();
+    }
+
+    public static class CatalogListenerTemplateInfo implements CatalogListener {
+        @Override
+        public void handlePreAddEvent(CatalogBeforeAddEvent event) throws CatalogException {}
+
+        @Override
+        public void handleAddEvent(CatalogAddEvent event) throws CatalogException {}
+
+        @Override
+        public void handleRemoveEvent(CatalogRemoveEvent event) throws CatalogException {
+            CatalogInfo source = event.getSource();
+            if (source instanceof FeatureTypeInfo) {}
+        }
+
+        @Override
+        public void handleModifyEvent(CatalogModifyEvent event) throws CatalogException {
+            final CatalogInfo source = event.getSource();
+            if (source instanceof FeatureTypeInfo) {
+                // was the layer group renamed, moved, or its contents changed?
+                int nameIdx = event.getPropertyNames().indexOf("name");
+                if (nameIdx != -1) {
+                    String newName = (String) event.getNewValues().get(nameIdx);
+                    updateTemplateInfoLayerName((FeatureTypeInfo) source, newName);
+                }
+            } else if (source instanceof WorkspaceInfo) {
+                int nameIdx = event.getPropertyNames().indexOf("name");
+                if (nameIdx != -1) {
+                    String oldName = (String) event.getOldValues().get(nameIdx);
+                    String newName = (String) event.getNewValues().get(nameIdx);
+                    updateWorkspaceNames(oldName, newName);
+                }
+            }
+        }
+
+        private void updateTemplateInfoLayerName(FeatureTypeInfo fti, String newName) {
+            TemplateInfoDao dao = TemplateInfoDao.get();
+            List<TemplateInfo> templateInfo = dao.findByFeatureTypeInfo(fti);
+            for (TemplateInfo ti : templateInfo) {
+                ti.setFeatureType(newName);
+            }
+            ((TemplateInfoDaoImpl) dao).storeProperties();
+        }
+
+        private void updateTemplateInfoWorkspace(WorkspaceInfo wi, FeatureTypeInfo fti) {
+            TemplateInfoDao dao = TemplateInfoDao.get();
+            List<TemplateInfo> templateInfo = dao.findByFeatureTypeInfo(fti);
+            for (TemplateInfo ti : templateInfo) {
+                ti.setWorkspace(wi.getName());
+            }
+            ((TemplateInfoDaoImpl) dao).storeProperties();
+        }
+
+        private void updateWorkspaceNames(String oldName, String newName) {
+            TemplateInfoDao dao = TemplateInfoDao.get();
+            List<TemplateInfo> infos = dao.findAll();
+            for (TemplateInfo ti : infos) {
+                if (ti.getWorkspace().equals(oldName)) ti.setWorkspace(newName);
+            }
+            ((TemplateInfoDaoImpl) dao).storeProperties();
+        }
+
+        @Override
+        public void handlePostModifyEvent(CatalogPostModifyEvent event) throws CatalogException {
+            CatalogInfo source = event.getSource();
+            if (source instanceof FeatureTypeInfo) {
+                FeatureTypeInfo info = (FeatureTypeInfo) source;
+                int wsIdx = event.getPropertyNames().indexOf("workspace");
+                if (wsIdx != -1) {
+                    WorkspaceInfo newWorkspace = (WorkspaceInfo) event.getNewValues().get(wsIdx);
+                    updateTemplateInfoWorkspace(newWorkspace, info);
+                }
+            }
+        }
+
+        @Override
+        public void reloaded() {}
     }
 }

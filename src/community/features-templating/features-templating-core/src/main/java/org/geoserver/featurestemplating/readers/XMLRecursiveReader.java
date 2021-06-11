@@ -230,14 +230,12 @@ public class XMLRecursiveReader extends RecursiveTemplateResourceParser implemen
             Iterator<Attribute> attributes, TemplateBuilder parentBuilder) {
         while (attributes.hasNext()) {
             Attribute attribute = attributes.next();
-            if (!attribute.isNamespace()) {
-                if (canEncodeAttribute(attribute.getName())) {
-                    maker.namespaces(namespaceSupport)
-                            .name(strName(attribute.getName()))
-                            .contentAndFilter(attribute.getValue())
-                            .encodingOption(ENCODE_AS_ATTRIBUTE, true);
-                    parentBuilder.addChild(maker.build());
-                }
+            if (canEncodeAttribute(attribute.getName())) {
+                maker.namespaces(namespaceSupport)
+                        .name(strName(attribute.getName()))
+                        .contentAndFilter(attribute.getValue())
+                        .encodingOption(ENCODE_AS_ATTRIBUTE, true);
+                parentBuilder.addChild(maker.build());
             }
         }
     }

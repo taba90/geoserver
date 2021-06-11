@@ -186,7 +186,10 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                         target.add(topFeedbackPanel);
                         target.add(bottomFeedbackPanel);
                         TemplateInfo templateInfo = (TemplateInfo) form.getModelObject();
+
                         String rawTemplate = editor.getInput();
+                        if (rawTemplate.trim().equals(""))
+                            rawTemplate = TemplateConfigurationPage.this.rawTemplate;
                         if (!validateAndReport(templateInfo, rawTemplate)) return;
                         saveTemplateInfo(templateInfo);
                     }
@@ -249,6 +252,7 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
 
     void saveTemplateInfo(TemplateInfo templateInfo) {
         String rawTemplate = editor.getInput();
+        if (rawTemplate.trim().equals("")) rawTemplate = TemplateConfigurationPage.this.rawTemplate;
         if (!validateAndReport(templateInfo, rawTemplate)) return;
         saveTemplateFile(templateInfo);
         TemplateInfoDao.get().saveOrUpdate(templateInfo);

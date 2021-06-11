@@ -88,6 +88,10 @@ public abstract class TemplateInfoDataPanel extends Panel {
                             editor.setMode("xml");
                         else editor.setModeAndSubMode("javascript", mode);
                         ajaxRequestTarget.add(editor);
+                        TemplatePreviewPanel panel = getPreviewPanel();
+                        if (panel != null)
+                            panel.setOutputFormatsDropDownValues(
+                                    templateExtension.getModelObject());
                     }
                 });
         add(templateExtension);

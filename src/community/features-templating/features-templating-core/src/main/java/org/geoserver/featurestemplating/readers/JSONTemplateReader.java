@@ -43,10 +43,13 @@ public class JSONTemplateReader implements TemplateReader {
 
     private List<FileWatcher<Object>> watchers;
 
-    public JSONTemplateReader(JsonNode template, TemplateReaderConfiguration configuration, List<FileWatcher<Object>> watchers) {
+    public JSONTemplateReader(
+            JsonNode template,
+            TemplateReaderConfiguration configuration,
+            List<FileWatcher<Object>> watchers) {
         this.template = template;
         this.configuration = configuration;
-        this.watchers=watchers;
+        this.watchers = watchers;
     }
 
     /**

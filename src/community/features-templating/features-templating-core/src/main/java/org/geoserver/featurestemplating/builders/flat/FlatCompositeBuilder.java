@@ -48,7 +48,10 @@ public class FlatCompositeBuilder extends CompositeBuilder implements FlatBuilde
 
     private boolean isFeatureTypeBuilder(Object o) {
         boolean result = false;
-        if (((Feature) o).getDefaultGeometryProperty() != null) result = true;
+        if (o instanceof Feature) {
+            Feature f = (Feature) o;
+            result = getStrSource() != null && getSource().evaluate(f.getType()) == null;
+        }
         return result;
     }
 

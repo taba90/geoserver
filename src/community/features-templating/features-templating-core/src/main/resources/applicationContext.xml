@@ -32,12 +32,12 @@
 
     <bean id="templateDao" class="org.geoserver.featurestemplating.configuration.TemplateInfoDaoImpl"/>
 
-    <bean id="templateFileManager" class="org.geoserver.featurestemplating.configuration.TemplateFileManager">
-        <constructor-arg ref="catalog"/>
+    <bean id="validationSchemaCache" class="org.geoserver.featurestemplating.configuration.ValidationSchemaCache">
         <constructor-arg ref="dataDirectory"/>
     </bean>
 
-    <bean id="validationSchemaCache" class="org.geoserver.featurestemplating.configuration.ValidationSchemaCache">
+    <bean id="templateFileManager" class="org.geoserver.featurestemplating.configuration.TemplateFileManager">
+        <constructor-arg ref="catalog"/>
         <constructor-arg ref="dataDirectory"/>
     </bean>
 

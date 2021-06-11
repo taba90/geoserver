@@ -11,11 +11,11 @@ import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.resource.Resource;
 import org.geotools.xml.resolver.SchemaCache;
-import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.ext.EntityResolver2;
 
-public class ValidationSchemaCache implements EntityResolver {
+public class ValidationSchemaCache implements EntityResolver2 {
 
     private static final String SHCEMA_CACHE_DIR = "schema-cache";
     private GeoServerDataDirectory dd;
@@ -49,5 +49,21 @@ public class ValidationSchemaCache implements EntityResolver {
         } catch (URISyntaxException e) {
             throw new SAXException(e);
         }
+    }
+
+    public String resolveLocation(String url) {
+        return this.schemaCache.resolveLocation(url);
+    }
+
+    @Override
+    public InputSource getExternalSubset(String name, String baseURI)
+            throws SAXException, IOException {
+        return null;
+    }
+
+    @Override
+    public InputSource resolveEntity(String name, String publicId, String baseURI, String systemId)
+            throws SAXException, IOException {
+        return null;
     }
 }

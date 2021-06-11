@@ -89,7 +89,13 @@ public class TemplateRulesTablePanel extends Panel {
                         TemplateRule rule = itemModel.getObject();
                         configurationPanel.theForm.getModel().setObject(rule);
                         configurationPanel.theForm.modelChanged();
+                        String submitLabel = configurationPanel.getSubmitLabelValue("update");
+                        configurationPanel.submitLabelModel.setObject(submitLabel);
+                        String panelLabel = configurationPanel.getPanelLabelValue("update");
+                        configurationPanel.panelLabelModel.setObject(panelLabel);
                         target.add(configurationPanel.theForm);
+                        target.add(configurationPanel.submitLabel);
+                        target.add(configurationPanel.panelLabel);
                     }
                 };
             else if (property.equals(OUTPUT_FORMAT))

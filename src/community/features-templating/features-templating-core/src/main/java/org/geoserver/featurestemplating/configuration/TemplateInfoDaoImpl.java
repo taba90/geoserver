@@ -29,7 +29,7 @@ import org.geoserver.security.PropertyFileWatcher;
 
 public class TemplateInfoDaoImpl implements TemplateInfoDao {
 
-    private TreeSet<TemplateInfo> templateDataSet = new TreeSet<>();
+    private TreeSet<TemplateInfo> templateDataSet;
 
     private PropertyFileWatcher fileWatcher;
 
@@ -167,14 +167,12 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
     }
 
     public void storeProperties() {
-        synchronized (this) {
-            Properties p = toProperties();
-            Resource propFile = dd.get(TEMPLATE_DIR, PROPERTY_FILE_NAME);
-            try (OutputStream os = propFile.out()) {
-                p.store(os, null);
-            } catch (Exception e) {
-                throw new RuntimeException("Could not write rules to " + PROPERTY_FILE_NAME);
-            }
+        Properties p = toProperties();
+        Resource propFile = dd.get(TEMPLATE_DIR, PROPERTY_FILE_NAME);
+        try (OutputStream os = propFile.out()) {
+            p.store(os, null);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not write rules to " + PROPERTY_FILE_NAME);
         }
     }
 

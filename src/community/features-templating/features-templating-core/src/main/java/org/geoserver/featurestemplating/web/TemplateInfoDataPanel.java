@@ -86,6 +86,7 @@ public abstract class TemplateInfoDataPanel extends Panel {
                         String mode = templateExtension.getConvertedInput();
                         if (mode != null && (mode.equals("xml") || mode.equals("xhtml")))
                             editor.setMode("xml");
+                        else if (isJsonLd(editor)) editor.setModeAndSubMode("javascript", "jsonld");
                         else editor.setModeAndSubMode("javascript", mode);
                         ajaxRequestTarget.add(editor);
                         TemplatePreviewPanel panel = getPreviewPanel();
@@ -215,7 +216,8 @@ public abstract class TemplateInfoDataPanel extends Panel {
                 templateInfo.setExtension(extension);
                 CodeMirrorEditor editor = page.getEditor();
                 if (!extension.equals("xml")) {
-                    editor.setModeAndSubMode("javascript", "json");
+                    if (isJsonLd(editor)) editor.setModeAndSubMode("javascript", "jsonld");
+                    else editor.setModeAndSubMode("javascript", "json");
                 } else {
                     editor.setMode(extension);
                 }
@@ -280,4 +282,10 @@ public abstract class TemplateInfoDataPanel extends Panel {
     }
 
     protected abstract TemplatePreviewPanel getPreviewPanel();
+
+    boolean isJsonLd(CodeMirrorEditor editor) {
+        String template = editor.getModelObject();
+        if (template != null && !template.equals("") && template.contains("@context")) return true;
+        return false;
+    }
 }

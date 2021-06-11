@@ -1,5 +1,6 @@
 package org.geoserver.featurestemplating.web;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -7,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -15,6 +17,7 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.CompoundPropertyModel;
+import org.apache.wicket.model.Model;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.ResourceInfo;
@@ -33,6 +36,10 @@ public class TemplateRuleConfigurationPanel extends Panel {
     TextArea<String> cqlFilterArea;
     FeedbackPanel ruleFeedbackPanel;
     LayerInfo layer;
+    Label submitLabel;
+    Model<String> submitLabelModel;
+    Label panelLabel;
+    Model<String> panelLabelModel;
 
     public TemplateRuleConfigurationPanel(
             String id,
@@ -46,6 +53,12 @@ public class TemplateRuleConfigurationPanel extends Panel {
     }
 
     private void initUI(CompoundPropertyModel<TemplateRule> model, boolean isUpdate) {
+        panelLabel =
+                new Label(
+                        "ruleConfigurationLabel",
+                        panelLabelModel = Model.of(getPanelLabelValue("add")));
+        panelLabel.setOutputMarkupId(true);
+        add(panelLabel);
         this.theForm = new Form<>("theForm", model);
         theForm.setOutputMarkupId(true);
         theForm.add(ruleFeedbackPanel = new FeedbackPanel("ruleFeedback"));
@@ -92,6 +105,10 @@ public class TemplateRuleConfigurationPanel extends Panel {
                         if (theForm.hasError()) target.add(ruleFeedbackPanel);
                     }
                 };
+        submitLabel =
+                new Label("submitLabel", submitLabelModel = Model.of(getSubmitLabelValue("add")));
+        submitLabel.setOutputMarkupId(true);
+        submitLink.add(submitLabel);
         theForm.add(submitLink);
         theForm.add(
                 new AjaxSubmitLink("cancel") {
@@ -150,7 +167,7 @@ public class TemplateRuleConfigurationPanel extends Panel {
             }
             set.add(rule);
         }
-        if (set.isEmpty()) set.add(newRule);
+        if (set.isEmpty() || !newRuleAdded) set.add(newRule);
         return set;
     }
 
@@ -161,13 +178,31 @@ public class TemplateRuleConfigurationPanel extends Panel {
         templateInfoDropDownChoice.modelChanged();
         mimeTypeDropDown.modelChanged();
         cqlFilterArea.modelChanged();
+        submitLabelModel.setObject(getSubmitLabelValue("add"));
+        panelLabelModel.setObject(getPanelLabelValue("add"));
         target.add(theForm);
         target.add(templateInfoDropDownChoice);
         target.add(mimeTypeDropDown);
         target.add(cqlFilterArea);
+        target.add(submitLabel);
+        target.add(panelLabel);
     }
 
     private void cleanFeedbackPanel() {
         ruleFeedbackPanel.getFeedbackMessages().clear();
+    }
+
+    String getPanelLabelValue(String labelType) {
+        return getLabelValue("panel", labelType);
+    }
+
+    String getSubmitLabelValue(String labelType) {
+        return getLabelValue("submit", labelType);
+    }
+
+    String getLabelValue(String label1, String label2) {
+        return MessageFormat.format(
+                getString("TemplateRuleConfigurationPanel." + label1),
+                getString("TemplateRuleConfigurationPanel." + label2));
     }
 }

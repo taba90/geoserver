@@ -80,7 +80,7 @@ public class TemplatePreviewPanel extends Panel {
 
     private FeedbackPanel previewFeedback;
 
-    String previewResult;
+    private String previewResult;
 
     public TemplatePreviewPanel(String id, TemplateConfigurationPage page) {
         super(id);
@@ -171,9 +171,7 @@ public class TemplatePreviewPanel extends Panel {
         textArea.setOutputMarkupId(true);
         textArea.setTextAreaMarkupId("previewTextArea");
         String extension = templateInfo.getObject().getExtension();
-        if (extension.equals("json")) {
-            textArea.setModeAndSubMode("javascript", extension);
-        }
+        if (extension.equals("json")) textArea.setModeAndSubMode("javascript", extension);
         previewInfoForm.add(textArea);
         previewInfoForm.add(previewFeedback = new FeedbackPanel("validateFeedback"));
         previewFeedback.setOutputMarkupId(true);
@@ -306,7 +304,8 @@ public class TemplatePreviewPanel extends Panel {
                         target.add(previewFeedback);
                         textArea.clearInput();
                         IModel<TemplateInfo> templateInfo = page.getTemplateInfoModel();
-                        page.saveTemplateInfo(templateInfo.getObject());
+                        String rawTemplate = page.getStringTemplateFromInput();
+                        page.saveTemplateInfo(templateInfo.getObject(), rawTemplate);
                         Form<PreviewInfoModel> previewForm = (Form<PreviewInfoModel>) form;
 
                         if (!validateAndReport(previewForm.getModelObject())) return;
@@ -460,7 +459,7 @@ public class TemplatePreviewPanel extends Panel {
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, "yes");
-            transformer.setOutputProperty("{https://xml.apache.org/xslt}indent-amount", "3");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
             transformer.transform(xmlInput, new StreamResult(stringWriter));
 
             return stringWriter.toString();
@@ -490,6 +489,7 @@ public class TemplatePreviewPanel extends Panel {
     }
 
     public static class PreviewInfoModel implements Serializable {
+
         private WorkspaceInfo ws;
 
         private FeatureTypeInfo featureType;

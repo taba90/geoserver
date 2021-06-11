@@ -1,30 +1,27 @@
 package org.geoserver.featurestemplating.configuration;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.resource.Resource;
-import org.geotools.util.logging.Logging;
 
 public class TemplateFileManager {
 
-    static final Logger LOGGER = Logging.getLogger(TemplateInfoMemento.class);
-
     private Catalog catalog;
     private GeoServerDataDirectory dd;
-    private Map<String, TemplateInfoMemento> mementoMap;
 
     public TemplateFileManager(Catalog catalog, GeoServerDataDirectory dd) {
         this.catalog = catalog;
         this.dd = dd;
-        this.mementoMap = new HashMap<>();
+    }
+
+    public static TemplateFileManager get() {
+        return GeoServerExtensions.bean(TemplateFileManager.class);
     }
 
     public Resource getTemplateResource(AbstractFeatureTemplateInfo templateInfo) {
@@ -33,8 +30,6 @@ public class TemplateFileManager {
         String templateName = templateInfo.getTemplateName();
         String extension = templateInfo.getExtension();
         Resource resource;
-        Catalog catalog = (Catalog) GeoServerExtensions.bean("catalog");
-        GeoServerDataDirectory dd = GeoServerExtensions.bean(GeoServerDataDirectory.class);
         if (featureType != null) {
             FeatureTypeInfo fti = catalog.getFeatureTypeByName(featureType);
             resource = dd.get(fti, templateName + "." + extension);
@@ -47,34 +42,8 @@ public class TemplateFileManager {
         return resource;
     }
 
-    public void deleteOldTemplateFile(TemplateInfo info) {
-        String identifier = info.getIdentifier();
-        TemplateInfoMemento memento = mementoMap.get(identifier);
-        if (memento == null) {
-            if (LOGGER.isLoggable(Level.WARNING))
-                LOGGER.log(
-                        Level.WARNING,
-                        "Cannot delete old template file, "
-                                + "something went wrong when saving the previous info state");
-        } else {
-            if (LOGGER.isLoggable(Level.FINE)) {
-                LOGGER.log(
-                        Level.FINE,
-                        "Deleting template file for template with name "
-                                + memento.getTemplateName());
-            }
-            TemplateInfoMemento infoMemento = mementoMap.get(identifier);
-            if (!infoMemento.lenientEquals(info)) {
-                boolean result = getTemplateResource(memento).delete();
-                if (!result) {
-                    if (LOGGER.isLoggable(Level.WARNING))
-                        LOGGER.log(
-                                Level.WARNING,
-                                "Cannot delete old template file, something went wrong during the delete process");
-                }
-            }
-            mementoMap.remove(identifier);
-        }
+    public boolean delete(AbstractFeatureTemplateInfo templateInfo) {
+        return getTemplateResource(templateInfo).delete();
     }
 
     public File getTemplateLocation(AbstractFeatureTemplateInfo templateInfo) {
@@ -97,8 +66,21 @@ public class TemplateFileManager {
         return destDir;
     }
 
-    public void addMemento(TemplateInfo templateInfo) {
-        TemplateInfoMemento memento = new TemplateInfoMemento(templateInfo);
-        mementoMap.put(templateInfo.getIdentifier(), memento);
+    public void saveTemplateFile(AbstractFeatureTemplateInfo templateInfo, String rawTemplate) {
+        File destDir = getTemplateLocation(templateInfo);
+        try {
+            File file =
+                    new File(
+                            destDir,
+                            templateInfo.getTemplateName() + "." + templateInfo.getExtension());
+            if (!file.exists()) file.createNewFile();
+            synchronized (this) {
+                try (FileOutputStream fos = new FileOutputStream(file, false)) {
+                    fos.write(rawTemplate.getBytes());
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

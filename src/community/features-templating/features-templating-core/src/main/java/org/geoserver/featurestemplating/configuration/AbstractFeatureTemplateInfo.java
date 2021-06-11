@@ -91,6 +91,7 @@ public abstract class AbstractFeatureTemplateInfo
     }
 
     public boolean lenientEquals(Object o) {
+        if (o == null) return false;
         AbstractFeatureTemplateInfo that = (AbstractFeatureTemplateInfo) o;
         return Objects.equals(templateName, that.templateName)
                 && Objects.equals(workspace, that.workspace)

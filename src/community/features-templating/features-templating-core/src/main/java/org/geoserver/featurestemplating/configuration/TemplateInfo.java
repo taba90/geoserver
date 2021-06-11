@@ -19,6 +19,14 @@ public class TemplateInfo extends AbstractFeatureTemplateInfo {
         super(templateName, workspace, featureType, extension);
     }
 
+    public TemplateInfo(AbstractFeatureTemplateInfo templateInfo) {
+        this(
+                templateInfo.templateName,
+                templateInfo.workspace,
+                templateInfo.featureType,
+                templateInfo.extension);
+    }
+
     public String getDescription() {
         return description;
     }

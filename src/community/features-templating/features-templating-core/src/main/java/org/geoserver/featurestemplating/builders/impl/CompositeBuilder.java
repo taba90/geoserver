@@ -64,16 +64,15 @@ public class CompositeBuilder extends SourceBuilder {
     public boolean canWrite(TemplateBuilderContext context) {
         List<TemplateBuilder> filtered =
                 children.stream()
-                        .filter(
-                                b ->
-                                        b instanceof DynamicValueBuilder
-                                                || b instanceof CompositeBuilder)
+                        .filter(b -> b instanceof DynamicValueBuilder || b instanceof SourceBuilder)
                         .collect(Collectors.toList());
         if (filtered.size() == children.size()) {
             int falseCounter = 0;
             for (TemplateBuilder b : filtered) {
                 if (b instanceof CompositeBuilder) {
                     if (!((CompositeBuilder) b).canWrite(context)) falseCounter++;
+                } else if (b instanceof IteratingBuilder) {
+                    if (!((IteratingBuilder) b).canWrite(context)) falseCounter++;
                 } else {
                     if (!((DynamicValueBuilder) b).checkNotNullValue(context)) falseCounter++;
                 }

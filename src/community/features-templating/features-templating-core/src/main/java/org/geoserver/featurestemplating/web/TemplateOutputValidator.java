@@ -4,14 +4,11 @@ import com.github.jsonldjava.utils.JsonUtils;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import java.util.stream.Collectors;
 import org.geoserver.featurestemplating.configuration.SupportedFormat;
-import org.geoserver.featurestemplating.configuration.ValidationSchemaCache;
 import org.geoserver.featurestemplating.validation.JSONLDContextValidation;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-import org.xml.sax.helpers.DefaultHandler;
+import org.geotools.xsd.Configuration;
+import org.geotools.xsd.Parser;
 
 public class TemplateOutputValidator {
 
@@ -47,30 +44,28 @@ public class TemplateOutputValidator {
 
     private boolean validateGML(String input) {
         boolean result = true;
-        TemplateValidationErrorHandler errorHandler = new TemplateValidationErrorHandler();
+        Configuration configuration = new org.geotools.wfs.v2_0.WFSConfiguration();
+        List<String> validationErrors = new ArrayList<>();
         try (ByteArrayInputStream is = new ByteArrayInputStream(input.getBytes())) {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            dbFactory.setNamespaceAware(true);
-            dbFactory.setValidating(true);
-            dbFactory.setAttribute(
-                    "http://java.sun.com/xml/jaxp/properties/schemaLanguage",
-                    "http://www.w3.org/2001/XMLSchema");
-            DocumentBuilder dBuilder;
-            dBuilder = dbFactory.newDocumentBuilder();
-            dBuilder.setEntityResolver(ValidationSchemaCache.get());
-            dBuilder.setErrorHandler(errorHandler);
-            dBuilder.parse(is);
+            Parser parser = new Parser(configuration);
+            parser.setValidating(true);
+            parser.parse(is);
+            validationErrors.addAll(
+                    parser.getValidationErrors()
+                            .stream()
+                            .map(e -> e.getMessage())
+                            .collect(Collectors.toList()));
         } catch (Exception e) {
-            message = e.getMessage();
+            validationErrors.add(e.getMessage());
             result = false;
         }
-        if (!errorHandler.errors.isEmpty()) {
+        if (!validationErrors.isEmpty()) {
             result = false;
             StringBuilder builder =
                     new StringBuilder(
                             "The following errors occured while validating the gml output: ");
-            for (int i = 0; i < errorHandler.errors.size(); i++) {
-                String error = errorHandler.errors.get(i);
+            for (int i = 0; i < validationErrors.size(); i++) {
+                String error = validationErrors.get(i);
                 builder.append(i + 1).append(" ").append(error).append(".");
             }
             this.message = builder.toString();
@@ -85,23 +80,5 @@ public class TemplateOutputValidator {
 
     public String getMessage() {
         return message;
-    }
-
-    public class TemplateValidationErrorHandler extends DefaultHandler {
-
-        List<String> errors = new ArrayList<>();
-
-        @Override
-        public void error(SAXParseException e) throws SAXException {
-            super.error(e);
-            String message = e.getMessage();
-            if (message.startsWith("cvc-elt")) errors.add(e.getMessage());
-        }
-
-        @Override
-        public void fatalError(SAXParseException e) throws SAXException {
-            super.fatalError(e);
-            errors.add(e.getMessage());
-        }
     }
 }

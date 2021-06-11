@@ -25,7 +25,6 @@ import org.geoserver.featurestemplating.readers.TemplateReaderConfiguration;
 import org.geoserver.featurestemplating.validation.TemplateValidator;
 import org.geoserver.ows.Dispatcher;
 import org.geoserver.ows.Request;
-import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.resource.Resource;
 import org.geotools.data.complex.AppSchemaDataAccessRegistry;
 import org.geotools.data.complex.DataAccessRegistry;
@@ -245,6 +244,6 @@ public class TemplateLoader {
     }
 
     private TemplateFileManager getTemplateFileManager() {
-        return GeoServerExtensions.bean(TemplateFileManager.class);
+        return TemplateFileManager.get();
     }
 }

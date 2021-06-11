@@ -35,6 +35,7 @@ public class TemplateRuleProvider extends GeoServerDataProvider<TemplateRule> {
         List<TemplateRule> entries;
         if (model != null && model.getObject() != null) {
             entries = new ArrayList<>(model.getObject());
+            entries.sort(new TemplateRule.TemplateRuleComparator());
         } else {
             entries = Collections.emptyList();
         }

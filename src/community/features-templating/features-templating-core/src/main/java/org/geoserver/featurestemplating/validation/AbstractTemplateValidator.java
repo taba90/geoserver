@@ -74,8 +74,8 @@ public abstract class AbstractTemplateValidator {
                 if (sb.getSource() != null && sb.getStrSource() != null) {
                     String typeName =
                             sb.getStrSource().substring(sb.getStrSource().indexOf(":") + 1);
-                    if (typeName.contains("Feature")){
-                        typeName=typeName.replace("Feature","");
+                    if (typeName.contains("Feature")) {
+                        typeName = typeName.replace("Feature", "");
                     }
                     if (!getTypeName().contains(typeName)) {
                         PropertyName pn = getSourceToValidate(sb, source);

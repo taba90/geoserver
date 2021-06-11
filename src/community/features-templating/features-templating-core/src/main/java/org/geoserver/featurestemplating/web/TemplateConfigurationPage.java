@@ -1,8 +1,6 @@
 package org.geoserver.featurestemplating.web;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.Charset;
@@ -22,10 +20,10 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.geoserver.featurestemplating.configuration.TemplateCareTaker;
 import org.geoserver.featurestemplating.configuration.TemplateFileManager;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDao;
-import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.exception.GeoServerException;
 import org.geoserver.platform.resource.Resource;
 import org.geoserver.web.GeoServerSecuredPage;
@@ -37,21 +35,23 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
 
     private boolean isNew;
 
-    private CodeMirrorEditor editor;
+    CodeMirrorEditor editor;
 
     private Form<TemplateInfo> form;
 
     private TemplatePreviewPanel previewPanel;
 
+    private transient TemplateCareTaker templateCareTaker;
+
     String rawTemplate;
 
     public TemplateConfigurationPage(IModel<TemplateInfo> model, boolean isNew) {
         this.isNew = isNew;
+        this.templateCareTaker = new TemplateCareTaker();
         initUI(model);
     }
 
     private void initUI(IModel<TemplateInfo> model) {
-        if (!isNew) getTemplateFileManager().addMemento(model.getObject());
         form = new Form<>("theForm", model);
         List<ITab> tabs = new ArrayList<>();
         PanelCachingTab previewTab =
@@ -102,9 +102,9 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                                         TemplateInfo templateInfo =
                                                 TemplateConfigurationPage.this.form
                                                         .getModelObject();
-                                        if (!validateAndReport(templateInfo, editor.getInput()))
-                                            return;
-                                        saveTemplateInfo(templateInfo);
+                                        String rawTemplate = getStringTemplateFromInput();
+                                        if (!validateAndReport(templateInfo, rawTemplate)) return;
+                                        saveTemplateInfo(templateInfo, rawTemplate);
                                         setSelectedTab(index);
                                         target.add(tabbedPanel);
                                     }
@@ -130,8 +130,9 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
         editor =
                 new CodeMirrorEditor(
                         "templateEditor", mode, new PropertyModel<>(this, "rawTemplate"));
-        if (mode.equals("javascript"))
+        if (mode.equals("javascript")) {
             editor.setModeAndSubMode(mode, model.getObject().getExtension());
+        }
         editor.setOutputMarkupId(true);
         form.add(editor);
         editor.setTextAreaMarkupId("editor");
@@ -144,21 +145,31 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                 new Link<TemplateInfoPage>("cancel") {
                     @Override
                     public void onClick() {
+                        TemplateInfo info = form.getModelObject();
+                        templateCareTaker.undo(info);
                         doReturn(TemplateInfoPage.class);
                     }
                 });
+        if (!isNew) templateCareTaker.addMemento(model.getObject(), getEditor().getModelObject());
     }
 
     private String getStringTemplate(TemplateInfo templateInfo) {
         String rawTemplate = "";
         if (!isNew) {
-            Resource resource = getTemplateFileManager().getTemplateResource(templateInfo);
+            Resource resource = TemplateFileManager.get().getTemplateResource(templateInfo);
             try {
                 rawTemplate = FileUtils.readFileToString(resource.file(), Charset.forName("UTF-8"));
             } catch (IOException io) {
                 throw new RuntimeException(io);
             }
         }
+        return rawTemplate;
+    }
+
+    public String getStringTemplateFromInput() {
+        String rawTemplate = getEditor().getInput();
+        if (rawTemplate == null || rawTemplate.trim().equals(""))
+            rawTemplate = getEditor().getModelObject();
         return rawTemplate;
     }
 
@@ -187,11 +198,9 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                         target.add(bottomFeedbackPanel);
                         TemplateInfo templateInfo = (TemplateInfo) form.getModelObject();
 
-                        String rawTemplate = editor.getInput();
-                        if (rawTemplate.trim().equals(""))
-                            rawTemplate = TemplateConfigurationPage.this.rawTemplate;
+                        String rawTemplate = TemplateConfigurationPage.this.rawTemplate;
                         if (!validateAndReport(templateInfo, rawTemplate)) return;
-                        saveTemplateInfo(templateInfo);
+                        saveTemplateInfo(templateInfo, rawTemplate);
                     }
 
                     @Override
@@ -204,23 +213,6 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                     }
                 };
         return submitLink;
-    }
-
-    void saveTemplateFile(TemplateInfo templateInfo) {
-        File destDir = getTemplateFileManager().getTemplateLocation(templateInfo);
-        try {
-            File file =
-                    new File(
-                            destDir,
-                            templateInfo.getTemplateName() + "." + templateInfo.getExtension());
-            file.createNewFile();
-            try (FileOutputStream fos = new FileOutputStream(file, false)) {
-                String rawTemplate = getEditor().getInput();
-                fos.write(rawTemplate.getBytes());
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public void setRawTemplate(String rawTemplate) {
@@ -250,21 +242,15 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
         return true;
     }
 
-    void saveTemplateInfo(TemplateInfo templateInfo) {
-        String rawTemplate = editor.getInput();
-        if (rawTemplate.trim().equals("")) rawTemplate = TemplateConfigurationPage.this.rawTemplate;
+    void saveTemplateInfo(TemplateInfo templateInfo, String rawTemplate) {
         if (!validateAndReport(templateInfo, rawTemplate)) return;
-        saveTemplateFile(templateInfo);
+        TemplateFileManager.get().saveTemplateFile(templateInfo, rawTemplate);
         TemplateInfoDao.get().saveOrUpdate(templateInfo);
-        getTemplateFileManager().deleteOldTemplateFile(templateInfo);
+        templateCareTaker.deleteOldTemplateFile(templateInfo);
     }
 
     CodeMirrorEditor getEditor() {
         return this.editor;
-    }
-
-    static TemplateFileManager getTemplateFileManager() {
-        return GeoServerExtensions.bean(TemplateFileManager.class);
     }
 
     private void clearFeedbackMessages() {

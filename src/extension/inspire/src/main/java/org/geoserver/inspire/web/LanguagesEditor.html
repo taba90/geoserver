@@ -1,0 +1,23 @@
+<html xmlns:wicket="http://wicket.apache.org/">
+<body>
+<wicket:panel>
+    <ul>
+        <li>
+            <label for="languages"><wicket:message key="currentLanguages">Current Languages</wicket:message></label>
+            <select id="languages" class="select" wicket:id="languages" multiple="multiple" style="width:25em;"></select>
+            <button wicket:id="removeLanguages" type="submit"><wicket:message key="removeSelected">Remove selected</wicket:message></button>
+        </li>
+        <li>
+
+            <label for="selectLanguage"><wicket:message key="selectLanguage">Select Language</wicket:message></label>
+            <select id="selectLanguage" class="text" type="text" wicket:id="selectLanguage"/>
+
+            <label for="defaultCheck"><wicket:message key="defaultCheck">Default Language</wicket:message></label>
+            <input type="checkbox" id="defaultCheck" wicket:id="defaultCheck"/>
+
+        </li>
+    </ul>
+    <button wicket:id="addLanguage" type="submit"> <wicket:message key="addLanguage">Add</wicket:message> </button>
+</wicket:panel>
+</body>
+</html>

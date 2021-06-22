@@ -97,7 +97,7 @@ public class InspireAdminPanel extends AdminPagePanel {
         if (!model.getObject().getMetadata().containsKey(LANGUAGE.key)) {
             model.getObject().getMetadata().put(LANGUAGE.key, "eng");
         }
-        configs.add(new LanguageDropDownChoice("language", new MapModel(metadata, LANGUAGE.key)));
+        configs.add(new LanguagesEditor("language", new MapModel(metadata, LANGUAGE.key)));
 
         TextField metadataUrlField =
                 new TextField("metadataURL", new MapModel(metadata, SERVICE_METADATA_URL.key));

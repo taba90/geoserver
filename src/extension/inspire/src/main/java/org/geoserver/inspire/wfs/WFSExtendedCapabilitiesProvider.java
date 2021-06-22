@@ -18,6 +18,7 @@ import java.io.IOException;
 import org.geoserver.catalog.MetadataMap;
 import org.geoserver.inspire.UniqueResourceIdentifier;
 import org.geoserver.inspire.UniqueResourceIdentifiers;
+import org.geoserver.inspire.ViewServicesUtils;
 import org.geoserver.wfs.GetCapabilities;
 import org.geoserver.wfs.WFSInfo;
 import org.geoserver.wfs.request.GetCapabilitiesRequest;
@@ -80,19 +81,7 @@ public class WFSExtendedCapabilitiesProvider
             tx.end("inspire_common:MediaType");
         }
         tx.end("inspire_common:MetadataUrl");
-        tx.start("inspire_common:SupportedLanguages");
-        language = language != null ? language : "eng";
-        tx.start("inspire_common:DefaultLanguage");
-        tx.start("inspire_common:Language");
-        tx.chars(language);
-        tx.end("inspire_common:Language");
-        tx.end("inspire_common:DefaultLanguage");
-        tx.end("inspire_common:SupportedLanguages");
-        tx.start("inspire_common:ResponseLanguage");
-        tx.start("inspire_common:Language");
-        tx.chars(language);
-        tx.end("inspire_common:Language");
-        tx.end("inspire_common:ResponseLanguage");
+        ViewServicesUtils.encodeSupportedLanguages(language,tx);
         for (UniqueResourceIdentifier id : ids) {
             if (id.getMetadataURL() != null) {
                 tx.start(

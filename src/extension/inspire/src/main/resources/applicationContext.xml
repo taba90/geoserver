@@ -60,4 +60,7 @@
 		<property name="available" value="true" />
 		<property name="enabled" value="true" />
 	</bean>
+
+  <bean id="languageCallback" class="org.geoserver.inspire.LanguagesDispatcherCallback">
+  </bean>
 </beans>

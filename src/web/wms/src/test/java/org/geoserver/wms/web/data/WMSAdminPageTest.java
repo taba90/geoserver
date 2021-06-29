@@ -7,6 +7,7 @@ package org.geoserver.wms.web.data;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -166,7 +167,7 @@ public class WMSAdminPageTest extends GeoServerWicketTestSupport {
     }
 
     @Test
-    public void testInternationalContent() throws Exception {
+    public void testInternationalContent() {
         assertFalse(wms.isFeaturesReprojectionDisabled());
         tester.startPage(WMSAdminPage.class);
         FormTester form = tester.newFormTester("form");
@@ -220,5 +221,14 @@ public class WMSAdminPageTest extends GeoServerWicketTestSupport {
         form = tester.newFormTester("form");
         form.submit("submit");
         tester.hasNoErrorMessage();
+    }
+
+    @Test
+    public void testDefaultLocale() {
+        tester.startPage(WMSAdminPage.class);
+        FormTester ft = tester.newFormTester("form");
+        ft.select("internationalContent:defaultLocale", 11);
+        ft.submit("submit");
+        assertNotNull(getGeoServer().getService(WMSInfo.class).getDefaultLocale());
     }
 }

@@ -48,7 +48,6 @@ import org.geoserver.wms.WMSInfo.WMSInterpolation;
 import org.geoserver.wms.WatermarkInfo.Position;
 import org.geoserver.wms.featureinfo.GetFeatureInfoOutputFormat;
 import org.geoserver.wms.web.publish.LayerAuthoritiesAndIdentifiersPanel;
-import org.geotools.util.GrowableInternationalString;
 
 /** Edits the WMS service details */
 @SuppressWarnings("serial")
@@ -113,8 +112,7 @@ public class WMSAdminPage extends BaseServiceAdminPage<WMSInfo> {
         form.add(
                 new InternationalStringPanel<TextField<String>>(
                         "internationalRootLayerTitle",
-                        new PropertyModel<GrowableInternationalString>(
-                                info, "internationalRootLayerTitle"),
+                        new PropertyModel<>(info, "internationalRootLayerTitle"),
                         title) {
                     @Override
                     protected TextField<String> getTextComponent(String id, IModel<String> model) {

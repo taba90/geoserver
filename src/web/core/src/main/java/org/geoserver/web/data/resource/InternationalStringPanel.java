@@ -1,25 +1,21 @@
 /* (c) 2021 Open Source Geospatial Foundation - all rights reserved
  * This code is licensed under the GPL 2.0 license, available at the root
- * application directory.
+ * application direactory.
  */
 package org.geoserver.web.data.resource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.AbstractTextComponent;
-import org.apache.wicket.markup.html.form.ChoiceRenderer;
-import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponentPanel;
+import org.apache.wicket.markup.html.form.IFormSubmitter;
+import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.validation.FormComponentFeedbackBorder;
@@ -66,7 +62,7 @@ public abstract class InternationalStringPanel<C extends AbstractTextComponent<S
         WebMarkupContainer container = new WebMarkupContainer("container");
         container.setOutputMarkupPlaceholderTag(true);
         container.setOutputMarkupId(true);
-        boolean i18nVisible = !growableModel.getEntries().isEmpty();
+        boolean i18nVisible = i18nVisible();
         nonInternationalComponent.setVisible(!i18nVisible);
         AjaxCheckBox checkbox =
                 new AjaxCheckBox("i18nCheckBox", new Model<>(i18nVisible)) {
@@ -74,15 +70,9 @@ public abstract class InternationalStringPanel<C extends AbstractTextComponent<S
                     protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
                         if (getConvertedInput().booleanValue()) {
                             container.setVisible(true);
-                            tablePanel.modelChanged();
                             nonInternationalComponent.setVisible(false);
-                            nonInternationalComponent.setModelObject(null);
-                            nonInternationalComponent.modelChanged();
                         } else {
                             nonInternationalComponent.setVisible(true);
-                            growableModel.setObject(new GrowableInternationalString());
-                            provider.setInternationalEntries(new ArrayList<>());
-                            this.modelChanged();
                             container.setVisible(false);
                             ajaxRequestTarget.add(this, tablePanel);
                         }
@@ -121,11 +111,9 @@ public abstract class InternationalStringPanel<C extends AbstractTextComponent<S
                             FormComponentFeedbackBorder localeBorder =
                                     new FormComponentFeedbackBorder("border");
                             localeFragment.add(localeBorder);
-                            DropDownLocale locales =
-                                    new DropDownLocale(
-                                            "select",
-                                            new PropertyModel<>(itemModel, "locale"),
-                                            getLocalesList());
+                            LocalesDropdown locales =
+                                    new LocalesDropdown(
+                                            "select", new PropertyModel<>(itemModel, "locale"));
                             locales.setLabel(
                                     new ParamResourceModel(
                                             "th.locale", InternationalStringPanel.this));
@@ -214,39 +202,6 @@ public abstract class InternationalStringPanel<C extends AbstractTextComponent<S
         }
     }
 
-    private List<Locale> getLocalesList() {
-        return Stream.of(Locale.getAvailableLocales())
-                .filter(l -> l != null)
-                .sorted(
-                        new Comparator<Locale>() {
-                            @Override
-                            public int compare(Locale o1, Locale o2) {
-                                return o1.toLanguageTag().compareTo(o2.toLanguageTag());
-                            }
-                        })
-                .collect(Collectors.toList());
-    }
-
-    class DropDownLocale extends DropDownChoice<Locale> {
-
-        public DropDownLocale(String id, IModel<Locale> model, List<? extends Locale> choices) {
-            super(id, model, choices);
-            ChoiceRenderer<Locale> locales =
-                    new ChoiceRenderer<Locale>() {
-                        @Override
-                        public Object getDisplayValue(Locale object) {
-                            return object.toLanguageTag();
-                        }
-
-                        @Override
-                        public String getIdValue(Locale object, int index) {
-                            return object.toLanguageTag();
-                        }
-                    };
-            this.setChoiceRenderer(locales);
-        }
-    }
-
     @Override
     public void convertInput() {
         setConvertedInput(updateGrowableString());
@@ -263,6 +218,33 @@ public abstract class InternationalStringPanel<C extends AbstractTextComponent<S
 
     @Override
     public void updateModel() {
+        if (isSaveSubmit()) {
+            if (nonInternationalComponent.isVisible()) {
+                growableModel.setObject(new GrowableInternationalString());
+                provider.setInternationalEntries(new ArrayList<>());
+            } else {
+                nonInternationalComponent.clearInput();
+                nonInternationalComponent.setConvertedInput(null);
+                nonInternationalComponent.setModelObject(null);
+                nonInternationalComponent.modelChanged();
+            }
+        }
         updateGrowableString();
+    }
+
+    private boolean isSaveSubmit() {
+        boolean result = false;
+        IFormSubmitter submitBtn = getForm().findSubmittingButton();
+        if (submitBtn != null) {
+            SubmitLink submitLink = (SubmitLink) submitBtn;
+            String id = submitLink.getId();
+            result = id.equals("submit") || id.equals("save");
+        }
+        return result;
+    }
+
+    private boolean i18nVisible() {
+        List<GrowableStringModel.InternationalStringEntry> entries = growableModel.getEntries();
+        return !entries.isEmpty() && !(entries.size() == 1 && entries.get(0).getLocale() == null);
     }
 }

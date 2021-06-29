@@ -5,6 +5,8 @@
  */
 package org.geoserver.wcs.web;
 
+import static org.junit.Assert.assertNotNull;
+
 import org.apache.wicket.util.tester.FormTester;
 import org.geoserver.wcs.WCSInfo;
 import org.geoserver.web.wicket.KeywordsEditor;
@@ -85,5 +87,22 @@ public class WCSAdminPageTest extends GeoServerWicketCoverageTestSupport {
         form = tester.newFormTester("form");
         form.submit("submit");
         tester.hasNoErrorMessage();
+    }
+
+    @Test
+    public void testDefaultLocale() {
+        login();
+
+        // start the page
+        tester.startPage(new WCSAdminPage());
+
+        tester.assertRenderedPage(WCSAdminPage.class);
+
+        FormTester form = tester.newFormTester("form");
+
+        form.select("internationalContent:defaultLocale", 14);
+
+        WCSInfo info = getGeoServer().getService(WCSInfo.class);
+        assertNotNull(info.getDefaultLocale());
     }
 }

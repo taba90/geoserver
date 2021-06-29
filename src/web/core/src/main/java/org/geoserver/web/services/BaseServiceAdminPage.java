@@ -38,6 +38,7 @@ import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.web.GeoServerSecuredPage;
 import org.geoserver.web.GeoserverAjaxSubmitLink;
 import org.geoserver.web.data.resource.InternationalStringPanel;
+import org.geoserver.web.data.resource.LocalesDropdown;
 import org.geoserver.web.data.workspace.WorkspaceChoiceRenderer;
 import org.geoserver.web.data.workspace.WorkspacesModel;
 import org.geoserver.web.util.SerializableConsumer;
@@ -125,7 +126,7 @@ public abstract class BaseServiceAdminPage<T extends ServiceInfo> extends GeoSer
         form.add(onlineResource);
         form.add(new CheckBox("enabled"));
         form.add(new CheckBox("citeCompliant"));
-        form.add(getTitleAndAbstractFragment(infoModel, "titleAndAbstract"));
+        form.add(getInternationalContentFragment(infoModel, "internationalContent"));
         form.add(
                 new KeywordsEditor(
                         "keywords",
@@ -394,7 +395,7 @@ public abstract class BaseServiceAdminPage<T extends ServiceInfo> extends GeoSer
         return false;
     }
 
-    public Fragment getTitleAndAbstractFragment(IModel<T> infoModel, String id) {
+    private Fragment getInternationalContentFragment(IModel<T> infoModel, String id) {
         Fragment fragment;
         if (supportInternationalContent()) {
             fragment = new Fragment(id, "internationalStringFragment", BaseServiceAdminPage.this);
@@ -424,6 +425,11 @@ public abstract class BaseServiceAdminPage<T extends ServiceInfo> extends GeoSer
                             return new TextArea<>(id, model);
                         }
                     });
+            LocalesDropdown localesDropdown =
+                    new LocalesDropdown(
+                            "defaultLocale", new PropertyModel<>(infoModel, "defaultLocale"));
+            localesDropdown.setNullValid(true);
+            fragment.add(localesDropdown);
         } else {
             fragment = new Fragment(id, "stringFragment", BaseServiceAdminPage.this);
             fragment.add(new TextField("title"));

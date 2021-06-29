@@ -8,7 +8,6 @@ package org.geoserver.catalog.impl;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import org.geoserver.catalog.AttributionInfo;
 import org.geoserver.catalog.AuthorityURLInfo;
 import org.geoserver.catalog.CatalogVisitor;
@@ -23,6 +22,7 @@ import org.geoserver.catalog.PublishedInfo;
 import org.geoserver.catalog.PublishedType;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
+import org.geoserver.util.GeoServerDefaultLocale;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.util.GrowableInternationalString;
 import org.opengis.util.InternationalString;
@@ -166,7 +166,7 @@ public class LayerGroupInfoImpl implements LayerGroupInfo {
     @Override
     public String getTitle() {
         if (title == null && internationalTitle != null)
-            return internationalTitle.toString(Locale.getDefault());
+            return internationalTitle.toString(GeoServerDefaultLocale.get());
         if (title == null && metadata != null) {
             title = metadata.get("title", String.class);
         }
@@ -195,7 +195,7 @@ public class LayerGroupInfoImpl implements LayerGroupInfo {
     @Override
     public String getAbstract() {
         if (abstractTxt == null && internationalAbstract != null)
-            return internationalAbstract.toString(Locale.getDefault());
+            return internationalAbstract.toString(GeoServerDefaultLocale.get());
         if (abstractTxt == null && metadata != null) {
             abstractTxt = metadata.get("title", String.class);
         }
@@ -403,7 +403,7 @@ public class LayerGroupInfoImpl implements LayerGroupInfo {
     @Override
     public GrowableInternationalString getInternationalTitle() {
         if (this.internationalTitle == null) {
-            return new GrowableInternationalString();
+            return new GrowableInternationalString(title);
         }
         return this.internationalTitle;
     }
@@ -413,15 +413,13 @@ public class LayerGroupInfoImpl implements LayerGroupInfo {
         if (internationalTitle instanceof GrowableInternationalString)
             this.internationalTitle = (GrowableInternationalString) internationalTitle;
         else {
-            GrowableInternationalString internationalString = new GrowableInternationalString();
-            internationalString.add(Locale.getDefault(), internationalTitle.toString());
-            this.internationalTitle = internationalString;
+            this.internationalTitle = new GrowableInternationalString(title);
         }
     }
 
     @Override
     public GrowableInternationalString getInternationalAbstract() {
-        if (this.internationalAbstract == null) return new GrowableInternationalString();
+        if (this.internationalAbstract == null) return new GrowableInternationalString(abstractTxt);
         return this.internationalAbstract;
     }
 
@@ -430,9 +428,7 @@ public class LayerGroupInfoImpl implements LayerGroupInfo {
         if (internationalAbstract instanceof GrowableInternationalString)
             this.internationalAbstract = (GrowableInternationalString) internationalAbstract;
         else {
-            GrowableInternationalString internationalString = new GrowableInternationalString();
-            internationalString.add(Locale.getDefault(), internationalAbstract.toString());
-            this.internationalAbstract = internationalString;
+            this.internationalAbstract = new GrowableInternationalString(abstractTxt);
         }
     }
 }

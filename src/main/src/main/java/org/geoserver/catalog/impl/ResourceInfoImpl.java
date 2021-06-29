@@ -7,7 +7,6 @@ package org.geoserver.catalog.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,6 +19,7 @@ import org.geoserver.catalog.NamespaceInfo;
 import org.geoserver.catalog.ProjectionPolicy;
 import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.catalog.StoreInfo;
+import org.geoserver.util.GeoServerDefaultLocale;
 import org.geotools.feature.NameImpl;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
@@ -168,7 +168,7 @@ public abstract class ResourceInfoImpl implements ResourceInfo {
     @Override
     public String getTitle() {
         if (title == null && internationalTitle != null)
-            return internationalTitle.toString(Locale.getDefault());
+            return internationalTitle.toString(GeoServerDefaultLocale.get());
         else return title;
     }
 
@@ -190,7 +190,7 @@ public abstract class ResourceInfoImpl implements ResourceInfo {
     @Override
     public String getAbstract() {
         if (_abstract == null && internationalAbstract != null)
-            return internationalAbstract.toString(Locale.getDefault());
+            return internationalAbstract.toString(GeoServerDefaultLocale.get());
         else return _abstract;
     }
 
@@ -451,7 +451,7 @@ public abstract class ResourceInfoImpl implements ResourceInfo {
     @Override
     public GrowableInternationalString getInternationalTitle() {
         if (this.internationalTitle == null) {
-            return new GrowableInternationalString();
+            return new GrowableInternationalString(title);
         }
         return this.internationalTitle;
     }
@@ -461,15 +461,13 @@ public abstract class ResourceInfoImpl implements ResourceInfo {
         if (internationalTitle instanceof GrowableInternationalString)
             this.internationalTitle = (GrowableInternationalString) internationalTitle;
         else {
-            GrowableInternationalString internationalString = new GrowableInternationalString();
-            internationalString.add(Locale.getDefault(), internationalTitle.toString());
-            this.internationalTitle = internationalString;
+            this.internationalTitle = new GrowableInternationalString(internationalTitle);
         }
     }
 
     @Override
     public InternationalString getInternationalAbstract() {
-        if (this.internationalAbstract == null) return new GrowableInternationalString();
+        if (this.internationalAbstract == null) return new GrowableInternationalString(_abstract);
         return this.internationalAbstract;
     }
 
@@ -478,9 +476,7 @@ public abstract class ResourceInfoImpl implements ResourceInfo {
         if (internationalAbstract instanceof GrowableInternationalString)
             this.internationalAbstract = (GrowableInternationalString) internationalAbstract;
         else {
-            GrowableInternationalString internationalString = new GrowableInternationalString();
-            internationalString.add(Locale.getDefault(), internationalAbstract.toString());
-            this.internationalAbstract = internationalString;
+            this.internationalAbstract = new GrowableInternationalString(_abstract);
         }
     }
 

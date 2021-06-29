@@ -9,6 +9,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -206,5 +207,14 @@ public class WFSAdminPageTest extends GeoServerWicketTestSupport {
         form = tester.newFormTester("form");
         form.submit("submit");
         tester.hasNoErrorMessage();
+    }
+
+    @Test
+    public void testDefaultLocale() {
+        tester.startPage(WFSAdminPage.class);
+        FormTester ft = tester.newFormTester("form");
+        ft.select("internationalContent:defaultLocale", 11);
+        ft.submit("submit");
+        assertNotNull(getGeoServer().getService(WFSInfo.class).getDefaultLocale());
     }
 }

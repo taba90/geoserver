@@ -34,10 +34,8 @@ public class GrowableStringModel extends ChainingModel<GrowableInternationalStri
         Map<Locale, String> map = growableMapModel.getObject();
         List<InternationalStringEntry> result = new ArrayList<>(map.size());
         for (Locale locale : map.keySet()) {
-            if (locale != null) {
-                String text = map.get(locale);
-                result.add(new InternationalStringEntry(locale, text));
-            }
+            String text = map.get(locale);
+            result.add(new InternationalStringEntry(locale, text));
         }
         return result;
     }

@@ -111,7 +111,7 @@ public class InternationalContentHelper {
      */
     public String getTitle(ResourceInfo info) {
         InternationalString internationalString = info.getInternationalTitle();
-        return getFromInternationalString(internationalString);
+        return getString(internationalString, false);
     }
 
     /**
@@ -120,7 +120,7 @@ public class InternationalContentHelper {
      */
     public String getAbstract(ResourceInfo info) {
         InternationalString internationalString = info.getInternationalAbstract();
-        return getFromInternationalString(internationalString);
+        return getString(internationalString, true);
     }
 
     /**
@@ -129,7 +129,7 @@ public class InternationalContentHelper {
      */
     public String getTitle(PublishedInfo info) {
         InternationalString internationalString = info.getInternationalTitle();
-        return getFromInternationalString(internationalString);
+        return getString(internationalString, false);
     }
 
     /**
@@ -138,7 +138,7 @@ public class InternationalContentHelper {
      */
     public String getAbstract(PublishedInfo info) {
         InternationalString internationalString = info.getInternationalAbstract();
-        return getFromInternationalString(internationalString);
+        return getString(internationalString, true);
     }
 
     /**
@@ -147,7 +147,7 @@ public class InternationalContentHelper {
      */
     public String getTitle(ServiceInfo serviceInfo) {
         InternationalString internationalString = serviceInfo.getInternationalTitle();
-        return getFromInternationalString(internationalString);
+        return getString(internationalString, false);
     }
 
     /**
@@ -156,7 +156,7 @@ public class InternationalContentHelper {
      */
     public String getAbstract(ServiceInfo serviceInfo) {
         InternationalString internationalString = serviceInfo.getInternationalAbstract();
-        return getFromInternationalString(internationalString);
+        return getString(internationalString, true);
     }
 
     /**
@@ -167,7 +167,7 @@ public class InternationalContentHelper {
         Description description = style.getDescription();
         if (description != null) {
             InternationalString internationalString = description.getTitle();
-            return getFromInternationalString(internationalString);
+            return getString(internationalString, true);
         }
         return null;
     }
@@ -180,7 +180,7 @@ public class InternationalContentHelper {
         Description description = style.getDescription();
         if (description != null) {
             InternationalString internationalString = description.getAbstract();
-            return getFromInternationalString(internationalString);
+            return getString(internationalString, true);
         }
         return null;
     }
@@ -198,7 +198,7 @@ public class InternationalContentHelper {
         return filtered;
     }
 
-    private String getFromInternationalString(InternationalString internationalString) {
+    private String getString(InternationalString internationalString, boolean nullable) {
         String result = null;
         if (internationalString instanceof GrowableInternationalString) {
             GrowableInternationalString growable =
@@ -209,7 +209,7 @@ public class InternationalContentHelper {
                 result = getFirstMatchingInternationalValue(growable, supportedLocales);
             }
         }
-        if (result == null) result = ERROR_MESSAGE;
+        if (result == null && !nullable) result = ERROR_MESSAGE;
         return result;
     }
 
@@ -229,13 +229,11 @@ public class InternationalContentHelper {
 
     private void setSupportedLocales(ServiceInfo info, List<ResourceInfo> resourceInfos) {
         Set<Locale> candidates = new HashSet<>();
-        candidates.addAll(getLocalesFromInternationalString(info.getInternationalTitle()));
-        candidates.addAll(getLocalesFromInternationalString(info.getInternationalAbstract()));
+        candidates.addAll(getLocales(info.getInternationalTitle()));
+        candidates.addAll(getLocales(info.getInternationalAbstract()));
         for (ResourceInfo resourceInfo : resourceInfos) {
-            candidates.addAll(
-                    getLocalesFromInternationalString(resourceInfo.getInternationalTitle()));
-            candidates.addAll(
-                    getLocalesFromInternationalString(resourceInfo.getInternationalAbstract()));
+            candidates.addAll(getLocales(resourceInfo.getInternationalTitle()));
+            candidates.addAll(getLocales(resourceInfo.getInternationalAbstract()));
         }
         this.supportedLocales = candidates;
     }
@@ -243,8 +241,8 @@ public class InternationalContentHelper {
     private void setSupportedLocales(
             ServiceInfo info, List<LayerInfo> layerInfos, List<LayerGroupInfo> groups) {
         Set<Locale> candidates = new HashSet<>();
-        candidates.addAll(getLocalesFromInternationalString(info.getInternationalTitle()));
-        candidates.addAll(getLocalesFromInternationalString(info.getInternationalAbstract()));
+        candidates.addAll(getLocales(info.getInternationalTitle()));
+        candidates.addAll(getLocales(info.getInternationalAbstract()));
         setSupportedLocalesFromGroups(candidates, groups);
         setSupportedLocalesFromLayers(candidates, layerInfos);
         this.supportedLocales = candidates;
@@ -253,9 +251,8 @@ public class InternationalContentHelper {
     private void setSupportedLocalesFromGroups(
             Set<Locale> candidates, List<LayerGroupInfo> groups) {
         for (LayerGroupInfo groupInfo : groups) {
-            candidates.addAll(getLocalesFromInternationalString(groupInfo.getInternationalTitle()));
-            candidates.addAll(
-                    getLocalesFromInternationalString(groupInfo.getInternationalAbstract()));
+            candidates.addAll(getLocales(groupInfo.getInternationalTitle()));
+            candidates.addAll(getLocales(groupInfo.getInternationalAbstract()));
             List<StyleInfo> styles = new ArrayList<>(groupInfo.getStyles());
             setSupportedLocalesFromStyles(candidates, styles);
         }
@@ -263,9 +260,8 @@ public class InternationalContentHelper {
 
     private void setSupportedLocalesFromLayers(Set<Locale> candidates, List<LayerInfo> layers) {
         for (LayerInfo layerInfo : layers) {
-            candidates.addAll(getLocalesFromInternationalString(layerInfo.getInternationalTitle()));
-            candidates.addAll(
-                    getLocalesFromInternationalString(layerInfo.getInternationalAbstract()));
+            candidates.addAll(getLocales(layerInfo.getInternationalTitle()));
+            candidates.addAll(getLocales(layerInfo.getInternationalAbstract()));
             List<StyleInfo> styles = new ArrayList<>(layerInfo.getStyles());
             styles.add(layerInfo.getDefaultStyle());
             setSupportedLocalesFromStyles(candidates, styles);
@@ -278,10 +274,8 @@ public class InternationalContentHelper {
                 try {
                     Description description = styleInfo.getStyle().getDescription();
                     if (description != null) {
-                        candidates.addAll(
-                                getLocalesFromInternationalString(description.getTitle()));
-                        candidates.addAll(
-                                getLocalesFromInternationalString(description.getAbstract()));
+                        candidates.addAll(getLocales(description.getTitle()));
+                        candidates.addAll(getLocales(description.getAbstract()));
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -290,12 +284,16 @@ public class InternationalContentHelper {
         }
     }
 
-    private Set<Locale> getLocalesFromInternationalString(InternationalString internationalString) {
+    private Set<Locale> getLocales(InternationalString internationalString) {
         Set<Locale> found;
         if (internationalString instanceof GrowableInternationalString) {
             GrowableInternationalString growable =
                     (GrowableInternationalString) internationalString;
-            found = growable.getLocales();
+            found =
+                    growable.getLocales()
+                            .stream()
+                            .filter(l -> l != null)
+                            .collect(Collectors.toSet());
         } else {
             found = Collections.emptySet();
         }

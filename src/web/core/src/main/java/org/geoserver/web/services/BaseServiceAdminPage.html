@@ -37,7 +37,7 @@
             <input wicket:id="onlineResource" class="field text">
           </li>
           <li>
-            <div wicket:id="titleAndAbstract"></div>
+            <div wicket:id="internationalContent"></div>
           </li>
           <li>
              <label><wicket:message key="fees">Fees</wicket:message></label>
@@ -82,18 +82,28 @@
   <wicket:fragment id="internationalStringFragment" wicket:id="internationalStringFragment">
     <ul>
       <li>
-        <label for="title"><wicket:message key="titleMsg">Title</wicket:message></label>
+        <span>
+          <label for="title"><wicket:message key="titleMsg">Title</wicket:message></label>
+        </span>
         <input class="text" type="text" wicket:id="title"/>
       </li>
       <li>
         <div id="internationalTitle" wicket:id="internationalTitle"/>
       </li>
       <li>
-        <label for="abstract"><wicket:message key="abstract">Abstract</wicket:message></label>
+        <span>
+          <label for="abstract"><wicket:message key="abstract">Abstract</wicket:message></label>
+        </span>
         <textarea wicket:id="abstract" class="field textarea" rows="10" cols="30"></textarea>
       </li>
       <li>
         <div id="internationalAbstract" wicket:id="internationalAbstract"/>
+      </li>
+    </ul>
+    <ul>
+      <li>
+        <label for="defaultLocale"><wicket:message key="defaultLocale">Default Language</wicket:message></label>
+        <select wicket:id="defaultLocale"/>
       </li>
     </ul>
   </wicket:fragment>

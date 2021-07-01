@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+
 import org.apache.wicket.model.ChainingModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -77,6 +79,19 @@ public class GrowableStringModel extends ChainingModel<GrowableInternationalStri
 
         public void setText(String text) {
             this.text = text;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            InternationalStringEntry that = (InternationalStringEntry) o;
+            return Objects.equals(locale, that.locale);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(locale);
         }
     }
 }

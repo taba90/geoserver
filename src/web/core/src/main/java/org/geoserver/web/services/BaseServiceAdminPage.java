@@ -11,6 +11,7 @@ import java.util.List;
 import org.apache.wicket.WicketRuntimeException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -401,35 +402,36 @@ public abstract class BaseServiceAdminPage<T extends ServiceInfo> extends GeoSer
             fragment = new Fragment(id, "internationalStringFragment", BaseServiceAdminPage.this);
             TextField<String> title = new TextField("title");
             fragment.add(title);
+            WebMarkupContainer titleLabelContainer=new WebMarkupContainer("titleLabel");
+            titleLabelContainer.add(new Label("title18nCheckbox",new StringResourceModel("i18nCheckBox",this)));
+            fragment.add(titleLabelContainer);
             fragment.add(
                     new InternationalStringPanel<TextField<String>>(
                             "internationalTitle",
                             new PropertyModel<>(infoModel, "internationalTitle"),
-                            title) {
+                            title,titleLabelContainer) {
                         @Override
                         protected TextField<String> getTextComponent(
                                 String id, IModel<String> model) {
                             return new TextField<>(id, model);
                         }
                     });
+
+            WebMarkupContainer abstractLabelContainer=new WebMarkupContainer("abstractLabel");
+            fragment.add(abstractLabelContainer);
             TextArea<String> area = new TextArea("abstract");
             fragment.add(area);
             fragment.add(
                     new InternationalStringPanel<TextArea<String>>(
                             "internationalAbstract",
                             new PropertyModel<>(infoModel, "internationalAbstract"),
-                            area) {
+                            area,abstractLabelContainer) {
                         @Override
                         protected TextArea<String> getTextComponent(
                                 String id, IModel<String> model) {
                             return new TextArea<>(id, model);
                         }
                     });
-            LocalesDropdown localesDropdown =
-                    new LocalesDropdown(
-                            "defaultLocale", new PropertyModel<>(infoModel, "defaultLocale"));
-            localesDropdown.setNullValid(true);
-            fragment.add(localesDropdown);
         } else {
             fragment = new Fragment(id, "stringFragment", BaseServiceAdminPage.this);
             fragment.add(new TextField("title"));

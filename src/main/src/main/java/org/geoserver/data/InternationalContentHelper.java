@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -34,7 +36,7 @@ import org.opengis.util.InternationalString;
  */
 public class InternationalContentHelper {
 
-    private Set<Locale> requestedLocales = new HashSet<>();
+    private Set<Locale> requestedLocales = new LinkedHashSet<>();
 
     // field that map the AcceptLanguages value *
     protected boolean anyMatch = false;
@@ -192,13 +194,16 @@ public class InternationalContentHelper {
      * @return a list of KeywordInfo containing only the elements that matches the requested locales
      */
     public List<KeywordInfo> filterKeywords(List<KeywordInfo> original) {
-        List<KeywordInfo> filtered =
-                original.stream().filter(new KeywordMatch()).collect(Collectors.toList());
+        List<KeywordInfo> filtered = Collections.emptyList();
+        Iterator<Locale> iterator=requestedLocales.iterator();
+        while(filtered.isEmpty() && iterator.hasNext()){
+            filtered=original.stream().filter(new KeywordMatch(iterator.next())).collect(Collectors.toList());
+        }
         if (filtered.isEmpty() && anyMatch) return original;
         return filtered;
     }
 
-    private String getString(InternationalString internationalString, boolean nullable) {
+    public String getString(InternationalString internationalString, boolean nullable) {
         String result = null;
         if (internationalString instanceof GrowableInternationalString) {
             GrowableInternationalString growable =
@@ -338,12 +343,14 @@ public class InternationalContentHelper {
 
     private class KeywordMatch implements Predicate<KeywordInfo> {
 
+        private Locale locale;
+        public KeywordMatch(Locale locale){
+            this.locale=locale;
+        }
         @Override
         public boolean test(KeywordInfo keywordInfo) {
             String language = keywordInfo.getLanguage();
-            for (Locale l : requestedLocales) {
-                if (l != null && l.getLanguage().equals(language)) return true;
-            }
+            if (locale != null && locale.getLanguage().equals(language)) return true;
             return false;
         }
     }

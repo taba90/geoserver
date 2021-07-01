@@ -675,9 +675,9 @@ public class ResourceConfigurationPageTest extends GeoServerWicketTestSupport {
         FormTester form = tester.newFormTester("publishedinfo");
 
         // enable i18n for title
-        form.setValue("tabs:panel:theList:0:content:internationalTitle:i18nCheckBox", true);
+        form.setValue("tabs:panel:theList:0:content:titleLabel:titleLabel_i18nCheckbox", true);
         tester.executeAjaxEvent(
-                "publishedinfo:tabs:panel:theList:0:content:internationalTitle:i18nCheckBox",
+                "publishedinfo:tabs:panel:theList:0:content:titleLabel:titleLabel_i18nCheckbox",
                 "click");
         tester.executeAjaxEvent(
                 "publishedinfo:tabs:panel:theList:0:content:internationalTitle:container:addNew",
@@ -703,9 +703,9 @@ public class ResourceConfigurationPageTest extends GeoServerWicketTestSupport {
                 "click");
 
         // enable i18n for abstract
-        form.setValue("tabs:panel:theList:0:content:internationalAbstract:i18nCheckBox", true);
+        form.setValue("tabs:panel:theList:0:content:abstractLabel:abstractLabel_i18nCheckbox", true);
         tester.executeAjaxEvent(
-                "publishedinfo:tabs:panel:theList:0:content:internationalAbstract:i18nCheckBox",
+                "publishedinfo:tabs:panel:theList:0:content:abstractLabel:abstractLabel_i18nCheckbox",
                 "click");
         tester.executeAjaxEvent(
                 "publishedinfo:tabs:panel:theList:0:content:internationalAbstract:container:addNew",
@@ -749,9 +749,9 @@ public class ResourceConfigurationPageTest extends GeoServerWicketTestSupport {
         FormTester form = tester.newFormTester("publishedinfo");
 
         // enable i18n for title
-        form.setValue("tabs:panel:theList:0:content:internationalTitle:i18nCheckBox", true);
+        form.setValue("tabs:panel:theList:0:content:titleLabel:titleLabel_i18nCheckbox", true);
         tester.executeAjaxEvent(
-                "publishedinfo:tabs:panel:theList:0:content:internationalTitle:i18nCheckBox",
+                "publishedinfo:tabs:panel:theList:0:content:titleLabel:titleLabel_i18nCheckbox",
                 "click");
         tester.executeAjaxEvent(
                 "publishedinfo:tabs:panel:theList:0:content:internationalTitle:container:addNew",

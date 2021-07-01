@@ -34,14 +34,25 @@
 	          <label for="basic-advertised"><wicket:message key="advertised">Advertised</wicket:message></label>
 	        </li>
             <li>
-              <label for="title"><wicket:message key="titleMsg">Title</wicket:message></label>
-              <input id="title" class="text" type="text" wicket:id="title"/>
+              <br/>
+              <span wicket:id="titleLabel">
+                <label style="float:left" for="title"><wicket:message key="titleMsg">Title</wicket:message></label>
+                <input style="float:left" type="checkbox" wicket:id="titleLabel_i18nCheckbox"/><wicket:message key="i18nCheckBox">i18n</wicket:message>
+              </span>
+            </li>
+            <li>
+                <input id="title" class="text" type="text" wicket:id="title"/>
             </li>
             <li>
               <div id="internationalTitle" wicket:id="internationalTitle"/>
             </li>
             <li>
-              <label for="abstract"><wicket:message key="abstract">Abstract</wicket:message></label>
+              <span wicket:id="abstractLabel">
+                <label style="float:left" for="abstract"><wicket:message key="abstract">Abstract</wicket:message></label>
+                <input style="float:left" type="checkbox" wicket:id="abstractLabel_i18nCheckbox"/><wicket:message key="i18nCheckBox">i18n</wicket:message>
+              </span>
+            </li>
+            <li>
               <textarea wicket:id="abstract" class="field textarea" rows="10" cols="30"></textarea>
             </li>
             <li>

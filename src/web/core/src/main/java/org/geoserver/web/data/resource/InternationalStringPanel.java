@@ -6,13 +6,18 @@ package org.geoserver.web.data.resource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.AbstractTextComponent;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.FormComponentPanel;
 import org.apache.wicket.markup.html.form.IFormSubmitter;
 import org.apache.wicket.markup.html.form.SubmitLink;
@@ -23,6 +28,10 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 import org.geoserver.web.wicket.GeoServerAjaxFormLink;
 import org.geoserver.web.wicket.GeoServerDataProvider;
 import org.geoserver.web.wicket.GeoServerTablePanel;
@@ -46,18 +55,20 @@ public abstract class InternationalStringPanel<C extends AbstractTextComponent<S
 
     InternationalEntriesProvider provider;
 
+    static final String CHECKBOX_SUFFIX="_i18nCheckbox";
+
     public InternationalStringPanel(
-            String id, IModel<GrowableInternationalString> model, C nonInternationalComponent) {
+            String id, IModel<GrowableInternationalString> model, C nonInternationalComponent, WebMarkupContainer checkBoxContainer) {
         super(id, model);
         this.nonInternationalComponent = nonInternationalComponent;
         this.nonInternationalComponent.setOutputMarkupId(true);
         this.nonInternationalComponent.setOutputMarkupPlaceholderTag(true);
-        initUI(new GrowableStringModel(model));
+        initUI(new GrowableStringModel(model),checkBoxContainer);
         setOutputMarkupId(true);
         setOutputMarkupId(true);
     }
 
-    private void initUI(GrowableStringModel model) {
+    private void initUI(GrowableStringModel model, WebMarkupContainer checkBoxContainer) {
         this.growableModel = model;
         WebMarkupContainer container = new WebMarkupContainer("container");
         container.setOutputMarkupPlaceholderTag(true);
@@ -65,7 +76,7 @@ public abstract class InternationalStringPanel<C extends AbstractTextComponent<S
         boolean i18nVisible = i18nVisible();
         nonInternationalComponent.setVisible(!i18nVisible);
         AjaxCheckBox checkbox =
-                new AjaxCheckBox("i18nCheckBox", new Model<>(i18nVisible)) {
+                new AjaxCheckBox(checkBoxContainer.getId()+CHECKBOX_SUFFIX, new Model<>(i18nVisible)) {
                     @Override
                     protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
                         if (getConvertedInput().booleanValue()) {
@@ -74,12 +85,15 @@ public abstract class InternationalStringPanel<C extends AbstractTextComponent<S
                         } else {
                             nonInternationalComponent.setVisible(true);
                             container.setVisible(false);
+                            // update the model in other to preserve
+                            // some newly added entry
+                            tablePanel.processInputs();
                             ajaxRequestTarget.add(this, tablePanel);
                         }
                         ajaxRequestTarget.add(container, nonInternationalComponent, tablePanel);
                     }
                 };
-        add(checkbox);
+        checkBoxContainer.add(checkbox);
         container.setVisible(i18nVisible);
         container.add(
                 new GeoServerAjaxFormLink("addNew") {
@@ -90,6 +104,7 @@ public abstract class InternationalStringPanel<C extends AbstractTextComponent<S
                     protected void onClick(AjaxRequestTarget target, Form<?> form) {
                         provider.getItems().add(new GrowableStringModel.InternationalStringEntry());
                         tablePanel.modelChanged();
+                        InternationalStringPanel.this.modelChanged();
                         target.add(tablePanel);
                     }
                 });
@@ -118,6 +133,24 @@ public abstract class InternationalStringPanel<C extends AbstractTextComponent<S
                                     new ParamResourceModel(
                                             "th.locale", InternationalStringPanel.this));
                             localeBorder.add(locales);
+                            locales.add(new IValidator<Locale>() {
+                                @Override
+                                public void validate(IValidatable<Locale> iValidatable) {
+                                    Locale locale=iValidatable.getValue();
+                                    List<GrowableStringModel.InternationalStringEntry> items=provider.getItems();
+                                    if (locale!=null) {
+                                        long count = items.stream().filter(i -> i.getLocale() != null && i.getLocale().equals(locale)).count();
+                                        if (count >= 1 && iValidatable.getModel().getObject()==null) {
+                                            String message =
+                                                    new StringResourceModel("InternationalStringPanel.duplicatedLocale", InternationalStringPanel.this)
+                                                            .getString();
+                                            ValidationError error = new ValidationError();
+                                            error.setMessage(message);
+                                            iValidatable.error(error);
+                                        }
+                                    }
+                                }
+                            });
                             locales.setNullValid(true);
                             locales.setRequired(true);
                             return localeFragment;
@@ -209,7 +242,8 @@ public abstract class InternationalStringPanel<C extends AbstractTextComponent<S
 
     private GrowableInternationalString updateGrowableString() {
         GrowableInternationalString growableString = new GrowableInternationalString();
-        for (GrowableStringModel.InternationalStringEntry entry : provider.getItems()) {
+        List<GrowableStringModel.InternationalStringEntry> items=provider.getItems();
+        for (GrowableStringModel.InternationalStringEntry entry : items) {
             growableString.add(entry.getLocale(), entry.getText());
         }
         growableModel.setObject(growableString);
@@ -235,7 +269,7 @@ public abstract class InternationalStringPanel<C extends AbstractTextComponent<S
     private boolean isSaveSubmit() {
         boolean result = false;
         IFormSubmitter submitBtn = getForm().findSubmittingButton();
-        if (submitBtn != null) {
+        if (submitBtn != null && submitBtn instanceof SubmitLink) {
             SubmitLink submitLink = (SubmitLink) submitBtn;
             String id = submitLink.getId();
             result = id.equals("submit") || id.equals("save");

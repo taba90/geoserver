@@ -167,8 +167,9 @@ public abstract class ResourceInfoImpl implements ResourceInfo {
 
     @Override
     public String getTitle() {
-        if (title == null && internationalTitle != null)
+        if (title == null && internationalTitle != null) {
             return internationalTitle.toString(GeoServerDefaultLocale.get());
+        }
         else return title;
     }
 

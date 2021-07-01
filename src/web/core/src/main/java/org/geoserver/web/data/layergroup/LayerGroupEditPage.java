@@ -156,6 +156,10 @@ public class LayerGroupEditPage extends PublishedConfigurationPage<LayerGroupInf
             queryableCheckBox =
                     new CheckBox("queryable", new Model<>(!getPublishedInfo().isQueryDisabled()));
             add(queryableCheckBox);
+
+            WebMarkupContainer titleLabelContainer=new WebMarkupContainer("titleLabel");
+            add(titleLabelContainer);
+
             TextField<String> title = new TextField<>("title");
             add(title);
 
@@ -163,13 +167,16 @@ public class LayerGroupEditPage extends PublishedConfigurationPage<LayerGroupInf
                     new InternationalStringPanel<TextField<String>>(
                             "internationalTitle",
                             new PropertyModel<>(getPublishedInfo(), "internationalTitle"),
-                            title) {
+                            title,titleLabelContainer) {
                         @Override
                         protected TextField<String> getTextComponent(
                                 String id, IModel<String> model) {
                             return new TextField<>(id, model);
                         }
                     });
+
+            WebMarkupContainer abstractLabelContainer=new WebMarkupContainer("abstractLabel");
+            add(abstractLabelContainer);
             TextArea<String> area = new TextArea<String>("abstract");
             add(area);
 
@@ -177,7 +184,7 @@ public class LayerGroupEditPage extends PublishedConfigurationPage<LayerGroupInf
                     new InternationalStringPanel<TextArea<String>>(
                             "internationalAbstract",
                             new PropertyModel(getPublishedInfo(), "internationalAbstract"),
-                            area) {
+                            area,abstractLabelContainer) {
                         @Override
                         protected TextArea<String> getTextComponent(
                                 String id, IModel<String> model) {

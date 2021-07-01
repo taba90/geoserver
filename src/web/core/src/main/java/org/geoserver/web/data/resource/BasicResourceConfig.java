@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
@@ -69,27 +70,31 @@ public class BasicResourceConfig extends ResourceConfigurationPanel {
         add(name);
         add(new CheckBox("enabled"));
         add(new CheckBox("advertised"));
+        WebMarkupContainer titleLabelContainer=new WebMarkupContainer("titleLabel");
+        add(titleLabelContainer);
         TextField<String> title = new TextField<>("title");
         add(title);
         InternationalStringPanel<TextField<String>> internationalStringPanelTitle =
                 new InternationalStringPanel<TextField<String>>(
                         "internationalTitle",
                         new PropertyModel<>(model, "internationalTitle"),
-                        title) {
+                        title,titleLabelContainer) {
                     @Override
                     protected TextField<String> getTextComponent(String id, IModel model) {
                         return new TextField<>(id, model);
                     }
                 };
         add(internationalStringPanelTitle);
+
+        WebMarkupContainer abstractLabelContainer=new WebMarkupContainer("abstractLabel");
+        add(abstractLabelContainer);
         TextArea<String> area = new TextArea<>("abstract");
         add(area);
-
         InternationalStringPanel<TextArea<String>> internationalStringPanelAbstract =
                 new InternationalStringPanel<TextArea<String>>(
                         "internationalAbstract",
                         new PropertyModel<>(model, "internationalAbstract"),
-                        area) {
+                        area,abstractLabelContainer) {
                     @Override
                     protected TextArea<String> getTextComponent(String id, IModel model) {
                         return new TextArea<>(id, model);

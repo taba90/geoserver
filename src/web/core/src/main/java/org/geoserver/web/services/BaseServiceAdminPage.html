@@ -82,31 +82,32 @@
   <wicket:fragment id="internationalStringFragment" wicket:id="internationalStringFragment">
     <ul>
       <li>
-        <span>
-          <label for="title"><wicket:message key="titleMsg">Title</wicket:message></label>
+        <span wicket:id="titleLabel">
+          <label style="float:left" for="title"><wicket:message key="titleMsg">Title</wicket:message></label>
+          <input style="float:left" type="checkbox" wicket:id="titleLabel_i18nCheckbox"/><wicket:message key="i18nCheckBox">i18n</wicket:message>
         </span>
+      </li>
+      <li>
         <input class="text" type="text" wicket:id="title"/>
       </li>
       <li>
         <div id="internationalTitle" wicket:id="internationalTitle"/>
       </li>
       <li>
-        <span>
-          <label for="abstract"><wicket:message key="abstract">Abstract</wicket:message></label>
+        <span wicket:id="abstractLabel">
+          <label style="float:left" for="abstract"><wicket:message key="abstract">Abstract</wicket:message></label>
+          <input style="float:left" type="checkbox" wicket:id="abstractLabel_i18nCheckbox"/><wicket:message key="i18nCheckBox">i18n</wicket:message>
         </span>
+      </li>
+      <li>
         <textarea wicket:id="abstract" class="field textarea" rows="10" cols="30"></textarea>
       </li>
       <li>
         <div id="internationalAbstract" wicket:id="internationalAbstract"/>
       </li>
     </ul>
-    <ul>
-      <li>
-        <label for="defaultLocale"><wicket:message key="defaultLocale">Default Language</wicket:message></label>
-        <select wicket:id="defaultLocale"/>
-      </li>
-    </ul>
   </wicket:fragment>
+
 </wicket:extend>
 </body>
 </html>

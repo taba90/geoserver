@@ -124,8 +124,15 @@
         <label><wicket:message key="timeModifiedColChkBox">Display modification timestamps on administration lists</wicket:message></label>
       </li>
     <li>
-      <label><wicket:message key="defaultLocale">Default Language</wicket:message></label>
-      <select id="defaultLocale" wicket:id="defaultLocale" />
+      <fieldset>
+        <legend><span><wicket:message key="i18nSettings">i18n Settings</wicket:message></span></legend>
+        <ul>
+          <li>
+            <label><wicket:message key="defaultLocale">Default Language</wicket:message></label>
+            <select id="defaultLocale" wicket:id="defaultLocale" />
+          </li>
+        </ul>
+      </fieldset>
     </li>
   </ul>
   <div class="button-group toolbar-sticky selfclear">

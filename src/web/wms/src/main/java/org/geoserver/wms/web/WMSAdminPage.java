@@ -17,6 +17,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -33,6 +34,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.validation.validator.RangeValidator;
 import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.web.data.resource.InternationalStringPanel;
+import org.geoserver.web.data.resource.LocalesDropdown;
 import org.geoserver.web.data.store.panel.FileModel;
 import org.geoserver.web.services.BaseServiceAdminPage;
 import org.geoserver.web.util.MapModel;
@@ -107,25 +109,30 @@ public class WMSAdminPage extends BaseServiceAdminPage<WMSInfo> {
         form.add(modal = new ModalWindow("modal"));
 
         // new text field for the title of the root node
+        WebMarkupContainer checkBoxContainerTitle=new WebMarkupContainer("rootTitleLabel");
+        form.add(checkBoxContainerTitle);
         TextField<String> title = new TextField<>("rootLayerTitle");
         form.add(title);
         form.add(
                 new InternationalStringPanel<TextField<String>>(
                         "internationalRootLayerTitle",
                         new PropertyModel<>(info, "internationalRootLayerTitle"),
-                        title) {
+                        title,checkBoxContainerTitle) {
                     @Override
                     protected TextField<String> getTextComponent(String id, IModel<String> model) {
                         return new TextField<>(id, model);
                     }
                 });
+
+        WebMarkupContainer checkBoxContainerAbstract=new WebMarkupContainer("rootAbstractLabel");
+        form.add(checkBoxContainerAbstract);
         TextArea<String> abstractArea = new TextArea<>("rootLayerAbstract");
         form.add(abstractArea);
         form.add(
                 new InternationalStringPanel<TextArea<String>>(
                         "internationalRootLayerAbstract",
                         new PropertyModel<>(info, "internationalRootLayerAbstract"),
-                        abstractArea) {
+                        abstractArea,checkBoxContainerAbstract) {
                     @Override
                     protected TextArea<String> getTextComponent(String id, IModel<String> model) {
                         return new TextArea<>(id, model);
@@ -376,6 +383,7 @@ public class WMSAdminPage extends BaseServiceAdminPage<WMSInfo> {
         remoteStylesMaxRequestTime.add(RangeValidator.minimum(1));
         form.add(remoteStylesMaxRequestTime);
         form.add(new CheckBox("defaultGroupStyleEnabled"));
+        form.add(new LocalesDropdown("defaultLocale",new PropertyModel<>(info,"defaultLocale")));
     }
 
     @Override

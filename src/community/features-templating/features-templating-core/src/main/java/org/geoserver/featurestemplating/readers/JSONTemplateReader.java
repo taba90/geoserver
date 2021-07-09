@@ -142,8 +142,10 @@ public class JSONTemplateReader implements TemplateReader {
                         currentBuilder.addChild(compositeBuilder);
                         getBuilderFromJsonObject(valueNode, compositeBuilder, maker);
                     } else if (valueNode.isArray()) {
+                        currentBuilder = createCompositeIfNeeded(currentBuilder, maker);
                         getBuilderFromJsonArray(entryName, valueNode, currentBuilder, maker);
                     } else {
+                        currentBuilder = createCompositeIfNeeded(currentBuilder, maker);
                         if (!jumpField)
                             getBuilderFromJsonAttribute(
                                     entryName, valueNode, currentBuilder, maker);

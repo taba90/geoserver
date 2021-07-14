@@ -129,16 +129,16 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
         String mode;
         if (!isNew && model.getObject().getExtension().equals("json")) mode = "javascript";
         else mode = "xml";
+        form.add(
         editor =
                 new CodeMirrorEditor(
-                        "templateEditor", mode, new PropertyModel<>(this, "rawTemplate"));
+                        "templateEditor", mode, new PropertyModel<>(this, "rawTemplate")));
         if (mode.equals("javascript")) {
             editor.setModeAndSubMode(mode, model.getObject().getExtension());
         }
-        editor.setTextAreaMarkupId("editor");
         editor.setMarkupId("templateEditor");
+        editor.setTextAreaMarkupId("editor");
         editor.setOutputMarkupId(true);
-        form.add(editor);
         form.add(getSubmit());
         form.add(
                 new Link<TemplateInfoPage>("cancel") {

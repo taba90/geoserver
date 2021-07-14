@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import org.geoserver.ows.Request;
+import org.geoserver.ows.util.ResponseUtils;
 import org.geotools.filter.FunctionExpressionImpl;
 import org.geotools.filter.capability.FunctionNameImpl;
 import org.opengis.filter.capability.FunctionName;
@@ -42,13 +43,16 @@ public class RequestMatchRegex extends FunctionExpressionImpl {
     }
 
     private String getFullURL(HttpServletRequest request) {
-        StringBuilder requestURL = new StringBuilder(request.getRequestURL().toString());
+        StringBuilder requestURL = new StringBuilder(ResponseUtils.baseURL(request));
+        String pathInfo = request.getPathInfo();
         String queryString = request.getQueryString();
-
-        if (queryString == null) {
-            return requestURL.toString();
-        } else {
-            return requestURL.append('?').append(queryString).toString();
+        if (pathInfo != null) {
+            if (pathInfo.startsWith("/")) pathInfo = pathInfo.substring(1);
+            requestURL.append(pathInfo);
         }
+        if (queryString != null) {
+            requestURL.append("?").append(queryString);
+        }
+        return requestURL.toString();
     }
 }

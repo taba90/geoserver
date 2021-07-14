@@ -52,8 +52,8 @@
       <groupId>org.geoserver</groupId>
       <artifactId>gs-wfs</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
       <classifier>tests</classifier>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>

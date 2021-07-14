@@ -31,9 +31,7 @@ import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.resource.Resource;
 import org.geoserver.security.PropertyFileWatcher;
 
-/**
- * A template info DAO that use a property file for persistence.
- */
+/** A template info DAO that use a property file for persistence. */
 public class TemplateInfoDaoImpl implements TemplateInfoDao {
 
     private TreeSet<TemplateInfo> templateDataSet;
@@ -70,8 +68,9 @@ public class TemplateInfoDaoImpl implements TemplateInfoDao {
     public TemplateInfo saveOrUpdate(TemplateInfo templateData) {
         reloadIfNeeded();
         boolean isUpdate =
-                templateDataSet.stream().anyMatch(
-                        ti -> ti.getIdentifier().equals(templateData.getIdentifier()));
+                templateDataSet
+                        .stream()
+                        .anyMatch(ti -> ti.getIdentifier().equals(templateData.getIdentifier()));
         if (isUpdate) fireTemplateUpdateEvent(templateData);
         templateDataSet.add(templateData);
         storeProperties();

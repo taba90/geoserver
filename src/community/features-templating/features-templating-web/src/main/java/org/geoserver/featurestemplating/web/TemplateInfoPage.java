@@ -13,6 +13,7 @@ import org.apache.wicket.core.util.string.JavaScriptUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.geoserver.featurestemplating.configuration.FileTemplateDAOListener;
 import org.geoserver.featurestemplating.configuration.TemplateFileManager;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDao;
@@ -125,5 +126,6 @@ public class TemplateInfoPage extends GeoServerSecuredPage {
         add(tablePanel);
         remove.setOutputMarkupId(true);
         remove.setEnabled(false);
+        TemplateInfoDao.get().addTemplateListener(new FileTemplateDAOListener());
     }
 }

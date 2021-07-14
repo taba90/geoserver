@@ -113,8 +113,10 @@ public class TemplateConfigurationPageTest extends GeoServerWicketTestSupport {
                     "theForm:tabbedPanel:panel:previewForm:featureTypes", DropDownChoice.class);
             tester.assertComponent(
                     "theForm:tabbedPanel:panel:previewForm:previewArea", CodeMirrorEditor.class);
-            tester.assertComponent("theForm:tabbedPanel:panel:previewForm:preview", AjaxSubmitLink.class);
-            tester.assertComponent("theForm:tabbedPanel:panel:previewForm:validate", AjaxSubmitLink.class);
+            tester.assertComponent(
+                    "theForm:tabbedPanel:panel:previewForm:preview", AjaxSubmitLink.class);
+            tester.assertComponent(
+                    "theForm:tabbedPanel:panel:previewForm:validate", AjaxSubmitLink.class);
             tester.newFormTester("theForm").submit("save");
             tester.assertNoErrorMessage();
             tester.assertRenderedPage(TemplateInfoPage.class);

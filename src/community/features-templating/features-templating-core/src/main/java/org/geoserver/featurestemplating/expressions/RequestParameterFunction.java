@@ -12,9 +12,7 @@ import org.geotools.filter.capability.FunctionNameImpl;
 import org.geotools.util.Converters;
 import org.opengis.filter.capability.FunctionName;
 
-/**
- * Returns the value of the request parameter with the name specified in the function parameter.
- */
+/** Returns the value of the request parameter with the name specified in the function parameter. */
 public class RequestParameterFunction extends FunctionExpressionImpl {
 
     public static FunctionName NAME =

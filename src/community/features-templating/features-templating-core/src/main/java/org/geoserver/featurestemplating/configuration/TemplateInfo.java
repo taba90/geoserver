@@ -8,8 +8,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * This class holds the template metadata, such as the name, the identifier,
- * the template file extension, workspace and featureType.
+ * This class holds the template metadata, such as the name, the identifier, the template file
+ * extension, workspace and featureType.
  */
 public class TemplateInfo extends AbstractFeatureTemplateInfo {
 
@@ -52,8 +52,9 @@ public class TemplateInfo extends AbstractFeatureTemplateInfo {
     }
 
     /**
-     * Return the full name of the Template file. By full name is meant the templateName preceded
-     * by the workspace name and featureTypeInfo name if defined for this instance.
+     * Return the full name of the Template file. By full name is meant the templateName preceded by
+     * the workspace name and featureTypeInfo name if defined for this instance.
+     *
      * @return
      */
     public String getFullName() {

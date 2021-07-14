@@ -8,9 +8,7 @@ import org.geotools.filter.capability.FunctionNameImpl;
 import org.geotools.util.Converters;
 import org.opengis.filter.capability.FunctionName;
 
-/**
- * Returns the value of request header with the name specified in the parameter.
- */
+/** Returns the value of request header with the name specified in the parameter. */
 public class HeaderFunction extends FunctionExpressionImpl {
 
     public static FunctionName NAME =

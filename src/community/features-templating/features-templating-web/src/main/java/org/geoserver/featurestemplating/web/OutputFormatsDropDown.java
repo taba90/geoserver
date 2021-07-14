@@ -10,9 +10,7 @@ import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.geoserver.featurestemplating.configuration.SupportedFormat;
 
-/**
- * A Dropdown with output formats supported by features templating.
- */
+/** A Dropdown with output formats supported by features templating. */
 public class OutputFormatsDropDown extends DropDownChoice<SupportedFormat> {
 
     public OutputFormatsDropDown(String id, IModel<SupportedFormat> model) {

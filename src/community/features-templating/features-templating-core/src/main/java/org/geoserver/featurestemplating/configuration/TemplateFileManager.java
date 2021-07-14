@@ -14,9 +14,7 @@ import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.resource.Resource;
 
-/**
- * Helper class that provides methods to manage the template file.
- */
+/** Helper class that provides methods to manage the template file. */
 public class TemplateFileManager {
 
     private Catalog catalog;
@@ -27,16 +25,16 @@ public class TemplateFileManager {
         this.dd = dd;
     }
 
-    /**
-     * @return the singleton instance of this class.
-     */
+    /** @return the singleton instance of this class. */
     public static TemplateFileManager get() {
         return GeoServerExtensions.bean(TemplateFileManager.class);
     }
 
     /**
      * Return a {@link Resource} from a template info.
-     * @param templateInfo the template info for which we want to retrieve the corresponding resource.
+     *
+     * @param templateInfo the template info for which we want to retrieve the corresponding
+     *     resource.
      * @return the resource that corresponds to the template info.
      */
     public Resource getTemplateResource(AbstractFeatureTemplateInfo templateInfo) {
@@ -59,7 +57,9 @@ public class TemplateFileManager {
 
     /**
      * Delete the template file associated to the template info passed as an argument.
-     * @param templateInfo the templateInfo for which we want to delete the corresponding template file.
+     *
+     * @param templateInfo the templateInfo for which we want to delete the corresponding template
+     *     file.
      * @return true if the delete process was successful false otherwise.
      */
     public boolean delete(AbstractFeatureTemplateInfo templateInfo) {
@@ -68,6 +68,7 @@ public class TemplateFileManager {
 
     /**
      * Return the directory where the template file is as a File object.
+     *
      * @param templateInfo the template info to which the desired template file is associated.
      * @return the directoryu where the template file associated to the templateInfo is placed.
      */
@@ -93,6 +94,7 @@ public class TemplateFileManager {
 
     /**
      * Save a template in string form to the directory defined for the template info object.
+     *
      * @param templateInfo the template info object.
      * @param rawTemplate the template content to save to a file.
      */

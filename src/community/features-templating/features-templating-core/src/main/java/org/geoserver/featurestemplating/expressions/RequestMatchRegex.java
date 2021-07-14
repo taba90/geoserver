@@ -14,9 +14,7 @@ import org.geotools.filter.FunctionExpressionImpl;
 import org.geotools.filter.capability.FunctionNameImpl;
 import org.opengis.filter.capability.FunctionName;
 
-/**
- * Check if the current {@link Request} matches the regex passed as an argument of the Function.
- */
+/** Check if the current {@link Request} matches the regex passed as an argument of the Function. */
 public class RequestMatchRegex extends FunctionExpressionImpl {
 
     public static FunctionName NAME =

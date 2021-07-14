@@ -24,7 +24,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.geoserver.featurestemplating.configuration.TemplateCareTaker;
 import org.geoserver.featurestemplating.configuration.TemplateFileManager;
 import org.geoserver.featurestemplating.configuration.TemplateInfo;
 import org.geoserver.featurestemplating.configuration.TemplateInfoDao;
@@ -146,14 +145,14 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                     @Override
                     public void onClick() {
                         TemplateInfo info = form.getModelObject();
-                        if (templateCareTaker!=null)
-                            templateCareTaker.undo(info,isNew);
+                        if (templateCareTaker != null) templateCareTaker.undo(info, isNew);
                         doReturn(TemplateInfoPage.class);
                     }
                 });
         form.setMultiPart(true);
         add(form);
-        if (!isNew && templateCareTaker!=null) templateCareTaker.addMemento(model.getObject(), getEditor().getModelObject());
+        if (!isNew && templateCareTaker != null)
+            templateCareTaker.addMemento(model.getObject(), getEditor().getModelObject());
     }
 
     private String getStringTemplate(TemplateInfo templateInfo) {

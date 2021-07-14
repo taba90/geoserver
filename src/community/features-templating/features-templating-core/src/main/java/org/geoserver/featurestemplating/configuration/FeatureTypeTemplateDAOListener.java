@@ -11,7 +11,8 @@ import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.platform.GeoServerExtensions;
 
 /**
- * A Template event listener that handle Template rules update when a TemplateInfo is deleted or modified.
+ * A Template event listener that handle Template rules update when a TemplateInfo is deleted or
+ * modified.
  */
 public class FeatureTypeTemplateDAOListener implements TemplateDAOListener {
 

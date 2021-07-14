@@ -11,9 +11,7 @@ import org.geotools.filter.FunctionExpressionImpl;
 import org.geotools.filter.capability.FunctionNameImpl;
 import org.opengis.filter.capability.FunctionName;
 
-/**
- * Returns the Mime Type of the current {@link Request}.
- */
+/** Returns the Mime Type of the current {@link Request}. */
 public class MimeTypeFunction extends FunctionExpressionImpl {
 
     public static FunctionName NAME =

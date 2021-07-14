@@ -14,8 +14,8 @@ import org.geoserver.util.XCQL;
 import org.geotools.filter.text.cql2.CQLException;
 
 /**
- * A template rule associated to a FeatureTypeInfo. Its evaluation determines if a specific
- * template should be applied for a Request.
+ * A template rule associated to a FeatureTypeInfo. Its evaluation determines if a specific template
+ * should be applied for a Request.
  */
 @XmlRootElement(name = "rules")
 public class TemplateRule implements Serializable {
@@ -34,6 +34,8 @@ public class TemplateRule implements Serializable {
 
     private String cqlFilter;
 
+    // use to force a rule to be applied regardless of priority
+    // currently used only from the preview mechanism in the web module.
     private boolean forceRule;
 
     public TemplateRule() {
@@ -47,6 +49,7 @@ public class TemplateRule implements Serializable {
 
     /**
      * Apply the rule to the Request to see if it matches it.
+     *
      * @param request the request against which evaluate the rule.
      * @return
      */
@@ -125,6 +128,7 @@ public class TemplateRule implements Serializable {
 
     /**
      * Return the TemplateInfo to which this rule refers to.
+     *
      * @return the TemplateInfo associated to the rule.
      */
     public TemplateInfo getTemplateInfo() {
@@ -195,7 +199,8 @@ public class TemplateRule implements Serializable {
     }
 
     /**
-     * Rule comparator to sort the TemplateRules in order to get the one with higher priority or the one that is forced.
+     * Rule comparator to sort the TemplateRules in order to get the one with higher priority or the
+     * one that is forced.
      */
     public static class TemplateRuleComparator implements Comparator<TemplateRule> {
 

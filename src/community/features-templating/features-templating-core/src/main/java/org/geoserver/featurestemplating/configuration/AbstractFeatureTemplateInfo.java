@@ -14,7 +14,8 @@ import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.resource.Resource;
 
 /**
- * Abstract class for a TemplateInfo. An AbstractTemplateInfo holds information about a template file.
+ * Abstract class for a TemplateInfo. An AbstractTemplateInfo holds information about a template
+ * file.
  */
 public abstract class AbstractFeatureTemplateInfo
         implements Serializable, Comparable<AbstractFeatureTemplateInfo> {

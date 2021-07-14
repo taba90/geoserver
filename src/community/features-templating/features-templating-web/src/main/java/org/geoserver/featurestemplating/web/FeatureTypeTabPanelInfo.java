@@ -9,9 +9,7 @@ import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.PublishedInfo;
 import org.geoserver.web.publish.LayerEditTabPanelInfo;
 
-/**
- * This class represent a tab for FeatureTypeInfo only
- */
+/** This class represent a tab for FeatureTypeInfo only */
 public class FeatureTypeTabPanelInfo extends LayerEditTabPanelInfo {
     @Override
     public boolean supports(PublishedInfo pi) {

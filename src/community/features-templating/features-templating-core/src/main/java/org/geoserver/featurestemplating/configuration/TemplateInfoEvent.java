@@ -4,9 +4,7 @@
  */
 package org.geoserver.featurestemplating.configuration;
 
-/**
- * A TemplateInfo event. Simply hold the TemplateInfo object affected by the event.
- */
+/** A TemplateInfo event. Simply hold the TemplateInfo object affected by the event. */
 public class TemplateInfoEvent {
 
     private TemplateInfo ti;

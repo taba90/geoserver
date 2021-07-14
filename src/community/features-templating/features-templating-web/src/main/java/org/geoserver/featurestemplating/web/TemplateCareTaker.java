@@ -2,38 +2,42 @@
  * This code is licensed under the GPL 2.0 license, available at the root
  * application directory.
  */
-package org.geoserver.featurestemplating.configuration;
+package org.geoserver.featurestemplating.web;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.geoserver.featurestemplating.configuration.TemplateFileManager;
+import org.geoserver.featurestemplating.configuration.TemplateInfo;
+import org.geoserver.featurestemplating.configuration.TemplateInfoDao;
 import org.geoserver.platform.GeoServerExtensions;
 import org.geotools.util.logging.Logging;
 
 /**
- * This class provides functionality to undo operation performed on TemplateInfo,
- * by storing {@link TemplateInfoMemento} with previous state of a template.
- * At the moment it is possible to store only one memento object for TemplateInfo.
+ * This class provides functionality to undo operation performed on TemplateInfo, by storing {@link
+ * TemplateInfoMemento} with previous state of a template. At the moment it is possible to store
+ * only one memento object for TemplateInfo.
  */
-public class TemplateCareTaker {
+class TemplateCareTaker {
 
     static final Logger LOGGER = Logging.getLogger(TemplateInfoMemento.class);
 
     private Map<String, TemplateInfoMemento> mementoMap;
     private TemplateFileManager fileManager;
 
-    public TemplateCareTaker() {
+    TemplateCareTaker() {
         this.mementoMap = new HashMap<>();
         this.fileManager = GeoServerExtensions.bean(TemplateFileManager.class);
     }
 
     /**
-     * Delete the old template file if its new location is different from the one
-     * stored in the memento object.
+     * Delete the old template file if its new location is different from the one stored in the
+     * memento object.
+     *
      * @param info the TemplateInfo object with updated data.
      */
-    public void deleteOldTemplateFile(TemplateInfo info) {
+    void deleteOldTemplateFile(TemplateInfo info) {
         String identifier = info.getIdentifier();
         TemplateInfoMemento memento = mementoMap.get(identifier);
         if (memento == null) {
@@ -62,15 +66,15 @@ public class TemplateCareTaker {
     }
 
     /**
-     * Restore the TemplateInfo to the state registered in the memento map.
-     * This method eventually move the template file from the current position to the
-     * previous one if different.
+     * Restore the TemplateInfo to the state registered in the memento map. This method eventually
+     * move the template file from the current position to the previous one if different.
+     *
      * @param info the TemplateInfo to be restored.
      */
-    public void undo(TemplateInfo info, boolean deleteNew) {
+    void undo(TemplateInfo info, boolean deleteNew) {
         String identifier = info.getIdentifier();
         TemplateInfoMemento memento = mementoMap.get(identifier);
-        if (memento == null){
+        if (memento == null) {
             if (!deleteNew) {
                 if (LOGGER.isLoggable(Level.WARNING))
                     LOGGER.log(
@@ -97,10 +101,11 @@ public class TemplateCareTaker {
 
     /**
      * Add a memento object.
+     *
      * @param templateInfo the TemplateInfo object to store in the memento map.
      * @param rawTemplate the template content as a string.
      */
-    public void addMemento(TemplateInfo templateInfo, String rawTemplate) {
+    void addMemento(TemplateInfo templateInfo, String rawTemplate) {
         TemplateInfoMemento memento = new TemplateInfoMemento(templateInfo, rawTemplate);
         mementoMap.put(templateInfo.getIdentifier(), memento);
     }

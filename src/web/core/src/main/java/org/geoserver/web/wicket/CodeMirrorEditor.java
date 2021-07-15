@@ -344,6 +344,7 @@ public class CodeMirrorEditor extends FormComponentPanel<String> {
                     CodeMirrorEditor.class.getResourceAsStream("CodeMirrorEditor.js")) {
                 String js = convertStreamToString(is);
                 js = js.replaceAll("\\$componentId", editor.getMarkupId());
+                js = js.replaceAll("\\$codeMirrorEditorId", getMarkupId());
                 js = js.replaceAll("\\$mode", mode);
                 js = js.replaceAll("\\$container", container.getMarkupId());
                 return js;

@@ -168,9 +168,9 @@ public class TemplatePreviewPanel extends Panel {
         if (!hasWorkspace) featureTypesDD.setEnabled(false);
         if (hasFeatureType) setFeatureTypeInfoValue(templateInfo.getObject().getFeatureType());
         previewInfoForm.add(featureTypesDD);
-        previewEditor =
+        previewInfoForm.add(previewEditor =
                 new CodeMirrorEditor(
-                        "previewArea", "xml", new PropertyModel<>(this, "previewResult"));
+                        "previewArea", "xml", new PropertyModel<>(this, "previewResult")));
         previewEditor.setOutputMarkupId(true);
         previewEditor.setTextAreaMarkupId("previewEditor");
         previewEditor.setMarkupId("previewArea");
@@ -185,9 +185,9 @@ public class TemplatePreviewPanel extends Panel {
         cqlFilterField =
                 new TextField<>("cqlFilterField", new PropertyModel<>(previewModel, "cqlFilter"));
         previewInfoForm.add(cqlFilterField);
-        previewInfoForm.setMultiPart(true);
         previewInfoForm.add(getSubmit());
         previewInfoForm.add(getValidate());
+        previewInfoForm.setMultiPart(true);
         add(previewInfoForm);
     }
 

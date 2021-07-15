@@ -90,7 +90,7 @@ public class FlatGeoJSONComplexFeaturesResponseAPITest
                 "ogc/features/collections/"
                         + "gsml:GeologicUnit"
                         + "/items?f=application%2Fgeo%2Bjson";
-        path+="&"+requestParam+"=true";
+        path += "&" + requestParam + "=true";
         JSONObject result = (JSONObject) getJson(path);
         JSONArray features = (JSONArray) result.get("features");
         assertEquals(3, features.size());

@@ -130,15 +130,17 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
         if (!isNew && model.getObject().getExtension().equals("json")) mode = "javascript";
         else mode = "xml";
         form.add(
-        editor =
-                new CodeMirrorEditor(
-                        "templateEditor", mode, new PropertyModel<>(this, "rawTemplate")));
+                editor =
+                        new CodeMirrorEditor(
+                                "templateEditor", mode, new PropertyModel<>(this, "rawTemplate")));
         if (mode.equals("javascript")) {
             editor.setModeAndSubMode(mode, model.getObject().getExtension());
         }
         editor.setMarkupId("templateEditor");
         editor.setTextAreaMarkupId("editor");
         editor.setOutputMarkupId(true);
+        form.setMultiPart(true);
+        form.add(editor);
         form.add(getSubmit());
         form.add(
                 new Link<TemplateInfoPage>("cancel") {
@@ -149,7 +151,6 @@ public class TemplateConfigurationPage extends GeoServerSecuredPage {
                         doReturn(TemplateInfoPage.class);
                     }
                 });
-        form.setMultiPart(true);
         add(form);
         if (!isNew && templateCareTaker != null)
             templateCareTaker.addMemento(model.getObject(), getEditor().getModelObject());
